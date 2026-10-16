@@ -1,5 +1,7 @@
 # Deprecation and Retirement
 
-Do not confuse feature disposition with implementation maturity. Document each legacy item using a deliberate disposition: `RETAIN`, `ABSORB`, `SUPERSEDE`, `EXTENSION`, `DEFER`, `PASS` or `RETIRE`.
+Choose a legacy feature strategy from `legacy_feature_strategies` in [unified-package-standard.json](../06_GOVERNANCE/unified-package-standard.json): `RETAIN`, `ABSORB`, `SUPERSEDE`, `EXTRACT_EXTENSION`, `RETIRE`. This describes its architectural destination, independently of completion status or evidence result. EXTRACT_EXTENSION must satisfy [component boundaries](../02_STANDARD/COMPONENT_BOUNDARY.md).
 
-The fact that a historical command or source file exists is not a reason to reimplement it. If it violates the new authority or component boundary, absorb useful lessons and tests while superseding the implementation. Retirement additionally requires documented effects on users, external dependencies, data, permissions, retention obligations and rollback support.
+Historical existence does not justify rebuilding a command or file. Keep useful lessons/tests while superseding implementations that violate authority or component contracts. Track deferred decisions and closure through [feedback](../01_METHOD/OPERATIONAL_FEEDBACK_LOOP.md), rather than adding PASS or DEFER to feature strategies.
+
+Before retirement, assess user notice/migration, external dependencies, data retention/deletion, permissions, residual risk and remaining recovery obligations under the [coverage standard](../02_STANDARD/LIFECYCLE_COVERAGE_STANDARD.md).

@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/verysimple/state-contract/1.8",
+  "title": "State Ownership and Sensitivity Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "states"
+  ],
+  "properties": {
+    "states": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/state"
+      }
+    }
+  },
+  "$defs": {
+    "state": {
+      "type": "object",
+      "required": [
+        "name",
+        "kind",
+        "recovery_class"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "CONFIG",
+            "DOMAIN_DATA",
+            "EVIDENCE",
+            "LOG",
+            "CACHE",
+            "TEMP",
+            "BACKUP",
+            "SCHEMA",
+            "SECRET",
+            "EXTERNAL_REF"
+          ]
+        },
+        "recovery_class": {
+          "enum": [
+            "AUTHORITATIVE",
+            "DURABLE_DERIVED",
+            "REBUILDABLE",
+            "EPHEMERAL",
+            "EXTERNAL"
+          ]
+        },
+        "backup_policy": {
+          "enum": [
+            "REQUIRED",
+            "OPTIONAL",
+            "EXCLUDE",
+            "REFERENCE_ONLY"
+          ]
+        },
+        "secret": {
+          "type": "boolean",
+          "description": "Orthogonal sensitivity flag across all state kinds. Precedence: secret=true (or kind=SECRET) enforces encryption, redaction, and backup exclusion/protection over permissive defaults of any kind or recovery_class."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "SECRET"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "secret": {
+                "const": true
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

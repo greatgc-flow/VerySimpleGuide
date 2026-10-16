@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/verysimple/component-registry/1.8",
+  "type": "object",
+  "required": [
+    "standard_version",
+    "components"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "standard_version": {
+      "const": "1.8.0"
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "plane",
+          "component_class",
+          "required_scopes",
+          "boundary_roles",
+          "maturity",
+          "state_ownership"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "plane": {
+            "enum": [
+              "PRODUCT_RUNTIME",
+              "DELIVERY"
+            ]
+          },
+          "component_class": {
+            "enum": [
+              "CORE",
+              "MODULE",
+              "EXTENSION",
+              "GENERATED_VIEW",
+              "EXTERNAL"
+            ]
+          },
+          "required_scopes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
+          },
+          "boundary_roles": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "NONE",
+                "ADAPTER",
+                "PROVIDER",
+                "EXPORTER"
+              ]
+            },
+            "uniqueItems": true
+          },
+          "maturity": {
+            "enum": [
+              "PLANNED",
+              "DESIGN_FROZEN",
+              "IMPLEMENTING",
+              "IMPLEMENTED",
+              "VERIFIED",
+              "DEPRECATED",
+              "RETIRED"
+            ]
+          },
+          "state_ownership": {
+            "type": "array",
+            "items": {
+              "$ref": "state-contract.schema.json#/$defs/state"
+            }
+          },
+          "notes": {
+            "type": "string"
+          },
+          "extensions": {
+            "type": "object",
+            "patternProperties": {
+              "^[a-z][a-z0-9_.-]*[/:][a-zA-Z0-9_.:-]+$": {}
+            },
+            "additionalProperties": false,
+            "description": "Product-specific metadata using namespaced keys (e.g. pkg.example/accelerator). Strict common namespace is preserved."
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "component_class": {
+                  "const": "EXTENSION"
+                }
+              },
+              "required": [
+                "component_class"
+              ]
+            },
+            "then": {
+              "properties": {
+                "required_scopes": {
+                  "not": {
+                    "contains": {
+                      "const": "BASE"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "boundary_roles": {
+                  "contains": {
+                    "const": "NONE"
+                  }
+                }
+              },
+              "required": [
+                "boundary_roles"
+              ]
+            },
+            "then": {
+              "properties": {
+                "boundary_roles": {
+                  "maxItems": 1
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

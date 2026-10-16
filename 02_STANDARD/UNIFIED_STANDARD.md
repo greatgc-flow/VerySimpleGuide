@@ -1,10 +1,10 @@
-# Unified Package Standard 1.7.0
+# Unified Package Standard 1.8.0
 
-The 15 baseline controls describe **shared semantic responsibilities**, not a fixed technology stack or a lifetime cap on future Controls.
+Applicable semantic responsibilities are binding; organizing them as fifteen controls is a default under [open technology principles](../01_METHOD/OPEN_TECHNOLOGY_PRINCIPLES.md). `primary_control` identifies the package semantic control domain; project `owner` identifies accountable decision authority. Artifact maintainership grants no acceptance authority. Discovery/funding mappings assign document/control responsibility, not business authority.
 
 | ID | Control | Semantic ownership |
 |---|---|---|
-| UPS-CLI | CLI / Interface | Public grammar and common flag behavior |
+| UPS-CLI | CLI / Interface | Public behavioral contracts; CLI grammar/flags only for CLI surfaces |
 | UPS-HELP | Help / Discovery | Read-only help, discovery and generated-view consistency |
 | UPS-EXIT | Exit Semantics | Semantic exit classes; numeric codes may be product-specific |
 | UPS-CONFIG | Configuration | Precedence, merge and null/empty/unknown behavior |

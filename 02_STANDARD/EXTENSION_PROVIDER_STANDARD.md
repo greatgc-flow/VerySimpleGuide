@@ -1,12 +1,12 @@
 # Extension, Provider, Adapter and Exporter Standard
 
-Component class and boundary role are **orthogonal**:
+Component class and boundary role are separate dimensions; [component rules](COMPONENT_BOUNDARY.md) constrain classification:
 - `NONE`: no external boundary role.
 - `ADAPTER`: maps an external protocol or model to an internal contract.
 - `PROVIDER`: supplies execution environment or capabilities.
 - `EXPORTER`: emits telemetry, evidence or internal events to another format/system.
 
-A minimal extension manifest declares `id`, `version`, `component_class`, `required_scopes`, `boundary_roles`, `capabilities`, optional `config_schema_ref`, and `state_ownership`. Add entry points, migrations and failure-isolation machinery only as a product needs them.
+A minimal component registry entry declares `id`, `plane`, `component_class`, `required_scopes`, `boundary_roles`, `maturity`, and `state_ownership` (plus optional `notes` and namespaced `extensions`). Add entry points, migrations and failure-isolation machinery only as a product needs them.
 
 ## Framework restraint
 Do **not** default to a bespoke plugin marketplace, dependency resolver, hot reload or generic extension host. Multiple real consumers with shared invariants justify reevaluation; two or three examples are a heuristic, not a hard threshold. A mature interoperability standard or high-value bounded experiment may justify an earlier adoption.

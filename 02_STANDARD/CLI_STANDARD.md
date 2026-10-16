@@ -1,6 +1,9 @@
 # CLI and Public Interface Standard
 
-## Shared meanings, product-local grammar
+## Universal public-interface obligations
+For each existing UI, API, library, event or CLI surface, declare inputs, outputs, errors, compatibility, side effects, actor authorization and observable completion. Version the contract where relevant; test promised behavior and expose limitations. Discovery/help must be read-only. A success report requires the contracted effect and postconditions; diagnostics preserve uncertainty. No CLI is required for a product without one.
+
+## CLI profile: product-local grammar
 A lifecycle utility may use `<product> backup` or `<product> repair`; a domain system may prefer `<product> <noun> <verb>`. A globally identical command tree is **not required**.
 
 ## Public flags (when applicable)
@@ -13,7 +16,7 @@ A lifecycle utility may use `<product> backup` or `<product> repair`; a domain s
 
 The product must decide and test how `--dry-run` and `--apply` interact. Safe precedence or a usage error are both possible documented policies.
 
-## Semantic exit classes
+## CLI profile: semantic exit classes
 - `SUCCESS`: contracted effect and postconditions completed.
 - `USAGE`: invalid grammar, argument or schema input.
 - `DECLINED`: the user chose not to proceed.

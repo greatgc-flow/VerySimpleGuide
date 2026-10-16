@@ -1,14 +1,16 @@
-# Assurance Cases and Negative Verification
+# Independent Assurance Claims
 
-The evidence chain is **Claim → Scope/Candidate → Requirement/Obligation → Test/Gate → Fresh Evidence → Verdict**.
+Use **Claim → Scope/Candidate → Obligation → Check/Gate → Fresh Evidence → Result**. Canonical `outcome_contract.claim_kinds` and `claim_results` live in [unified-package-standard.json](../06_GOVERNANCE/unified-package-standard.json):
 
-- `DOCUMENTED` is a design statement; `SCHEMA_CHECKED` demonstrates structural validity; `PRODUCT_VERIFIED` needs a product's real passing run.
-- A document merely existing is not proof. Prove that the validator rejects representative malformed counterexamples.
-- A gate described by a Markdown path without execution evidence is only a planned test.
-- Scope `N_A`, `PASS` and `DEFERRED` need their recorded rationale, owner and revisit conditions where applicable.
-- Never conflate Common Standard design validity with deployed product assurance.
+| Claim kind | Evidence addressed |
+|---|---|
+| DESIGN_COVERED | Explicit design and obligation coverage. |
+| SCHEMA_CHECKED | Executed schema and static checks. |
+| NEGATIVE_TESTED | Executed rejection of representative malformed inputs. |
+| PRODUCT_VERIFIED | Product-specific real execution and acceptance. |
 
-## Representative negative cases
-Reject changed, missing, extra or traversal-based manifest paths; invalid JSON schemas; evidence-free `VERIFIED`/`PROMOTED`; orphan requirements, tests, gates and feedback; closed feedback without measured post-outcomes; unowned deferral or rejection; and stale or mismatched candidate digests.
+Each claim independently receives NOT_EVALUATED, PASS or FAIL; these are not a maturity ladder. No check means NOT_EVALUATED. Per-claim output states what ran; aggregate PASS requires every package-scope claim to PASS and an empty error set. Product verification remains NOT_EVALUATED without real product evidence and cannot be implied by package success.
 
-This package proves schema, sample and reference model properties, not live concurrency, provider, OS or security outcomes. Project execution may use `--project-trace`, `--project-registry` and `--project-lifecycle`, but real dependency topology and production tests require external gates.
+Representative negative cases include missing/extra/changed or noncanonical manifest paths, evidence-output aliases of inputs, invalid contracts, evidence-free VERIFIED/PROMOTED, orphan trace links, unowned deferral and stale/mismatched candidates. A Markdown test path is a plan, not execution evidence. [Assessment records](../02_STANDARD/LIFECYCLE_COVERAGE_STANDARD.md) and [feedback closure](../01_METHOD/OPERATIONAL_FEEDBACK_LOOP.md) define their own evidence conditions.
+
+The reference validator checks models and encoded conditions. Real provider/OS/security, recovery, concurrency and user outcomes need project gates; see [reality gates](REALITY_GATES.md).

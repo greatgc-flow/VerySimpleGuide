@@ -1,0 +1,273 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/verysimple/unified-package-standard/1.8",
+  "title": "Unified Package Standard Machine SSOT",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "standard_id",
+    "version",
+    "philosophy",
+    "planes",
+    "component_classes",
+    "boundary_roles",
+    "state_kinds",
+    "recovery_classes",
+    "maturity",
+    "distribution",
+    "applicability",
+    "approach",
+    "assessment_results",
+    "feedback_dispositions",
+    "feedback_statuses",
+    "feedback_events",
+    "legacy_feature_strategies",
+    "exit_semantics",
+    "value_semantics",
+    "controls",
+    "invariants",
+    "outcome_contract",
+    "openness_contract",
+    "lifecycle_contract",
+    "guidance_contract"
+  ],
+  "properties": {
+    "standard_id": {
+      "const": "VS-UNIFIED-PACKAGE-STANDARD"
+    },
+    "version": {
+      "const": "1.8.0"
+    },
+    "philosophy": {
+      "type": "string",
+      "minLength": 1
+    },
+    "planes": {
+      "$ref": "#/$defs/string_enum_list"
+    },
+    "component_classes": {
+      "$ref": "#/$defs/string_enum_list"
+    },
+    "boundary_roles": {
+      "$ref": "#/$defs/string_enum_list"
+    },
+    "state_kinds": {
+      "$ref": "#/$defs/string_enum_list"
+    },
+    "recovery_classes": {
+      "$ref": "#/$defs/string_enum_list"
+    },
+    "maturity": {
+      "$ref": "#/$defs/string_enum_list"
+    },
+    "distribution": {
+      "$ref": "#/$defs/string_enum_list"
+    },
+    "applicability": {
+      "$ref": "#/$defs/string_enum_list"
+    },
+    "approach": {
+      "$ref": "#/$defs/string_enum_list"
+    },
+    "assessment_results": {
+      "$ref": "#/$defs/string_enum_list"
+    },
+    "feedback_dispositions": {
+      "$ref": "#/$defs/string_enum_list"
+    },
+    "feedback_statuses": {
+      "$ref": "#/$defs/string_enum_list"
+    },
+    "feedback_events": {
+      "$ref": "#/$defs/string_enum_list"
+    },
+    "legacy_feature_strategies": {
+      "$ref": "#/$defs/string_enum_list"
+    },
+    "exit_semantics": {
+      "$ref": "#/$defs/string_enum_list"
+    },
+    "value_semantics": {
+      "$ref": "#/$defs/string_enum_list"
+    },
+    "controls": {
+      "type": "array",
+      "minItems": 15,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^UPS-[A-Z]+$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "invariants": {
+      "type": "array",
+      "minItems": 37,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9_]+$"
+      }
+    },
+    "outcome_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "objective_required",
+        "scope_and_non_goals_required",
+        "fitness_measures_or_unratified_required",
+        "feedback_post_release_evaluation_required",
+        "evidence_to_regression_test_trace_required",
+        "claim_kinds",
+        "claim_results"
+      ],
+      "properties": {
+        "objective_required": {
+          "const": true
+        },
+        "scope_and_non_goals_required": {
+          "const": true
+        },
+        "fitness_measures_or_unratified_required": {
+          "const": true
+        },
+        "feedback_post_release_evaluation_required": {
+          "const": true
+        },
+        "evidence_to_regression_test_trace_required": {
+          "const": true
+        },
+        "claim_kinds": {
+          "$ref": "#/$defs/string_enum_list"
+        },
+        "claim_results": {
+          "$ref": "#/$defs/string_enum_list"
+        }
+      }
+    },
+    "openness_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "language_agnostic",
+        "platform_agnostic",
+        "reference_tool_non_normative",
+        "baseline_controls_not_immutable",
+        "innovation_proposals_supported",
+        "normative_levels"
+      ],
+      "properties": {
+        "language_agnostic": {
+          "const": true
+        },
+        "platform_agnostic": {
+          "const": true
+        },
+        "reference_tool_non_normative": {
+          "const": true
+        },
+        "baseline_controls_not_immutable": {
+          "const": true
+        },
+        "innovation_proposals_supported": {
+          "const": true
+        },
+        "normative_levels": {
+          "$ref": "#/$defs/string_enum_list"
+        }
+      }
+    },
+    "lifecycle_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model",
+        "stage_matrix",
+        "product_checklist",
+        "not_a_waterfall",
+        "stage_applicability_product_local",
+        "stage_owners_and_exit_required_when_applicable",
+        "retirement_and_revisit_covered"
+      ],
+      "properties": {
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "stage_matrix": {
+          "const": "03_LIFECYCLE/lifecycle-matrix.json"
+        },
+        "product_checklist": {
+          "const": "07_CONTRACTS/examples/project-lifecycle.example.json"
+        },
+        "not_a_waterfall": {
+          "const": true
+        },
+        "stage_applicability_product_local": {
+          "const": true
+        },
+        "stage_owners_and_exit_required_when_applicable": {
+          "const": true
+        },
+        "retirement_and_revisit_covered": {
+          "const": true
+        }
+      }
+    },
+    "guidance_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "catalog",
+        "references",
+        "not_normative_by_default",
+        "reference_tool_non_normative",
+        "requires_adoption_record_for_mandate"
+      ],
+      "properties": {
+        "mode": {
+          "const": "OPTIONAL_PULL_ON_DEMAND"
+        },
+        "catalog": {
+          "const": "08_KNOWLEDGE/guidance-catalog.json"
+        },
+        "references": {
+          "const": "08_KNOWLEDGE/references/catalog.json"
+        },
+        "not_normative_by_default": {
+          "const": true
+        },
+        "reference_tool_non_normative": {
+          "const": true
+        },
+        "requires_adoption_record_for_mandate": {
+          "const": true
+        }
+      }
+    }
+  },
+  "$defs": {
+    "string_enum_list": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

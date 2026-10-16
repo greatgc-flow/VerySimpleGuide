@@ -1,48 +1,34 @@
 # VerySimpleGuide
 
-**A platform-neutral, evidence-driven, lifecycle-wide architecture and engineering guide.**
+A platform-neutral engineering reference: standardize shared semantics, keep implementations small and tie claims to evidence. This is a guide and validation toolkit, not an application or mandatory framework.
 
-This repository generalizes proven design, testing, delivery and operating lessons without copying any particular product's implementation. It is a **reference standard and validation toolkit**, not an application, code generator or mandatory framework.
+Start with [START_HERE.md](START_HERE.md), [objectives and fitness](01_METHOD/OBJECTIVE_AND_FITNESS.md), then the [unified standard](02_STANDARD/UNIFIED_STANDARD.md). Select [COMPACT or FULL](02_STANDARD/LIFECYCLE_COVERAGE_STANDARD.md) explicitly. The [lifecycle backbone](03_LIFECYCLE/README.md) supports iteration and scoped feedback; optional [knowledge](08_KNOWLEDGE/README.md) is retrieved as needed.
 
-## Principles
-- **Very Simple:** standardize only required semantics; remove incidental complexity.
-- **Recursive MECE:** inspect vertical ownership and horizontal concern coverage repeatedly at every relevant scope.
-- **One Source, Multiple Uses:** derive human views and tests from canonical machine-readable contracts.
-- **Evidence First:** attach assertions to exact candidates, observed facts and fresh gates.
-- **Declarative by Default:** prefer schemas, config and policy over vendor-specific hardcoding.
-- **Closed-Loop Improvement:** observation → decision → test/proof → minimal change → verification → deployment → measured outcome → revisit.
-- **Technology Openness:** treat languages, tools, patterns and industry guidance as scoped choices, not global obligations.
+## Validate
 
-## What the guide covers
-The eight orthogonal classification axes, 15 baseline controls, component and state ownership, authority versus projections, optional extensions and provider contracts, defensive mutations, public-interface compatibility, bounded orchestration, release identity, evidence, field reality gates and retirement. The lifecycle guide spans 12 logical stages and 10 independent cross-cutting concerns. Optional engineering guidance and authoritative references are pulled on demand rather than loaded wholesale.
-
-## Quick start
-Read [START_HERE.md](START_HERE.md), [Unified Standard](02_STANDARD/UNIFIED_STANDARD.md), [Lifecycle Value Stream](01_METHOD/LIFECYCLE_VALUE_STREAM.md) and the [Optional Knowledge Catalog](08_KNOWLEDGE/README.md). Example JSON payloads in `05_TEMPLATES` are illustrative: do not treat their invented IDs or sample PASS labels as real evidence.
-
-### Validate this repository
 ```bash
 python -m pip install -r tools/requirements-validation.txt
-python tools/validate_package.py --evidence-file .validation/validation_evidence.txt
+python -B tools/validate_package.py --evidence-file .validation/validation_evidence.txt
 ```
 
-The validator mirrors the displayed output to the evidence file. The shipped PowerShell wrapper is syntax-compatible with Windows PowerShell 2.x/5.x where the required Python is available:
-```powershell
-.\tools\validate_package.ps1 -Python python -EvidenceFile .validation\validation_evidence.txt
-```
+PowerShell wrapper: `.\tools\validate_package.ps1 -Python python -EvidenceFile .validation\validation_evidence.txt`.
 
-### Validate a project's scoped models
+To include project models:
+
 ```bash
-python tools/validate_package.py \
+python -B tools/validate_package.py \
   --project-trace path/to/project-trace.json \
   --project-registry path/to/component-registry.json \
   --project-lifecycle path/to/project-lifecycle.json \
   --evidence-file .validation/project_validation.txt
 ```
 
-**Important:** a passing structural/semantic validation is not proof that external CI runs, operating conditions, security controls, data recovery or user outcomes were independently validated. Projects must supply their own real evidence and blocking gates.
+Evidence output belongs under `.validation/`. JSON examples illustrate contracts; their IDs and PASS labels are not real product evidence. [Assurance claims](04_ASSURANCE/ASSURANCE_CASE_AND_NEGATIVE_TEST.md) distinguish design, structural checks, negative tests and actual product verification. Package success cannot establish field outcomes.
 
-## Repository navigation
-`01_METHOD` contains objectives and loops; `02_STANDARD` defines contracts; `03_LIFECYCLE` defines transitions and release; `04_ASSURANCE` defines evidence and negative verification; `04_SCHEMAS` defines JSON contracts; `05_ARCHITECTURE` and `05_TEMPLATES` contain decisions and examples; `06_GOVERNANCE` contains single ownership and evolution; `07_AUDIT` contains dated design audits; `08_KNOWLEDGE` holds optional guidance and source links; `09_LIFECYCLE` contains the 12×10 review space; `tools` holds the reference validator.
+## Navigation
 
-## Licensing and external materials
-Original content and reference tooling in this repository are distributed under [Apache License 2.0](LICENSE). Linked external guides retain their own terms and are *not* relicensed or reproduced here. The guide does not prescribe a programming language, cloud, toolchain or development methodology.
+`01_METHOD`: objectives and reasoning; `02_STANDARD`: normative contracts; `03_LIFECYCLE`: stages and transitions; `04_ASSURANCE`: evidence and verification; `05_ARCHITECTURE`: design guidance; `06_GOVERNANCE`: authority and evolution; `07_CONTRACTS/{schemas,examples}`: machine contracts and samples; `08_KNOWLEDGE`: optional guidance; `tools`: reference validation. [CHANGELOG.md](CHANGELOG.md) retains durable design decisions.
+
+Applicable safety and authority responsibilities remain binding; control organization, language, OS, cloud and tooling are project choices under [open technology principles](01_METHOD/OPEN_TECHNOLOGY_PRINCIPLES.md). MANIFEST.json is the sole file inventory and excludes itself; hashes detect accidental change, not provenance.
+
+Original content and tooling use [Apache License 2.0](LICENSE). External links retain their own terms.

@@ -1,9 +1,15 @@
-# Capability Maturity vs Artifact Distribution
+# Capability Maturity and Artifact Distribution
 
-**Capability maturity:** `PLANNED → DESIGN_FROZEN → IMPLEMENTING → IMPLEMENTED → VERIFIED → DEPRECATED → RETIRED`.
+Capability maturity is `PLANNED → DESIGN_FROZEN → IMPLEMENTING → IMPLEMENTED → VERIFIED → DEPRECATED → RETIRED`. VERIFIED requires fresh passing gates for the exact candidate; later changes require renewed verification. Pending, stale, unavailable, cancelled or required-but-skipped gates cannot satisfy it.
 
-`VERIFIED` requires fresh passing evidence for every required gate on the **exact candidate**. `QUEUED`, `RUNNING`, `PENDING`, `CANCELLED`, `STALE`, `UNAVAILABLE`, `UNKNOWN` and a required-but-`SKIPPED` gate are not passing blocking outcomes.
+Distribution is separate and applies to an exact artifact identity:
 
-**Distribution status:** `NOT_PUBLISHED → CANDIDATE → PUBLISHED → PROMOTED → WITHDRAWN`.
+| From | To | Guard |
+|---|---|---|
+| NOT_PUBLISHED | CANDIDATE | Freeze candidate identity and intended scope. |
+| CANDIDATE | PUBLISHED | Authorize distribution; identify remaining limitations. |
+| PUBLISHED | PROMOTED | Exact artifact passes all required gates and stable designation is approved. |
+| CANDIDATE, PUBLISHED, PROMOTED | WITHDRAWN | Record reason, notice and recovery obligations; candidates may be abandoned before promotion. |
+| WITHDRAWN | CANDIDATE | Explicit reinstatement decision; repeat current gates before republication/promotion. |
 
-`PUBLISHED` means distributed or publicly available. `PROMOTED` means the verified exact artifact passed required gates and was designated as a stable release. Publication does not prove promotion; do not merge maturity and distribution into one enum.
+Other transitions are invalid. Replacement bytes create a new artifact identity and distribution record, preserving the withdrawn history. Publication proves availability, not verification; [release rules](RELEASE_PROMOTION.md) govern promotion.

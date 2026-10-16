@@ -1,0 +1,116 @@
+{
+  "standard_version": "1.8.0",
+  "project_id": "verysimple-cli-validator",
+  "objective": {
+    "statement": "Guarantee cross-platform package validation without false-positive assurance claims or CRLF checkout drift.",
+    "owner": "product-owner",
+    "non_goals": [
+      "Certifying downstream product runtime behavior from static schema validation alone."
+    ],
+    "success_measures": [
+      {
+        "id": "METRIC-1",
+        "definition": "Windows and Linux clean checkout validation failure rate caused by line-ending mismatch",
+        "target": "0 failures across CI matrix runs",
+        "method": "Automated GitHub Actions matrix validation on ubuntu-latest and windows-latest",
+        "baseline_status": "MEASURED",
+        "baseline_evidence_refs": [
+          "evidence:baseline-windows-crlf-failure-2026-10"
+        ]
+      }
+    ]
+  },
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "scope": "BASE",
+      "owner": "release-engineering",
+      "acceptance": "All tracked text files normalize to LF in .gitattributes and .editorconfig and pass SHA256/size checks on Windows and Linux."
+    }
+  ],
+  "tests": [
+    {
+      "id": "TEST-1",
+      "requirement_ids": [
+        "REQ-1"
+      ],
+      "status": "PASS",
+      "evidence_refs": [
+        "evidence:test-lf-normalization-pass"
+      ],
+      "red_evidence_ref": "evidence:RED-windows-ps1-crlf-size-mismatch"
+    }
+  ],
+  "gates": [
+    {
+      "candidate_identity": "source:candidate-B",
+      "artifact_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "gate_id": "GATE-1",
+      "status": "PASS",
+      "observed_at": "2026-10-16T00:10:00Z",
+      "freshness": "FRESH",
+      "evidence_refs": [
+        "run:regression-pass"
+      ]
+    }
+  ],
+  "observations": [
+    {
+      "id": "OBS-1",
+      "kind": "SOURCE",
+      "candidate_identity": "source:candidate-A",
+      "observed_at": "2026-10-15T00:00:00Z",
+      "evidence_refs": [
+        "evidence:incident-repro"
+      ],
+      "finding": "Windows checkout converted tools/validate_package.ps1 to CRLF (1011 bytes vs 988 bytes in MANIFEST.json).",
+      "metric_id": "METRIC-1",
+      "evaluation": "MISSES_TARGET"
+    },
+    {
+      "id": "OBS-2",
+      "kind": "POST_RELEASE_OUTCOME",
+      "candidate_identity": "source:candidate-B",
+      "observed_at": "2026-10-16T01:10:00Z",
+      "evidence_refs": [
+        "evidence:post-release-measurement"
+      ],
+      "finding": "Fresh clones on Windows and Linux match all MANIFEST.json digests and byte sizes with 0 failures.",
+      "metric_id": "METRIC-1",
+      "evaluation": "MEETS_TARGET"
+    }
+  ],
+  "feedback": [
+    {
+      "id": "FB-1",
+      "observation_id": "OBS-1",
+      "owner": "engineering-lead",
+      "priority": "P1",
+      "status": "CLOSED",
+      "disposition": "ACCEPT",
+      "rationale": "Normalized .gitattributes and .editorconfig to LF and resealed MANIFEST.json.",
+      "decision_ref": "decision:fix-1",
+      "requirement_ids": [
+        "REQ-1"
+      ],
+      "test_ids": [
+        "TEST-1"
+      ],
+      "closure_gate_ids": [
+        "GATE-1"
+      ],
+      "closure_candidate_identity": "source:candidate-B",
+      "outcome_observation_id": "OBS-2",
+      "outcome_decision": "MEETS_TARGET",
+      "release_evidence_ref": "evidence:deployment-candidate-B",
+      "history": [
+        {
+          "event": "CLOSE",
+          "at": "2026-10-16T01:15:00Z",
+          "actor": "engineering-lead",
+          "reason": "Verified post-release outcome OBS-2 on candidate-B."
+        }
+      ]
+    }
+  ]
+}

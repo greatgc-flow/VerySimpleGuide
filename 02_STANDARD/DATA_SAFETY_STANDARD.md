@@ -1,15 +1,17 @@
 # Data Safety Standard
 
-## Backup policy by recovery class
-- `AUTHORITATIVE`: protect by default.
-- `DURABLE_DERIVED`: protect according to retention policy while preserving source provenance.
-- `REBUILDABLE`: optionally back up or rebuild after restore.
-- `EPHEMERAL`, cache and temp: exclude by default.
-- `EXTERNAL`: record reference and verification metadata; never delete external source data implicitly.
-- `SECRET`: exclude or encrypt and handle through a separate documented policy.
+Classify named state using [kind and recovery class](CONFIG_STATE_SCHEMA.md), plus the orthogonal `secret` sensitivity flag. Apply policy in this order: ownership/authority establishes who may act; recovery class determines preservation; kind selects handling; sensitivity adds confidentiality safeguards. A CACHE/TEMP label never downgrades authoritative data, and SECRET kind always requires secret handling even if its flag is absent or false.
 
-Creating a file alone is not a backup success. Require a complete manifest, verified authoritative hashes, reopening/read verification and declared exclusions.
+| Recovery class | Preservation default |
+|---|---|
+| AUTHORITATIVE | Protect recoverable content by default. |
+| DURABLE_DERIVED | Retain according to policy with source provenance. |
+| REBUILDABLE | Rebuild or optionally back up; prove regeneration under declared equivalence. |
+| EPHEMERAL | Exclude by default after confirming no authoritative content. |
+| EXTERNAL | Preserve handles/verification metadata; no implicit source deletion. |
 
-**Restore:** verify manifest → restore authority → verify schema/hashes → establish new generation/fence → rebuild projections → reconcile external handles → invariant checks → activate.
+Secret handling overlays every class: encrypt protected copies and control access, or use a documented separate recovery policy. Exclusion must preserve the authoritative recovery obligation through an approved alternative; sensitivity alone never permits silent data loss.
 
-**Reset:** produce a state-classification-based plan before applying effects; offer preview, preserve externally owned state by default and verify what was actually removed. Avoid reporting false success when deletion is uncertain.
+Backup success requires a complete manifest, verified authoritative hashes, reopening/read checks and declared exclusions. Restore: verify manifest → restore authority → verify schema/hashes → establish generation/fence → rebuild projections → reconcile external handles → invariant checks → activate.
+
+Reset uses a classification-based preview and authorized plan, preserves external ownership by default and verifies actual removals. Uncertain deletion cannot report success.

@@ -1,6 +1,6 @@
 {
   "standard_id": "VS-UNIFIED-PACKAGE-STANDARD",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "philosophy": "semantic standardization first; syntactic sameness only when it reduces total complexity",
   "planes": [
     "PRODUCT_RUNTIME",
@@ -54,19 +54,43 @@
     "PROMOTED",
     "WITHDRAWN"
   ],
-  "conformance": [
-    "COMPLY",
-    "ADAPT",
-    "PRODUCT_SPECIFIC",
-    "N_A",
-    "PASS"
-  ],
   "applicability": [
     "REQUIRED",
     "OPTIONAL",
-    "N_A",
+    "N_A"
+  ],
+  "approach": [
+    "COMPLY",
+    "ADAPT",
+    "PRODUCT_SPECIFIC"
+  ],
+  "assessment_results": [
+    "NOT_EVALUATED",
     "PASS",
-    "DEFERRED"
+    "FAIL"
+  ],
+  "feedback_dispositions": [
+    "PENDING",
+    "ACCEPT",
+    "REJECT",
+    "DEFER",
+    "DUPLICATE"
+  ],
+  "feedback_statuses": [
+    "OPEN",
+    "IN_PROGRESS",
+    "CLOSED"
+  ],
+  "feedback_events": [
+    "CLOSE",
+    "REOPEN"
+  ],
+  "legacy_feature_strategies": [
+    "RETAIN",
+    "ABSORB",
+    "SUPERSEDE",
+    "EXTRACT_EXTENSION",
+    "RETIRE"
   ],
   "exit_semantics": [
     "SUCCESS",
@@ -193,12 +217,16 @@
     "fitness_measures_or_unratified_required": true,
     "feedback_post_release_evaluation_required": true,
     "evidence_to_regression_test_trace_required": true,
-    "claim_levels": [
+    "claim_kinds": [
       "DESIGN_COVERED",
       "SCHEMA_CHECKED",
       "NEGATIVE_TESTED",
-      "PRODUCT_NOT_VERIFIED",
       "PRODUCT_VERIFIED"
+    ],
+    "claim_results": [
+      "NOT_EVALUATED",
+      "PASS",
+      "FAIL"
     ]
   },
   "openness_contract": {
@@ -215,8 +243,8 @@
   },
   "lifecycle_contract": {
     "model": "12 logical stages x 10 crosscut concerns",
-    "stage_matrix": "09_LIFECYCLE/lifecycle-matrix.json",
-    "product_checklist": "05_TEMPLATES/project-lifecycle.example.json",
+    "stage_matrix": "03_LIFECYCLE/lifecycle-matrix.json",
+    "product_checklist": "07_CONTRACTS/examples/project-lifecycle.example.json",
     "not_a_waterfall": true,
     "stage_applicability_product_local": true,
     "stage_owners_and_exit_required_when_applicable": true,

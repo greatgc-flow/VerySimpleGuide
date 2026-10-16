@@ -1,11 +1,16 @@
-"""General 1.7 validation: integrity, JSON-schema, traceability, negative-test harness.
+"""General 1.8 validation: integrity, JSON-schema, traceability, negative-test harness.
 
 Python 3.8+ and jsonschema >= 4.18. All visible output is mirrored verbatim to evidence.
 Pure validation: no writes to canonical package files; evidence written to ignored .validation area.
 """
 from pathlib import Path, PurePosixPath
-import argparse, copy, hashlib, json, sys
+import argparse, copy, hashlib, json, os, re, sys
 from datetime import datetime
+
+sys.dont_write_bytecode = True
+_TOOLS_DIR = str(Path(__file__).resolve().parent)
+if _TOOLS_DIR not in sys.path:
+    sys.path.insert(0, _TOOLS_DIR)
 
 try:
     from jsonschema import Draft202012Validator, FormatChecker
@@ -13,18 +18,96 @@ try:
     _IMPORT_ERROR = None
 except ImportError as exc:
     Draft202012Validator = None
+    FormatChecker = None
     _IMPORT_ERROR = str(exc)
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = '1.7.0'
+VERSION = '1.8.0'
 PACK_NAME = 'VerySimpleGuide'
-EXCLUDED = {'MANIFEST.json', 'CHECKSUMS_SHA256.txt'}
+# MANIFEST.json is explicitly self-excluded from its own file inventory;
+# manifest digests detect accidental changes, not cryptographic provenance.
+EXCLUDED = {'MANIFEST.json'}
+
+
+def _is_link_or_reparse(path_obj):
+    try:
+        st = os.lstat(path_obj)
+    except OSError:
+        return False
+    return path_obj.is_symlink() or getattr(st, 'st_reparse_tag', 0) != 0
+
+
+def resolve_safe_evidence_path(raw_path, root=ROOT, input_paths=()):
+    if raw_path is None:
+        return None
+    raw_str = str(raw_path).strip()
+    if not raw_str:
+        raise ValueError('Evidence path cannot be empty')
+    norm_segs = raw_str.replace('\\', '/').split('/')
+    if '..' in norm_segs:
+        raise ValueError('Evidence path cannot contain parent traversal: ' + raw_str)
+    p = Path(raw_str)
+    root_real = root.resolve(strict=False)
+    val_dir = root_real / '.validation'
+    if _is_link_or_reparse(val_dir):
+        raise ValueError('Evidence directory .validation cannot be a symlink or junction')
+    val_real = val_dir.resolve(strict=False)
+    candidate = p if p.is_absolute() else (root_real / p)
+    # Check candidate and its ancestors up to root_real for symlinks/junctions
+    cur = candidate
+    while True:
+        if _is_link_or_reparse(cur):
+            raise ValueError('Evidence path cannot traverse symlink or junction: ' + raw_str)
+        if cur == val_real or cur == root_real or cur.parent == cur:
+            break
+        cur = cur.parent
+    target = candidate.resolve(strict=False)
+    if val_real not in target.parents:
+        raise ValueError('Evidence output must reside strictly inside .validation/: ' + raw_str)
+    if target.exists():
+        if target.is_dir():
+            raise ValueError('Evidence path cannot be a directory: ' + raw_str)
+        for canon_rel in file_inventory(root_real) | set(EXCLUDED):
+            canon_path = root_real / canon_rel
+            if canon_path.exists():
+                try:
+                    if os.path.samefile(target, canon_path):
+                        raise ValueError('Evidence output cannot alias canonical file: ' + canon_rel)
+                except OSError:
+                    pass
+    for inp in input_paths:
+        if not inp:
+            continue
+        inp_p = Path(str(inp))
+        inp_abs = (inp_p if inp_p.is_absolute() else (root_real / inp_p)).resolve(strict=False)
+        inp_cwd = inp_p.resolve(strict=False)
+        if target in (inp_abs, inp_cwd):
+            raise ValueError('Evidence output cannot alias input file: ' + str(inp))
+        if target.exists():
+            for cand_inp in (inp_abs, inp_cwd, inp_p):
+                if cand_inp.exists():
+                    try:
+                        if os.path.samefile(target, cand_inp):
+                            raise ValueError('Evidence output cannot alias input file identity: ' + str(inp))
+                    except OSError:
+                        pass
+    if target.exists():
+        try:
+            st = os.lstat(target)
+        except OSError as exc:
+            raise ValueError('Cannot stat evidence path: ' + str(exc))
+        if getattr(st, 'st_nlink', 1) > 1:
+            raise ValueError('Evidence output cannot be a hard-linked file (st_nlink > 1): ' + raw_str)
+    return target
 
 
 class EvidenceSink:
     """stdout single source, persisted byte-for-byte as UTF-8 evidence."""
-    def __init__(self, path=None):
+    def __init__(self, path=None, root=ROOT, input_paths=()):
+        self.root = root
+        self.input_paths = tuple(input_paths)
         self.path = Path(path) if path else None
+        self.target = resolve_safe_evidence_path(self.path, root=self.root, input_paths=self.input_paths) if self.path else None
         self.lines = []
     def say(self, msg):
         line = str(msg)
@@ -33,10 +116,9 @@ class EvidenceSink:
     def close(self):
         if self.path is None:
             return
-        target = self.path.resolve(strict=False)
-        if target == (ROOT / '07_AUDIT/BASELINE_VALIDATION_EVIDENCE.txt').resolve():
-            raise ValueError('Evidence output cannot overwrite frozen baseline evidence')
+        target = resolve_safe_evidence_path(self.path, root=self.root, input_paths=self.input_paths)
         target.parent.mkdir(parents=True, exist_ok=True)
+        target = resolve_safe_evidence_path(self.path, root=self.root, input_paths=self.input_paths)
         target.write_text('\n'.join(self.lines) + '\n', encoding='utf-8')
 
 
@@ -55,8 +137,13 @@ def read_json(path):
 def valid_relative_path(rel):
     if not isinstance(rel, str) or not rel or '\\' in rel or ':' in rel:
         return False
+    if rel.startswith('/') or rel.endswith('/'):
+        return False
+    raw_parts = rel.split('/')
+    if any(seg in ('', '.', '..') for seg in raw_parts):
+        return False
     pure = PurePosixPath(rel)
-    return (not pure.is_absolute() and all(x not in ('', '.', '..') for x in pure.parts))
+    return not pure.is_absolute() and pure.as_posix() == rel
 
 
 def safe_target(root, rel):
@@ -116,24 +203,41 @@ def check_manifest(root, errors):
     return declared
 
 
-def check_checksums(root, declared, errors):
-    text = (root / 'CHECKSUMS_SHA256.txt').read_text(encoding='utf-8')
-    lines = [x for x in text.splitlines() if x.strip()]
-    seen = set()
-    for line in lines:
-        try:
-            digest, rel = line.split('  ', 1)
-            assert len(digest) == 64 and all(c in '0123456789abcdef' for c in digest)
-            if rel in seen:
-                raise ValueError('duplicate')
-            seen.add(rel)
-            target = safe_target(root, rel)
-            if not target.is_file() or sha256(target) != digest:
-                errors.append('checksums-mismatch:' + rel)
-        except (AssertionError, ValueError, OSError) as exc:
-            errors.append('checksums-format:' + str(exc) + ':' + line[:100])
-    if seen != declared | {'MANIFEST.json'}:
-        errors.append('checksums-inventory-diff')
+def _collect_schema_formats(obj, out=None):
+    if out is None:
+        out = set()
+    if isinstance(obj, dict):
+        fmt = obj.get('format')
+        if isinstance(fmt, str):
+            out.add(fmt)
+        for val in obj.values():
+            _collect_schema_formats(val, out)
+    elif isinstance(obj, list):
+        for item in obj:
+            _collect_schema_formats(item, out)
+    return out
+
+
+REQUIRED_FORMAT_CHECKERS = ('date-time', 'date')
+
+
+def check_format_checkers(errors, checker=None, schemas=None):
+    if Draft202012Validator is None or FormatChecker is None:
+        errors.append('missing-dependency:jsonschema>=4.18:' + str(_IMPORT_ERROR))
+        return False
+    fc = checker if checker is not None else FormatChecker()
+    required = set(REQUIRED_FORMAT_CHECKERS)
+    if schemas:
+        for schema_doc in schemas.values():
+            required.update(_collect_schema_formats(schema_doc))
+    missing = sorted(fmt for fmt in required if fmt not in fc.checkers)
+    if missing:
+        errors.append(
+            'missing-format-checker:' + ','.join(missing)
+            + ':install rfc3339-validator (python -m pip install -r tools/requirements-validation.txt)'
+        )
+        return False
+    return True
 
 
 def load_schemas(root, errors):
@@ -141,15 +245,22 @@ def load_schemas(root, errors):
     if Draft202012Validator is None:
         errors.append('missing-dependency:jsonschema>=4.18:' + str(_IMPORT_ERROR))
         return parsed
-    for path in sorted((root / '04_SCHEMAS').glob('*.schema.json')):
+    for path in sorted((root / '07_CONTRACTS/schemas').glob('*.schema.json')):
         try:
             schema = read_json(path)
             Draft202012Validator.check_schema(schema)
+            expected_id = f"https://example.invalid/verysimple/{path.name[:-len('.schema.json')]}/{VERSION[:3]}"
+            if schema.get('$id') != expected_id:
+                errors.append('schema-id-mismatch:' + path.name)
+            if schema.get('additionalProperties') is not False:
+                errors.append('schema-missing-additional-properties-false:' + path.name)
             parsed[path.name] = schema
         except (SchemaError, json.JSONDecodeError, OSError) as exc:
             errors.append('invalid-json-schema:' + path.name + ':' + str(exc)[:200])
     if not parsed:
         errors.append('missing-schemas')
+    if not check_format_checkers(errors, schemas=parsed):
+        return {}
     return parsed
 
 
@@ -170,14 +281,21 @@ def local_refs(schema, schemas):
             if fragment:
                 for part in fragment.strip('/').split('/'):
                     target = target[part]
+            else:
+                target.pop('$schema', None)
+                target.pop('$id', None)
             return walk(target)
         return {k: walk(value) for k,value in obj.items()}
     return walk(v)
 
 
-def valid_schema_instance(schemas, schema_name, instance):
+def valid_schema_instance(schemas, schema_name, instance, checker=None):
+    fc = checker if checker is not None else FormatChecker()
+    fmt_errors = []
+    if not check_format_checkers(fmt_errors, checker=fc, schemas={schema_name: schemas[schema_name]}):
+        raise RuntimeError(fmt_errors[0])
     schema = local_refs(schemas[schema_name], schemas)
-    Draft202012Validator(schema, format_checker=FormatChecker()).validate(instance)
+    Draft202012Validator(schema, format_checker=fc).validate(instance)
 
 
 def check_examples(root, schemas, errors):
@@ -192,7 +310,7 @@ def check_examples(root, schemas, errors):
     }
     for name, schema_name in examples.items():
         try:
-            valid_schema_instance(schemas, schema_name, read_json(root / '05_TEMPLATES'/name))
+            valid_schema_instance(schemas, schema_name, read_json(root / '07_CONTRACTS/examples'/name))
         except (ValueError, KeyError, ValidationError, OSError, json.JSONDecodeError) as exc:
             errors.append('invalid-example:' + name + ':' + str(exc)[:180])
 
@@ -209,8 +327,6 @@ def check_controls(root, std, coverage, errors):
     if not actual_standards.issubset(mapped_standards):
         errors.append('standard-owner-unmapped:' + repr(sorted(actual_standards - mapped_standards)))
     for row in rows:
-        if row.get('primary_owner') != row.get('control_id'):
-            errors.append('control-primary-owner:' + str(row.get('control_id')))
         refs = row.get('standard_refs')
         if not isinstance(refs, list) or not refs:
             errors.append('control-without-standard:' + str(row.get('control_id')))
@@ -235,7 +351,8 @@ def check_invariants(root, std, index, errors):
     for row in rows:
         if row.get('primary_control') not in controls:
             errors.append('invariant-orphan-control:' + str(row.get('invariant_id')))
-        if not row.get('product_gate_obligation'):
+        gate_ob = row.get('product_gate_obligation')
+        if not isinstance(gate_ob, str) or not gate_ob or ' ' in gate_ob or gate_ob != gate_ob.lower():
             errors.append('invariant-without-gate-obligation:' + str(row.get('invariant_id')))
         try:
             if not safe_target(root,row.get('standard_ref','')).is_file():
@@ -264,23 +381,35 @@ def check_project_registry(registry, errors):
                 errors.append('project-registry-ephemeral-mandatory-backup:'+ident)
 
 
-def check_artifact_ownership(root, std, errors, ledger_override=None):
-    """All tracked semantic artifacts must have exactly one Control owner and a distinct authority role.
+def expected_role_for_path(rpath):
+    if rpath.startswith('07_CONTRACTS/schemas/'):
+        return 'MACHINE_SSOT'
+    if rpath.startswith('07_CONTRACTS/examples/'):
+        return 'EXAMPLE'
+    if rpath in ('03_LIFECYCLE/12x10_OVERVIEW.md', '06_GOVERNANCE/CONTROL_CATALOG.md'):
+        return 'GENERATED_VIEW'
+    if (rpath.startswith('06_GOVERNANCE/') and rpath.endswith('.json')) or rpath == '03_LIFECYCLE/lifecycle-matrix.json':
+        return 'MACHINE_SSOT'
+    if rpath in ('08_KNOWLEDGE/guidance-catalog.json', '08_KNOWLEDGE/references/catalog.json'):
+        return 'REFERENCE_CATALOG'
+    if rpath.startswith('02_STANDARD/') or rpath in ('LICENSE', 'NOTICE'):
+        return 'NORMATIVE_SOURCE'
+    if rpath.startswith(('tools/', '.github/')):
+        return 'VALIDATION_TOOL'
+    return None
 
-    The ledger complements the hash manifest (identity), it does not replace it.
-    """
-    rel = '06_GOVERNANCE/artifact-ownership.json'
-    ledger = ledger_override if ledger_override is not None else read_json(root / rel)
+
+def check_artifact_ownership(root, std, errors, ledger_override=None):
+    """All tracked semantic artifacts in MANIFEST.json must have a valid Control owner and authority role."""
+    ledger = ledger_override if ledger_override is not None else read_json(root / 'MANIFEST.json')
     control_ids = {c['id'] for c in std.get('controls',[])}
     roles = {'NORMATIVE_SOURCE','MACHINE_SSOT','HUMAN_GUIDE','GENERATED_VIEW',
              'EXAMPLE','REFERENCE_CATALOG','ASSURANCE_EVIDENCE','VALIDATION_TOOL'}
-    records = ledger.get('artifacts',[])
+    records = ledger.get('files', ledger.get('artifacts', []))
     paths = [x.get('path') for x in records]
     if len(paths)!=len(set(paths)):
         errors.append('artifact-ownership-duplicate')
     actual = file_inventory(root)
-    # Normative standards may be referenced by several Controls, but the chosen primary
-    # must be one of the Controls actually claiming this standard in control-coverage SSOT.
     cov = read_json(root/'06_GOVERNANCE/control-coverage.json')
     standard_claims = {}
     for owner in cov.get('controls',[]):
@@ -288,8 +417,13 @@ def check_artifact_ownership(root, std, errors, ledger_override=None):
             standard_claims.setdefault(referenced_path,set()).add(owner.get('control_id'))
     for row in records:
         name=row.get('path','')
-        if name.startswith('02_STANDARD/') and row.get('primary_control') not in standard_claims.get(name,set()):
-            errors.append('artifact-primary-standard-control-mismatch:'+name)
+        if name.startswith('02_STANDARD/'):
+            claimed = standard_claims.get(name, set())
+            if row.get('primary_control') not in claimed:
+                errors.append('artifact-primary-standard-control-mismatch:'+name)
+            expected_related = sorted(claimed - {row.get('primary_control')})
+            if sorted(row.get('related_controls', [])) != expected_related:
+                errors.append('artifact-related-standard-control-mismatch:'+name)
     if set(paths)!=actual:
         errors.append('artifact-ownership-inventory-diff:missing='+repr(sorted(actual-set(paths)))+';extra='+repr(sorted(set(paths)-actual)))
     for row in records:
@@ -298,18 +432,14 @@ def check_artifact_ownership(root, std, errors, ledger_override=None):
             errors.append('artifact-invalid-primary-owner:'+str(rpath))
         if row.get('role') not in roles:
             errors.append('artifact-invalid-role:'+str(rpath))
+        expected_role = expected_role_for_path(rpath)
+        if expected_role and row.get('role') != expected_role:
+            errors.append('artifact-authority-role-mismatch:'+str(rpath))
         others = row.get('related_controls',[])
         if not isinstance(others,list) or any(x not in control_ids or x==row.get('primary_control') for x in others) or len(set(others))!=len(others):
             errors.append('artifact-invalid-secondary-owners:'+str(rpath))
         if rpath not in actual:
             errors.append('artifact-unknown-path:'+str(rpath))
-    for must,role in [('06_GOVERNANCE/unified-package-standard.json','MACHINE_SSOT'),
-                      ('09_LIFECYCLE/lifecycle-matrix.json','MACHINE_SSOT'),
-                      ('09_LIFECYCLE/12x10_OVERVIEW.md','GENERATED_VIEW'),
-                      ('04_SCHEMAS/project-lifecycle.schema.json','MACHINE_SSOT')]:
-        match=[x for x in records if x.get('path')==must]
-        if not match or match[0].get('role')!=role:
-            errors.append('artifact-authority-role-mismatch:'+must)
 
 
 def duplicate_check(items, label, errors):
@@ -380,11 +510,19 @@ def check_trace(trace, errors):
             errors.append('feedback-closed-without-release-evidence:' + fb['id'])
         if fb['disposition']=='DEFER' and (not fb.get('revisit_trigger') or not fb.get('decision_ref')):
             errors.append('feedback-defer-without-revisit:' + fb['id'])
+        history = fb.get('history', [])
+        for ev in history:
+            if ev.get('event') == 'REOPEN':
+                if not ev.get('decision_ref') or not ev.get('prior_closure_evidence_ref'):
+                    errors.append('feedback-reopen-missing-decision-or-prior-evidence:' + fb['id'])
+        if history and history[-1].get('event') == 'REOPEN':
+            if fb.get('status') != 'OPEN':
+                errors.append('feedback-reopen-not-open:' + fb['id'])
+            if not fb.get('next_action') or not fb.get('decision_ref'):
+                errors.append('feedback-reopen-missing-next-action-or-decision:' + fb['id'])
     for obs_id, ob in obs.items():
         if ob['kind']=='SOURCE' and not any(fb['observation_id']==obs_id for fb in fbs.values()):
             errors.append('orphan-source-observation:' + obs_id)
-
-
 
 
 def generated_lifecycle_overview(matrix):
@@ -401,38 +539,99 @@ def generated_lifecycle_overview(matrix):
     head+='\nFor owner/ref details use `lifecycle-matrix.json` (not this generated view).\n'
     return head
 
-def check_project_lifecycle(project, stage_ids, concern_ids, errors):
-    """Project 12+10 classification plus optional cell-specific overrides (not a 120-row form)."""
-    for section,key,expected in [('stages','stage_id',stage_ids),('concerns','concern_id',concern_ids)]:
-        rows=project.get(section,[])
-        actual=[x.get(key) for x in rows]
-        if len(rows)!=len(expected) or set(actual)!=set(expected) or len(set(actual))!=len(actual):
-            errors.append('project-'+section+'-coverage-missing-or-duplicate')
+
+def _validate_disposition_record(row, prefix, ident, errors):
+    if not row.get('owner'):
+        errors.append(f'{prefix}-no-owner:{ident}')
+    app = row.get('applicability')
+    approach = row.get('approach')
+    res = row.get('result')
+    deferred = row.get('deferred')
+    if app not in ('REQUIRED', 'OPTIONAL', 'N_A'):
+        errors.append(f'{prefix}-invalid-applicability:{ident}')
+    if approach not in ('COMPLY', 'ADAPT', 'PRODUCT_SPECIFIC'):
+        errors.append(f'{prefix}-invalid-approach:{ident}')
+    if res not in ('NOT_EVALUATED', 'PASS', 'FAIL'):
+        errors.append(f'{prefix}-invalid-result:{ident}')
+    if not isinstance(deferred, bool):
+        errors.append(f'{prefix}-invalid-deferred:{ident}')
+    if app == 'N_A':
+        if not row.get('reason') or not row.get('revisit_trigger'):
+            errors.append(f'{prefix}-unjustified-N_A:{ident}')
+        if res == 'PASS':
+            errors.append(f'{prefix}-na-cannot-pass:{ident}')
+    if deferred is True:
+        if not row.get('reason') or not row.get('revisit_trigger'):
+            errors.append(f'{prefix}-unjustified-DEFERRED:{ident}')
+        if res == 'PASS':
+            errors.append(f'{prefix}-deferred-cannot-pass:{ident}')
+    if approach == 'ADAPT' and (not row.get('reason') or not row.get('acceptance_criteria')):
+        errors.append(f'{prefix}-adapt-without-equivalent-contract:{ident}')
+    if res == 'PASS':
+        if not row.get('acceptance_criteria') or not row.get('candidate_identity') or not row.get('evidence_refs'):
+            errors.append(f'{prefix}-pass-no-evidence:{ident}')
+
+
+def check_project_lifecycle(project, stage_ids, concern_ids, errors, matrix=None):
+    """Project profile (COMPACT or FULL) classification derived from flags plus sparse cell_overrides."""
+    if matrix is None:
+        matrix = read_json(ROOT / '03_LIFECYCLE/lifecycle-matrix.json')
+    rules = matrix.get('profile_rules', {})
+    profile = project.get('profile')
+    if profile not in ('COMPACT', 'FULL'):
+        errors.append('project-invalid-profile:' + str(profile))
+        return
+    esc = project.get('escalation_flags', {})
+    act = project.get('activity_flags', {})
+    exp = project.get('exposure_flags', {})
+    if not isinstance(esc, dict) or set(esc.keys()) != set(rules.get('escalation_flags', [])) or not all(isinstance(v, bool) for v in esc.values()):
+        errors.append('project-invalid-escalation-flags')
+    if not isinstance(act, dict) or set(act.keys()) != set(rules.get('activity_flag_stages', {}).keys()) or not all(isinstance(v, bool) for v in act.values()):
+        errors.append('project-invalid-activity-flags')
+    if not isinstance(exp, dict) or set(exp.keys()) != set(rules.get('exposure_flag_concerns', {}).keys()) or not all(isinstance(v, bool) for v in exp.values()):
+        errors.append('project-invalid-exposure-flags')
+    if profile == 'COMPACT' and any(esc.values()):
+        errors.append('project-compact-forbidden-by-escalation-flag')
+
+    flag_stages = set(rules.get('compact_mandatory_stages', []))
+    for k, v in (act.items() if isinstance(act, dict) else []):
+        if v:
+            flag_stages.update(rules.get('activity_flag_stages', {}).get(k, []))
+    flag_concerns = set(rules.get('compact_mandatory_concerns', []))
+    for k, v in (exp.items() if isinstance(exp, dict) else []):
+        if v:
+            flag_concerns.update(rules.get('exposure_flag_concerns', {}).get(k, []))
+
+    req_stages = set(stage_ids) if profile == 'FULL' else flag_stages
+    req_concerns = set(concern_ids) if profile == 'FULL' else flag_concerns
+
+    for section, key, all_known, required_ids, active_ids in [
+        ('stages', 'stage_id', set(stage_ids), req_stages, flag_stages),
+        ('concerns', 'concern_id', set(concern_ids), req_concerns, flag_concerns),
+    ]:
+        rows = project.get(section, [])
+        actual = [x.get(key) for x in rows]
+        if len(actual) != len(set(actual)) or not set(actual).issubset(all_known) or not required_ids.issubset(set(actual)):
+            errors.append('project-' + section + '-coverage-missing-or-duplicate')
+        if profile == 'FULL' and set(actual) != all_known:
+            errors.append('project-' + section + '-coverage-missing-or-duplicate')
         for row in rows:
-            ident=row.get(key,'unknown')
-            if not row.get('owner'):
-                errors.append('project-'+section+'-no-owner:'+str(ident))
-            status=row.get('status')
-            if status in ('N_A','DEFERRED') and (not row.get('reason') or not row.get('revisit_trigger')):
-                errors.append('project-'+section+'-unjustified-'+str(status)+':'+str(ident))
-            if status=='PASS' and not row.get('evidence_refs'):
-                errors.append('project-'+section+'-pass-no-evidence:'+str(ident))
-    overrides=project.get('cell_overrides',[])
-    seen=set()
+            ident = str(row.get(key, 'unknown'))
+            _validate_disposition_record(row, 'project-' + section, ident, errors)
+            if ident in active_ids and row.get('applicability') == 'N_A':
+                errors.append('project-' + section + '-flag-na-conflict:' + ident)
+
+    overrides = project.get('cell_overrides', [])
+    seen = set()
     for row in overrides:
-        stage,concern=row.get('stage_id'),row.get('concern_id')
-        key=(stage,concern)
-        if key in seen: errors.append('project-cell-duplicate:'+str(key))
+        stage, concern = row.get('stage_id'), row.get('concern_id')
+        key = (stage, concern)
+        if key in seen:
+            errors.append('project-cell-duplicate:' + str(key))
         seen.add(key)
         if stage not in stage_ids or concern not in concern_ids:
-            errors.append('project-cell-unknown-coordinate:'+str(key))
-        if not row.get('owner'):
-            errors.append('project-cell-owner-missing:'+str(key))
-        status=row.get('status')
-        if status in ('N_A','DEFERRED') and (not row.get('reason') or not row.get('revisit_trigger')):
-            errors.append('project-cell-unjustified:'+str(key))
-        if status=='PASS' and not row.get('evidence_refs'):
-            errors.append('project-cell-pass-no-evidence:'+str(key))
+            errors.append('project-cell-unknown-coordinate:' + str(key))
+        _validate_disposition_record(row, 'project-cell', str(key), errors)
 
 
 def check_lifecycle_models(matrix, guidance, references, project, controls, errors):
@@ -449,6 +648,7 @@ def check_lifecycle_models(matrix, guidance, references, project, controls, erro
     if len(reference_ids)!=len(set(reference_ids)):
         errors.append('reference-ids-duplicate')
     refs=set(reference_ids)
+    source_map={x.get('id'):x for x in reference_list}
     for r in reference_list:
         if r.get('reviewed_at','')>references.get('as_of',''):
             errors.append('reference-reviewed-in-future:'+str(r.get('id')))
@@ -479,6 +679,8 @@ def check_lifecycle_models(matrix, guidance, references, project, controls, erro
         for ref in st.get('reference_ids',[]):
             if ref not in refs:
                 errors.append('lifecycle-unresolved-reference:'+sid+':'+str(ref))
+            elif sid not in source_map[ref].get('stages',[]):
+                errors.append('lifecycle-stage-not-in-reference-stages:'+sid+':'+str(ref))
     # Graph connectivity is a generic guidance sanity test (not a mandated waterfall).
     reachable=set(); todo=['DISCOVER']
     while todo:
@@ -493,12 +695,20 @@ def check_lifecycle_models(matrix, guidance, references, project, controls, erro
     gids=[x.get('id') for x in guidance.get('guidance',[])]
     if len(gids)!=len(set(gids)):
         errors.append('guidance-duplicate-ids')
+    default_alts = guidance.get('default_alternatives',[])
+    default_ev = guidance.get('default_evidence_strategy','')
+    default_rev = guidance.get('default_review_trigger','')
     for entry in guidance.get('guidance',[]):
         ident=entry.get('id','unknown')
         if entry.get('applicability')!='OPTIONAL':
             errors.append('guidance-illegal-mandate:'+ident)
-        if not entry.get('avoid_when') or not entry.get('alternatives') or not entry.get('tradeoffs'):
+        alts = entry.get('alternatives') if 'alternatives' in entry else default_alts
+        ev_strat = entry.get('evidence_strategy') if 'evidence_strategy' in entry else default_ev
+        rev_trig = entry.get('review_trigger') if 'review_trigger' in entry else default_rev
+        if not entry.get('avoid_when') or not alts or not entry.get('tradeoffs') or not ev_strat or not rev_trig:
             errors.append('guidance-missing-tradeoff:'+ident)
+        if entry.get('problem','').strip() == entry.get('use_when','').strip():
+            errors.append('guidance-identical-problem-and-use-when:'+ident)
         for name,values,known in [('stage',entry.get('stage_ids',[]),stages),('concern',entry.get('concern_ids',[]),concerns),('reference',entry.get('reference_ids',[]),reference_ids)]:
             for value in values:
                 if value not in known:
@@ -510,7 +720,7 @@ def check_lifecycle_models(matrix, guidance, references, project, controls, erro
     used_refs={rid for x in matrix.get('stages',[])+matrix.get('concerns',[])+guidance.get('guidance',[]) for rid in x.get('reference_ids',[])}
     if refs-used_refs:
         errors.append('knowledge-unreferenced-sources:'+repr(sorted(refs-used_refs)))
-    check_project_lifecycle(project,set(stages),set(concerns),errors)
+    check_project_lifecycle(project,set(stages),set(concerns),errors,matrix=matrix)
 
 def generated_control_catalog(std):
     return '# Control Catalog (machine SSOT generated)\n\n' + ''.join(
@@ -531,8 +741,15 @@ def semantic_lint(root, std, errors):
     if 'RELEASED' in std.get('maturity',[]):errors.append('maturity-distribution-conflation')
     if len(set(std.get('invariants',[])))!=len(std.get('invariants',[])):errors.append('duplicate-invariants')
     for fp in root.rglob('*.md'):
+        rel_md = fp.relative_to(root).as_posix()
+        if rel_md.startswith('07_AUDIT/') or rel_md == 'CHANGELOG.md':
+            continue
         text = fp.read_text(encoding='utf-8')
-        if 'VS-UNIFIED-PACKAGE-STANDARD 1.2' in text:errors.append('stale-standard-label:'+fp.name)
+        for m in re.findall(r'VS-UNIFIED-PACKAGE-STANDARD\s+([0-9]+\.[0-9]+(?:\.[0-9]+)?)', text):
+            if m not in (VERSION, VERSION[:3]):
+                errors.append('stale-standard-label:'+fp.name)
+        if '26+ documented invariants' in text:
+            errors.append('stale-invariant-count:'+fp.name)
     if (root / '06_GOVERNANCE/CONTROL_CATALOG.md').read_text(encoding='utf-8') != generated_control_catalog(std):
         errors.append('human-control-catalog-drift')
     if (not std.get('lifecycle_contract',{}).get('not_a_waterfall') or not std.get('guidance_contract',{}).get('not_normative_by_default')): errors.append('lifecycle-or-reference-improperly-normative')
@@ -542,13 +759,12 @@ def semantic_lint(root, std, errors):
 
 def check_all(root):
     errors = []
-    declared = check_manifest(root, errors)
-    check_checksums(root, declared, errors)
+    check_manifest(root, errors)
     try:
         std = read_json(root / '06_GOVERNANCE/unified-package-standard.json')
         coverage = read_json(root / '06_GOVERNANCE/control-coverage.json')
         invariants = read_json(root / '06_GOVERNANCE/invariant-coverage.json')
-        trace = read_json(root / '05_TEMPLATES/project-trace.example.json')
+        trace = read_json(root / '07_CONTRACTS/examples/project-trace.example.json')
         semantic_lint(root, std, errors)
         check_controls(root, std, coverage, errors)
         check_invariants(root, std, invariants, errors)
@@ -556,17 +772,21 @@ def check_all(root):
         schemas = load_schemas(root, errors)
         if schemas:
             try:
-                valid_schema_instance(schemas,'artifact-ownership.schema.json',read_json(root/'06_GOVERNANCE/artifact-ownership.json'))
+                valid_schema_instance(schemas,'manifest.schema.json',read_json(root/'MANIFEST.json'))
             except (ValueError,KeyError,ValidationError,OSError,json.JSONDecodeError) as exc:
-                errors.append('invalid-artifact-ownership-schema:'+str(exc)[:180])
+                errors.append('invalid-manifest-schema:'+str(exc)[:180])
+            try:
+                valid_schema_instance(schemas,'unified-package-standard.schema.json',std)
+            except (ValueError,KeyError,ValidationError,OSError,json.JSONDecodeError) as exc:
+                errors.append('invalid-unified-package-standard-schema:'+str(exc)[:180])
             check_examples(root, schemas, errors)
-            check_project_registry(read_json(root / '05_TEMPLATES/component-registry.example.json'),errors)
+            check_project_registry(read_json(root / '07_CONTRACTS/examples/component-registry.example.json'),errors)
             if not errors or all(not x.startswith('invalid-example') for x in errors):
                 check_trace(trace, errors)
-            models=[('09_LIFECYCLE/lifecycle-matrix.json','lifecycle-matrix.schema.json'),
+            models=[('03_LIFECYCLE/lifecycle-matrix.json','lifecycle-matrix.schema.json'),
                     ('08_KNOWLEDGE/guidance-catalog.json','guidance-catalog.schema.json'),
                     ('08_KNOWLEDGE/references/catalog.json','reference-catalog.schema.json'),
-                    ('05_TEMPLATES/project-lifecycle.example.json','project-lifecycle.schema.json')]
+                    ('07_CONTRACTS/examples/project-lifecycle.example.json','project-lifecycle.schema.json')]
             instances=[]
             for rel, schema in models:
                 data=read_json(root / rel)
@@ -574,21 +794,37 @@ def check_all(root):
                 except (ValueError,KeyError,ValidationError) as exc: errors.append('invalid-lifecycle-model:'+rel+':'+str(exc)[:180])
                 instances.append(data)
             check_lifecycle_models(*instances,std.get('controls',[]),errors)
-            if (root/'09_LIFECYCLE/12x10_OVERVIEW.md').read_text(encoding='utf-8') != generated_lifecycle_overview(instances[0]): errors.append('lifecycle-human-view-drift')
+            if (root/'03_LIFECYCLE/12x10_OVERVIEW.md').read_text(encoding='utf-8') != generated_lifecycle_overview(instances[0]): errors.append('lifecycle-human-view-drift')
     except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
         errors.append('validation-runtime:'+str(exc)[:250])
     return errors
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description='VerySimple 1.7 static package validator')
+    parser = argparse.ArgumentParser(description='VerySimple 1.8 static package validator')
     parser.add_argument('--evidence-file',default='.validation/validation_evidence.txt')
     parser.add_argument('--project-trace',help='Validate a real project trace JSON (structural/semantic only)')
     parser.add_argument('--project-registry',help='Validate a real project component registry JSON (structural only)')
     parser.add_argument('--project-lifecycle',help='Validate the project-specific 12-stage lifecycle applicability JSON')
     parser.add_argument('--skip-negative-tests',action='store_true',help='Local development only; not a release gate')
     args = parser.parse_args(argv)
-    sink = EvidenceSink(args.evidence_file)
+    try:
+        sink = EvidenceSink(
+            args.evidence_file,
+            root=ROOT,
+            input_paths=(args.project_trace, args.project_registry, args.project_lifecycle),
+        )
+    except ValueError as exc:
+        print('ERROR=unsafe-evidence-file:' + str(exc))
+        print('RESULT=FAIL')
+        return 1
+    startup_errors = []
+    if not check_format_checkers(startup_errors):
+        for e in startup_errors:
+            sink.say('ERROR=' + e)
+        sink.say('RESULT=FAIL')
+        sink.close()
+        return 1
     errors = check_all(ROOT)
     user_checks = []
     if args.project_trace or args.project_registry or args.project_lifecycle:
@@ -604,36 +840,48 @@ def main(argv=None):
                 if typ == 'project_trace': check_trace(data,local_errors)
                 if typ == 'project_registry': check_project_registry(data,local_errors)
                 if typ == 'project_lifecycle':
-                    mat=read_json(ROOT/'09_LIFECYCLE/lifecycle-matrix.json')
-                    check_project_lifecycle(data,{x['id'] for x in mat['stages']},{x['id'] for x in mat['concerns']},local_errors)
+                    mat=read_json(ROOT/'03_LIFECYCLE/lifecycle-matrix.json')
+                    check_project_lifecycle(data,{x['id'] for x in mat['stages']},{x['id'] for x in mat['concerns']},local_errors,matrix=mat)
             except (OSError, ValueError, KeyError, ValidationError, json.JSONDecodeError) as exc:
                 local_errors.append(typ + '-invalid:' + str(exc)[:200])
             user_checks.append(typ+'='+('PASS' if not local_errors else 'FAIL'))
             errors.extend(local_errors)
+    static_errors = list(errors)
+    neg_checks = None
+    neg_result = 'NOT_EVALUATED'
+    if not args.skip_negative_tests:
+        try:
+            from test_validator import run_negative_suite
+            neg_checks, test_errors = run_negative_suite(ROOT)
+            errors.extend(test_errors)
+            neg_result = 'PASS' if not test_errors else 'FAIL'
+        except Exception as exc:
+            errors.append('negative-suite-error:' + repr(exc))
+            neg_result = 'FAIL'
+    else:
+        errors.append('negative-tests-mandatory-for-release')
+    std_doc = read_json(ROOT / '06_GOVERNANCE/unified-package-standard.json')
     sink.say('PACKAGE=' + PACK_NAME)
     sink.say('standard_version=' + VERSION)
-    sink.say('controls=' + str(len(read_json(ROOT / '06_GOVERNANCE/unified-package-standard.json')['controls'])))
-    sink.say('invariants=' + str(len(read_json(ROOT / '06_GOVERNANCE/unified-package-standard.json')['invariants'])))
-    sink.say('assurance_level=SCHEMA_AND_STATIC_VALIDATED')
-    sink.say('product_runtime_assurance=NOT_EVALUATED')
+    sink.say('controls=' + str(len(std_doc['controls'])))
+    sink.say('invariants=' + str(len(std_doc['invariants'])))
+    sink.say('claim_DESIGN_COVERED=' + ('PASS' if not static_errors else 'FAIL'))
+    sink.say('claim_SCHEMA_CHECKED=' + ('PASS' if not static_errors else 'FAIL'))
+    sink.say('claim_NEGATIVE_TESTED=' + neg_result)
+    sink.say('claim_PRODUCT_VERIFIED=NOT_EVALUATED')
     sink.say('external_project_trace=' + ('CHECKED' if args.project_trace else 'NOT_SUPPLIED'))
     sink.say('external_project_lifecycle=' + ('CHECKED' if args.project_lifecycle else 'NOT_SUPPLIED'))
     sink.say('lifecycle_matrix=12x10')
     sink.say('project_classification=12_stages+10_concerns+optional_overrides')
-    sink.say('artifact_ownership=CHECKED')
+    if not errors:
+        sink.say('artifact_ownership=CHECKED')
+        sink.say('package_assurance=PASS')
     for result in user_checks: sink.say(result)
-    sink.say('static_checks=' + ('PASS' if not errors else 'FAIL'))
-    if not args.skip_negative_tests:
-        try:
-            from test_validator import run_negative_suite
-            checks, test_errors = run_negative_suite(ROOT)
-            sink.say('contract_fixture_checks=' + str(checks))
-            errors.extend(test_errors)
-        except Exception as exc:
-            errors.append('negative-suite-error:' + repr(exc))
-    else:
+    sink.say('static_checks=' + ('PASS' if not static_errors else 'FAIL'))
+    if neg_checks is not None:
+        sink.say('contract_fixture_checks=' + str(neg_checks))
+    elif args.skip_negative_tests:
         sink.say('contract_fixture_checks=SKIPPED')
-        errors.append('negative-tests-mandatory-for-release')
     for e in errors:
         sink.say('ERROR=' + e)
     sink.say('RESULT=' + ('PASS' if not errors else 'FAIL'))

@@ -10,7 +10,7 @@ Products declare chosen capabilities in an `implementation-choice` record (langu
 - Version public schemas, expose declared capability/version negotiation where relevant, and run consumer/provider contract tests. `--json` output restrictions apply only when the product declares a JSON CLI mode.
 - Use external protocol adapters only when interoperating with external systems. In-process methods, embedded libraries, IPC and shared-memory implementations are not banned.
 - Release/test artifacts can be multiple architectures/runtimes: define a frozen `artifact set` whose members each have exact digest/target/gate evidence.
-- Unknown fields: strict validation of the **common namespace**; product-specific innovation in a namespaced `extensions` bag (see component registry and extension manifest). Register and version new common semantic values deliberately rather than silently accepting typos.
+- Unknown fields: strict validation of the **common namespace**; product-specific innovation in a namespaced `extensions` bag (see component registry). Register and version new common semantic values deliberately rather than silently accepting typos.
 - Make protocol/routing/orchestration separation a design **default**. A tiny application MAY combine these behind one module as long as authority, policy, side-effect and evidence boundaries remain explicit and independently testable.
 
 ## Reference-only technology families
