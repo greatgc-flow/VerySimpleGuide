@@ -1,5 +1,9 @@
 # Design Decisions
 
+## R14 evidence conditions (contract 1.9)
+
+- Extend existing maturity, state and adoption records with checked evidence and feedback links; require measured baseline proof. Reuse gate evidence, and test mutation/protocol rejection boundaries. The canonical standard version is the single version authority; record pins and schema IDs follow it.
+
 ## R14 authority consolidation
 
 - Repoint all thirteen explanatory invariant homes into existing standards; guides link to them. Reject nonauthoritative invariant homes rather than making whole guides normative.

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/verysimple/component-registry/1.8",
+  "$id": "https://example.invalid/verysimple/component-registry/1.9",
   "type": "object",
   "required": [
     "standard_version",
@@ -9,7 +9,8 @@
   "additionalProperties": false,
   "properties": {
     "standard_version": {
-      "const": "1.8.0"
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
     },
     "components": {
       "type": "array",
@@ -92,6 +93,9 @@
             },
             "additionalProperties": false,
             "description": "Product-specific metadata using namespaced keys (e.g. pkg.example/accelerator). Strict common namespace is preserved."
+          },
+          "verification": {
+            "$ref": "maturity.schema.json#/properties/items/items"
           }
         },
         "allOf": [
@@ -135,6 +139,32 @@
               "properties": {
                 "boundary_roles": {
                   "maxItems": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "maturity": {
+                  "const": "VERIFIED"
+                }
+              },
+              "required": [
+                "maturity"
+              ]
+            },
+            "then": {
+              "required": [
+                "verification"
+              ],
+              "properties": {
+                "verification": {
+                  "properties": {
+                    "status": {
+                      "const": "VERIFIED"
+                    }
+                  }
                 }
               }
             }

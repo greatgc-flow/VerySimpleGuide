@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/verysimple/standard-evolution/1.8",
+  "$id": "https://example.invalid/verysimple/standard-evolution/1.9",
   "type": "object",
   "additionalProperties": false,
   "required": [

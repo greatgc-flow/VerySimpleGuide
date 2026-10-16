@@ -15,3 +15,5 @@ Secret handling overlays every class: encrypt protected copies and control acces
 Backup success requires a complete manifest, verified authoritative hashes, reopening/read checks and declared exclusions. Restore: verify manifest → restore authority → verify schema/hashes → establish generation/fence → rebuild projections → reconcile external handles → invariant checks → activate.
 
 Reset uses a classification-based preview and authorized plan, preserves external ownership by default and verifies actual removals. Uncertain deletion cannot report success.
+
+AUTHORITATIVE state excluded from backup requires `recovery_alternative`: an approval decision, approver, alternative mechanism and restore evidence. A reference alone cannot establish recoverability.

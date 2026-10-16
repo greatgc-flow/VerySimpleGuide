@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/verysimple/implementation-choice/1.8",
+  "$id": "https://example.invalid/verysimple/implementation-choice/1.9",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -97,6 +97,79 @@
         "string",
         "null"
       ]
+    },
+    "decision_evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "\\S"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "feedback_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "ADOPT"
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "then": {
+        "required": [
+          "decision_owner",
+          "rollback_plan",
+          "project_id",
+          "feedback_id"
+        ],
+        "properties": {
+          "decision_owner": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          },
+          "rollback_plan": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          }
+        },
+        "anyOf": [
+          {
+            "required": [
+              "decision_evidence_refs"
+            ]
+          },
+          {
+            "required": [
+              "reason"
+            ],
+            "properties": {
+              "reason": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
 }

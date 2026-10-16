@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/verysimple/guidance-catalog/1.8",
+  "$id": "https://example.invalid/verysimple/guidance-catalog/1.9",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -18,7 +18,8 @@
       "const": "VS-OPTIONAL-GUIDANCE"
     },
     "version": {
-      "const": "1.8.0"
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
     },
     "selection_policy": {
       "const": "PULL_ON_DEMAND"
@@ -139,4 +140,3 @@
     }
   }
 }
-

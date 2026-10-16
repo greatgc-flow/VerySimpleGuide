@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/verysimple/state-contract/1.8",
+  "$id": "https://example.invalid/verysimple/state-contract/1.9",
   "title": "State Ownership and Sensitivity Contract",
   "type": "object",
   "additionalProperties": false,
@@ -63,6 +63,43 @@
         "secret": {
           "type": "boolean",
           "description": "Orthogonal sensitivity flag across all state kinds. Precedence: secret=true (or kind=SECRET) enforces encryption, redaction, and backup exclusion/protection over permissive defaults of any kind or recovery_class."
+        },
+        "recovery_alternative": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "decision_ref",
+            "approved_by",
+            "mechanism",
+            "evidence_refs"
+          ],
+          "properties": {
+            "decision_ref": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "approved_by": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "mechanism": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          }
         }
       },
       "allOf": [
@@ -83,6 +120,27 @@
                 "const": true
               }
             }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "recovery_class": {
+                "const": "AUTHORITATIVE"
+              },
+              "backup_policy": {
+                "const": "EXCLUDE"
+              }
+            },
+            "required": [
+              "recovery_class",
+              "backup_policy"
+            ]
+          },
+          "then": {
+            "required": [
+              "recovery_alternative"
+            ]
           }
         }
       ]

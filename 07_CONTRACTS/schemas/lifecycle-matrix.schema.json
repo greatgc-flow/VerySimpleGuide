@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/verysimple/lifecycle-matrix/1.8",
+  "$id": "https://example.invalid/verysimple/lifecycle-matrix/1.9",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -15,7 +15,8 @@
       "const": "VS-LIFECYCLE-12X10"
     },
     "version": {
-      "const": "1.8.0"
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
     },
     "baseline_semantics": {
       "type": "string"

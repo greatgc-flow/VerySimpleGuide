@@ -1,4 +1,4 @@
-"""General 1.8 validation: integrity, JSON-schema, traceability, negative-test harness.
+"""General validation: integrity, JSON-schema, traceability, negative-test harness.
 
 Python 3.8+ and jsonschema >= 4.18. All visible output is mirrored verbatim to evidence.
 Pure validation: no writes to canonical package files; evidence written to ignored .validation area.
@@ -22,7 +22,7 @@ except ImportError as exc:
     _IMPORT_ERROR = str(exc)
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = '1.8.0'
+VERSION = json.loads((ROOT / '06_GOVERNANCE/unified-package-standard.json').read_text(encoding='utf-8'))['version']
 PACK_NAME = 'VerySimpleGuide'
 # MANIFEST.json is explicitly self-excluded from its own file inventory;
 # manifest digests detect accidental changes, not cryptographic provenance.
@@ -295,6 +295,8 @@ def valid_schema_instance(schemas, schema_name, instance, checker=None):
     if not check_format_checkers(fmt_errors, checker=fc, schemas={schema_name: schemas[schema_name]}):
         raise RuntimeError(fmt_errors[0])
     schema = local_refs(schemas[schema_name], schemas)
+    for key in ('standard_version', 'version'):
+        if key in schema.get('properties', {}): schema['properties'][key] = {'const': VERSION}
     Draft202012Validator(schema, format_checker=fc).validate(instance)
 
 
@@ -405,6 +407,32 @@ def check_invariants(root, std, index, errors):
             errors.append('invariant-false-product-proof:' + str(row.get('invariant_id')))
 
 
+def check_maturity(item, errors):
+    if item.get('status') != 'VERIFIED': return
+    gates = {g.get('gate_id'): g for g in item.get('gates', [])}
+    required = item.get('required_gate_ids', [])
+    if not required or not item.get('candidate_identity') or not item.get('artifact_digest') or not item.get('verified_at') or not item.get('evidence'):
+        errors.append('maturity-without-proof:' + item.get('id', ''))
+    for gid in required:
+        gate = gates.get(gid, {})
+        if (gate.get('status') != 'PASS' or gate.get('freshness') != 'FRESH' or not gate.get('evidence_refs')
+            or gate.get('candidate_identity') != item.get('candidate_identity')
+            or gate.get('artifact_digest') != item.get('artifact_digest')):
+            errors.append('maturity-invalid-gate:' + gid)
+        elif datetime_utc(gate['observed_at']) > datetime_utc(item['verified_at']):
+            errors.append('maturity-verified-before-gate:' + gid)
+    if len(gates) != len(item.get('gates', [])): errors.append('maturity-duplicate-gate')
+
+
+def check_choice(choice, trace, errors):
+    if choice.get('decision') != 'ADOPT': return
+    fb = next((x for x in (trace or {}).get('feedback', []) if x['id'] == choice.get('feedback_id')), None)
+    if (not trace or choice.get('project_id') != trace.get('project_id') or not fb
+        or fb.get('decision_ref') != choice.get('decision_id') or fb.get('disposition') != 'ACCEPT'
+        or not fb.get('requirement_ids') or (fb.get('status') != 'CLOSED' and not fb.get('next_action'))):
+        errors.append('adoption-without-owned-feedback')
+
+
 def check_project_registry(registry, errors):
     """Semantic crosschecks beyond the component-registry JSON Schema."""
     rows=registry.get('components',[])
@@ -414,11 +442,20 @@ def check_project_registry(registry, errors):
         ident=str(row.get('id','unknown'))
         if row.get('component_class')=='EXTENSION' and 'BASE' in row.get('required_scopes',[]):
             errors.append('project-registry-optional-extension-required-base:'+ident)
+        verification = row.get('verification', {})
+        if row.get('maturity') == 'VERIFIED':
+            if verification.get('id') != row.get('id') or verification.get('status') != 'VERIFIED':
+                errors.append('project-registry-unverified-component:' + ident)
+            check_maturity(verification, errors)
         ownership=row.get('state_ownership',[])
         names=[x.get('name') for x in ownership]
         if len(names)!=len(set(names)):
             errors.append('project-registry-duplicate-state-owner:'+ident)
         for st in ownership:
+            if st.get('recovery_class') == 'AUTHORITATIVE' and st.get('backup_policy') == 'EXCLUDE':
+                alt = st.get('recovery_alternative', {})
+                if not all(alt.get(k) for k in ('decision_ref', 'approved_by', 'mechanism', 'evidence_refs')):
+                    errors.append('project-registry-unapproved-recovery-alternative:' + ident)
             if st.get('recovery_class')=='EPHEMERAL' and st.get('backup_policy')=='REQUIRED':
                 errors.append('project-registry-ephemeral-mandatory-backup:'+ident)
 
@@ -498,6 +535,9 @@ def check_trace(trace, errors):
     obs = duplicate_check(trace.get('observations',[]),'observation',errors)
     fbs = duplicate_check(trace.get('feedback',[]),'feedback',errors)
     metrics = duplicate_check(trace['objective']['success_measures'],'metric',errors)
+    for metric in metrics.values():
+        if metric.get('baseline_status') == 'MEASURED' and not metric.get('baseline_evidence_refs'):
+            errors.append('measured-baseline-without-evidence:' + metric['id'])
     for t in tests.values():
         if t['status']=='PASS' and not t.get('evidence_refs'):
             errors.append('passed-test-without-evidence:' + t['id'])
@@ -826,6 +866,7 @@ def check_all(root):
             except (ValueError,KeyError,ValidationError,OSError,json.JSONDecodeError) as exc:
                 errors.append('invalid-unified-package-standard-schema:'+str(exc)[:180])
             check_examples(root, schemas, errors)
+            check_choice(read_json(root / '07_CONTRACTS/examples/implementation-choice.example.json'), trace, errors)
             check_project_registry(read_json(root / '07_CONTRACTS/examples/component-registry.example.json'),errors)
             if not errors or all(not x.startswith('invalid-example') for x in errors):
                 check_trace(trace, errors)
@@ -847,8 +888,9 @@ def check_all(root):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description='VerySimple 1.8 static package validator')
+    parser = argparse.ArgumentParser(description='VerySimple static package validator')
     parser.add_argument('--evidence-file',default='.validation/validation_evidence.txt')
+    parser.add_argument('--implementation-choice', help='Adoption record; ADOPT requires --project-trace')
     parser.add_argument('--project-trace',help='Validate a real project trace JSON (structural/semantic only)')
     parser.add_argument('--project-registry',help='Validate a real project component registry JSON (structural only)')
     parser.add_argument('--project-lifecycle',help='Validate the project-specific 12-stage lifecycle applicability JSON')
@@ -858,7 +900,7 @@ def main(argv=None):
         sink = EvidenceSink(
             args.evidence_file,
             root=ROOT,
-            input_paths=(args.project_trace, args.project_registry, args.project_lifecycle),
+            input_paths=(args.project_trace, args.project_registry, args.project_lifecycle, args.implementation_choice),
         )
     except ValueError as exc:
         print('ERROR=unsafe-evidence-file:' + str(exc))
@@ -892,6 +934,13 @@ def main(argv=None):
                 local_errors.append(typ + '-invalid:' + str(exc)[:200])
             user_checks.append(typ+'='+('PASS' if not local_errors else 'FAIL'))
             errors.extend(local_errors)
+    if args.implementation_choice:
+        try:
+            choice = read_json(Path(args.implementation_choice))
+            valid_schema_instance(load_schemas(ROOT, errors), 'implementation-choice.schema.json', choice)
+            check_choice(choice, read_json(Path(args.project_trace)) if args.project_trace else None, errors)
+        except (OSError, ValueError, KeyError, ValidationError) as exc:
+            errors.append('invalid-implementation-choice:' + str(exc)[:200])
     static_errors = list(errors)
     neg_checks = None
     neg_result = 'NOT_EVALUATED'

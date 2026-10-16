@@ -39,7 +39,7 @@ def run_negative_suite(root):
         if not any(expected_error in f for f in flaws):
             errors.append('negative-test-accepted-invalid:' + name + ':expected=' + expected_error + ':got=' + repr(flaws))
 
-    maturity_valid = {'items':[{'id':'feature-1','status':'VERIFIED','candidate_identity':'commit:abc','verified_at':'2026-10-16T00:00:00Z','evidence':['run:verified']}]}
+    maturity_valid = {'items':[json.loads((root/'07_CONTRACTS/examples/component-registry.example.json').read_text(encoding='utf-8'))['components'][0]['verification']]}
     valid_schema_instance(schemas, 'maturity.schema.json', maturity_valid)
     negative_json('VERIFIED-without-proof', 'maturity.schema.json', {'items':[{'id':'feature-1','status':'VERIFIED','evidence':[]}]})
     bad = copy.deepcopy(maturity_valid); bad['items'][0]['verified_at']='not-a-date'
@@ -395,6 +395,42 @@ def run_negative_suite(root):
     bad=copy.deepcopy(invariant_index);bad['invariants'][0]['standard_ref']='04_ASSURANCE/TDD_TRACEABILITY.md'
     flaws=[];check_invariants(root,std,bad,flaws);count+=1
     if not any('invariant-nonauthoritative-home' in x for x in flaws): errors.append('negative-test-accepted-invalid:invariant-guide-home')
+    from validate_package import check_maturity, check_choice
+    proof=registry['components'][0]['verification']
+    for field in ('candidate_identity','artifact_digest','verified_at','required_gate_ids','gates'):
+        bad=copy.deepcopy(registry);bad['components'][0]['verification'].pop(field)
+        negative_json('verified-component-missing-'+field,'component-registry.schema.json',bad)
+    for field,value in (('candidate_identity','wrong'),('artifact_digest','wrong'),('status','FAIL'),('freshness','STALE'),('evidence_refs',[])):
+        bad=copy.deepcopy(proof);bad['gates'][0][field]=value;flaws=[];check_maturity(bad,flaws);count+=1
+        if not any('maturity-invalid-gate' in x for x in flaws): errors.append('negative-test-accepted-invalid:verified-gate-'+field)
+    bad=copy.deepcopy(proof);bad['verified_at']='2026-10-15T00:00:00Z';flaws=[];check_maturity(bad,flaws);count+=1
+    if not any('maturity-verified-before-gate' in x for x in flaws): errors.append('negative-test-accepted-invalid:verified-before-gate')
+    for field in ('decision_ref','approved_by','mechanism','evidence_refs'):
+        bad=copy.deepcopy(registry);bad['components'][0]['state_ownership'][0]['recovery_alternative'].pop(field)
+        negative_json('recovery-alternative-without-'+field,'component-registry.schema.json',bad)
+    for field in ('decision_owner','rollback_plan','project_id','feedback_id','reason'):
+        bad=copy.deepcopy(example_choice);bad.pop(field,None)
+        negative_json('adopt-without-'+field,'implementation-choice.schema.json',bad)
+    bad=copy.deepcopy(example_choice);bad['decision_owner']='   ';negative_json('adopt-blank-owner','implementation-choice.schema.json',bad)
+    bad=copy.deepcopy(example_choice);bad['feedback_id']='unknown';flaws=[];check_choice(bad,trace,flaws);count+=1
+    if not flaws: errors.append('negative-test-accepted-invalid:adopt-unresolved-feedback')
+    bad=copy.deepcopy(trace);bad['objective']['success_measures'][0]['baseline_evidence_refs']=[]
+    negative_json('measured-empty-baseline','project-trace.schema.json',bad)
+    negative_trace('measured-empty-baseline-semantic',bad,'measured-baseline-without-evidence')
+    for name,field,value in (('mutation-contract','retry','BLIND_RETRY'),('mutation-contract','uncertain_execution','RETRY'),('protocol-adapter','identity_mapping','TRANSPORT_IS_DOMAIN'),('protocol-adapter','storage_access','PRIVATE_STORAGE')):
+        bad=json.loads((root/('07_CONTRACTS/examples/'+name+'.example.json')).read_text(encoding='utf-8'));bad[field]=value
+        negative_json(name+'-'+field,name+'.schema.json',bad)
+    bad=copy.deepcopy(trace);bad['standard_version']='1.8.0';negative_json('stale-contract-version','project-trace.schema.json',bad)
+    bad=copy.deepcopy(registry);bad['components'][0].pop('verification')
+    negative_json('VERIFIED-without-verification','component-registry.schema.json',bad)
+    flaws=[];check_project_registry(bad,flaws);count+=1
+    if not any('project-registry-unverified-component' in x for x in flaws): errors.append('negative-test-accepted-invalid:verified-component-no-proof')
+    bad=copy.deepcopy(registry);bad['components'][0]['state_ownership'][0].pop('recovery_alternative')
+    negative_json('excluded-authority-without-alternative','component-registry.schema.json',bad)
+    bad=copy.deepcopy(trace);bad['objective']['success_measures'][0].pop('baseline_evidence_refs')
+    negative_json('measured-missing-baseline','project-trace.schema.json',bad)
+    bad=copy.deepcopy(example_choice);bad['rollback_plan']='   '
+    negative_json('adopt-blank-rollback','implementation-choice.schema.json',bad)
     return count,errors
 
 

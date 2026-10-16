@@ -9,3 +9,5 @@ Prefer at least two defenses for read-only diagnostics: read-only/query-only sto
 Evidence should identify exact source/candidate, time/freshness, provenance, tool/gate, result and a digest when applicable. CLI tools should be able to persist exactly the lines shown to the operator in an evidence file without claiming stronger assurance than was actually executed.
 
 Release identity and assurance: maturity is independent of distribution. Build once and promote the same exact artifact (or frozen target-specific artifact set); required gates must PASS with fresh evidence for that candidate and digest. Pending, unavailable, stale, cancelled or required-but-skipped gates cannot satisfy verification or promotion. A changed candidate requires renewed proof. Tags and publication alone prove no gate result.
+
+MEASURED baselines require evidence. VERIFIED component `verification` reuses the maturity contract and requires declared gate IDs with fresh PASS proof for the exact candidate/digest, observed no later than verification. Canonical version authority is `unified-package-standard.json`; version pins in records are checked against it.

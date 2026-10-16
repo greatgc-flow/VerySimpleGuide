@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/verysimple/project-trace/1.8",
+  "$id": "https://example.invalid/verysimple/project-trace/1.9",
   "title": "Project Feedback and Traceability Ledger",
   "type": "object",
   "additionalProperties": false,
@@ -16,7 +16,8 @@
   ],
   "properties": {
     "standard_version": {
-      "const": "1.8.0"
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
     },
     "project_id": {
       "type": "string",
@@ -91,7 +92,31 @@
                 },
                 "uniqueItems": true
               }
-            }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "baseline_status": {
+                      "const": "MEASURED"
+                    }
+                  },
+                  "required": [
+                    "baseline_status"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "baseline_evidence_refs"
+                  ],
+                  "properties": {
+                    "baseline_evidence_refs": {
+                      "minItems": 1
+                    }
+                  }
+                }
+              }
+            ]
           }
         }
       }

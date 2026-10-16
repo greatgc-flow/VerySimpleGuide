@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/verysimple/project-lifecycle/1.8",
+  "$id": "https://example.invalid/verysimple/project-lifecycle/1.9",
   "title": "Project Lifecycle Applicability and Disposition Ledger",
   "type": "object",
   "additionalProperties": false,

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/verysimple/unified-package-standard/1.8",
+  "$id": "https://example.invalid/verysimple/unified-package-standard/1.9",
   "title": "Unified Package Standard Machine SSOT",
   "type": "object",
   "additionalProperties": false,
@@ -36,7 +36,8 @@
       "const": "VS-UNIFIED-PACKAGE-STANDARD"
     },
     "version": {
-      "const": "1.8.0"
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
     },
     "philosophy": {
       "type": "string",
