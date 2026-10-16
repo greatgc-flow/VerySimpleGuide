@@ -807,8 +807,8 @@
     },
     {
       "path": "tools/test_validator.py",
-      "sha256": "aaf35534994953bde82b5b6995679a949c2fd2e817de8bcbf3dbcd46a650c749",
-      "size_bytes": 29259,
+      "sha256": "bff020ea2864bd88107fe86708b5764c5d311dbf4e75585de4c0a34436a45aed",
+      "size_bytes": 30211,
       "role": "VALIDATION_TOOL",
       "primary_control": "UPS-TEST",
       "related_controls": []
@@ -823,8 +823,8 @@
     },
     {
       "path": "tools/validate_package.py",
-      "sha256": "dce18b4bc907d0bf4039a87e748f89d713d5291e049fb675a206ee6b3bd844f0",
-      "size_bytes": 44994,
+      "sha256": "77bc0af3595817e2e50306475a7cc548ebdd77e8f5080a27e95a27e0bb3462ce",
+      "size_bytes": 44813,
       "role": "VALIDATION_TOOL",
       "primary_control": "UPS-TEST",
       "related_controls": []

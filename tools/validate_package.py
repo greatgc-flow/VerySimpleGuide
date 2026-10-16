@@ -576,8 +576,6 @@ def check_project_lifecycle(project, stage_ids, concern_ids, errors, matrix=None
             _validate_disposition_record(row, 'project-' + section, ident, errors)
             if ident in active_ids and row.get('applicability') == 'N_A':
                 errors.append('project-' + section + '-flag-na-conflict:' + ident)
-            if profile == 'COMPACT' and ident not in required_ids and row.get('applicability') == 'N_A':
-                errors.append('project-compact-omitted-marked-na:' + ident)
 
     overrides = project.get('cell_overrides', [])
     seen = set()

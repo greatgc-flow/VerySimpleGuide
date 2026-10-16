@@ -296,6 +296,14 @@ def run_negative_suite(root):
     valid_schema_instance(schemas,'project-lifecycle.schema.json',compact_valid)
     flaws=[];check_project_lifecycle(compact_valid,{x['id'] for x in matrix['stages']},{x['id'] for x in matrix['concerns']},flaws,matrix=matrix);count+=1
     if flaws:errors.append('positive-compact-lifecycle-rejected:'+repr(flaws))
+    compact_explicit_na=copy.deepcopy(compact_valid)
+    compact_explicit_na['stages'].append({'stage_id':'RETIRE','applicability':'N_A','approach':'COMPLY','result':'NOT_EVALUATED','deferred':False,'owner':'dev','reason':'not retiring internal module','revisit_trigger':'when module is scheduled for sunset','acceptance_criteria':'','candidate_identity':'','evidence_refs':[]})
+    valid_schema_instance(schemas,'project-lifecycle.schema.json',compact_explicit_na)
+    flaws=[];check_project_lifecycle(compact_explicit_na,{x['id'] for x in matrix['stages']},{x['id'] for x in matrix['concerns']},flaws,matrix=matrix);count+=1
+    if flaws:errors.append('positive-compact-explicit-na-rejected:'+repr(flaws))
+    bad_compact_na_flag=copy.deepcopy(compact_explicit_na)
+    bad_compact_na_flag['activity_flags']['withdrawal']=True
+    negative_lifecycle('compact-active-withdrawal-flag-marked-na','project-stages-flag-na-conflict',pr=bad_compact_na_flag)
     bad_compact=copy.deepcopy(compact_valid);bad_compact['escalation_flags']['security_boundary']=True
     negative_lifecycle('compact-with-escalation-flag','project-compact-forbidden-by-escalation-flag',pr=bad_compact)
     bad_compact2=copy.deepcopy(compact_valid);bad_compact2['stages']=[x for x in bad_compact2['stages'] if x['stage_id']!='IMPLEMENT']
