@@ -1,10 +1,7 @@
-# Twelve Lifecycle Stages × Ten Cross-Cutting Concerns
+# One Lifecycle Backbone
 
-The objective is to expose missing value, owners, transitions and retirement obligations—not to inflate the number of process steps. The 120 cells in `lifecycle-matrix.json` are **reviewer prompts**, not implementation orders.
+[lifecycle-matrix.json](lifecycle-matrix.json) defines twelve stages, ten concerns and next/revisit routes. [12x10_OVERVIEW.md](12x10_OVERVIEW.md) is its generated review view. FOCUS/CONSIDER express attention, not required artifacts, technology or evidence of completion.
 
-- **Vertical:** `DISCOVER`, `ASSESS`, `INITIATE`, `SPECIFY`, `DESIGN`, `IMPLEMENT`, `VERIFY`, `RELEASE`, `OPERATE_SUPPORT`, `IMPROVE`, `EVOLVE`, `RETIRE`.
-- **Horizontal:** `OUTCOME_VALUE`, `USERS_ACCESSIBILITY`, `RISK_SECURITY`, `ARCHITECTURE_DEPENDENCIES`, `DATA_PRIVACY`, `QUALITY_ASSURANCE`, `RELEASE_SUPPLYCHAIN`, `OPERATIONS_RELIABILITY`, `ECONOMICS_SUSTAINABILITY`, `GOVERNANCE_EVIDENCE`.
-- **Recursive scopes:** product, milestone, component, public interface, mutation, release and retirement; keep records proportionate.
-- **Variants:** UI-only, embedded, library-only, research-only, automation and batch products can choose reasoned `N_A` or `OPTIONAL` entries.
+Use the [coverage standard](../02_STANDARD/LIFECYCLE_COVERAGE_STANDARD.md) to select COMPACT/FULL, record separate applicability/approach/result and assess exceptional intersections. The [worked example](APPLICABILITY_EXAMPLE.md) illustrates records without proving product behavior.
 
-For project use, record twelve stage decisions and ten concern decisions. Review interactions and create `cell_overrides` only where the default combined decision hides an important risk. If a PASS claim lacks evidence for the exact intersection, keep it `REQUIRED` or `DEFERRED`. The sample JSON is not production evidence.
+Apply scoped contracts for [mutation recovery](FAILURE_RECOVERY.md), [cutover](CUTOVER_ROLLBACK.md), [release](RELEASE_PROMOTION.md), [distribution](MATURITY_DISTRIBUTION.md) and [retirement](DEPRECATION_RETIREMENT.md). Development, exploration and feedback reenter this backbone through the [value stream](../01_METHOD/LIFECYCLE_VALUE_STREAM.md).

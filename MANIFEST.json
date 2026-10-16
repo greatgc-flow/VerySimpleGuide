@@ -268,16 +268,16 @@
     },
     {
       "path": "03_LIFECYCLE/APPLICABILITY_EXAMPLE.md",
-      "sha256": "9a6c38cc062f80f77cc1a72bd966c1d5c84f717564eec02877731469259305e2",
-      "size_bytes": 952,
+      "sha256": "e81cf4af9a7292fe00bd7b43f88fafda2e7f83760f706419d3efa45ab0c4451b",
+      "size_bytes": 876,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []
     },
     {
       "path": "03_LIFECYCLE/CUTOVER_ROLLBACK.md",
-      "sha256": "589395ad8bd40de8e20b65d66cbfaf8322d4eb8e940551bdcfe045c9203c222f",
-      "size_bytes": 712,
+      "sha256": "fc7ac724fccacb61fcc58e05b5ef1d18c0694a5a1ab9a8274b8825b65c2bebf7",
+      "size_bytes": 578,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": [
@@ -286,8 +286,8 @@
     },
     {
       "path": "03_LIFECYCLE/DEPRECATION_RETIREMENT.md",
-      "sha256": "b77806e1afbe85d5b8ebf3ccfd3cd8c25b3f9ad9d4ca43ac6b11d7ce16524477",
-      "size_bytes": 595,
+      "sha256": "62e4acb176034873d69075b9fb83f8d216f561290beb27fed511c7005a92828b",
+      "size_bytes": 1008,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []
@@ -302,8 +302,8 @@
     },
     {
       "path": "03_LIFECYCLE/MATURITY_DISTRIBUTION.md",
-      "sha256": "a3481fb23f496cdf84f86d099bdc4bc08d44af27bf6004ee8319bd9af7b6fecb",
-      "size_bytes": 770,
+      "sha256": "3ebf25fa7fe2327ac926c979afb55b47b64a5425bd03d6ca667fc4261c71c141",
+      "size_bytes": 1245,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": [
@@ -312,16 +312,16 @@
     },
     {
       "path": "03_LIFECYCLE/README.md",
-      "sha256": "a4173cefa2055f9696c2303a381a4613c34b7804da660cd9bfb8d0bda23da5c2",
-      "size_bytes": 1287,
+      "sha256": "bf88c880cb4208e0ed49b1c178045868c838a2268496c125b4e0a6f0932ded89",
+      "size_bytes": 933,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []
     },
     {
       "path": "03_LIFECYCLE/RELEASE_PROMOTION.md",
-      "sha256": "ec904c64b7681ce13f2e0bef25ee52364792ee997a892922fd7e1652dba80ef3",
-      "size_bytes": 797,
+      "sha256": "5b9e8999dfa01ce89015977432d38d574be03cf60392cdca14f8b08d21bd6f63",
+      "size_bytes": 901,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": [

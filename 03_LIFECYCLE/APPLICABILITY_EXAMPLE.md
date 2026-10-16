@@ -1,7 +1,7 @@
-# The 12×10 Review Space and 12+10 Applicability Ledger
+# A Small Applicability Record
 
-The design space contains twelve stages × ten concerns = 120 `FOCUS`/`CONSIDER` questions. It is a **static reviewer checklist**, not 120 individual approvals or test results.
+Select a profile using the [coverage standard](../02_STANDARD/LIFECYCLE_COVERAGE_STANDARD.md); use [project-lifecycle.example.json](../07_CONTRACTS/examples/project-lifecycle.example.json) for the exact serialization. The matrix's 120 prompts are not 120 approvals or tests.
 
-In practice, complete twelve stage decisions and ten concern decisions in `07_CONTRACTS/examples/project-lifecycle.example.json` with owner and rationale. Add `cell_overrides` only where a particular intersection has a materially different status; document evidence and re-evaluation criteria for exceptions.
+For example, a required design/security assessment awaiting a threat-model review has `applicability: REQUIRED`, `approach: COMPLY`, `result: NOT_EVALUATED`, `deferred: true`, a named `owner`, `reason` and `revisit_trigger`. It remains unsatisfied. If this intersection differs from its stage/concern records, use a sparse `cell_overrides` entry.
 
-Example: `DESIGN × RISK_SECURITY = DEFERRED` means design risk evaluation awaits a named threat-model review. A broad design-stage PASS does not automatically certify the security intersection. Combining applicable states is not an automatic compliance certification algorithm; conflicts retain the more cautious proof obligation. `PASS` is valid only with scope, timestamp/candidate and actual evidence.
+After actual assessment, a PASS needs acceptance criteria, candidate identity and evidence for that scope. Broad stage/concern success supplies no automatic cell result; sample evidence supplies no product verification.

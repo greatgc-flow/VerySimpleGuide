@@ -1,7 +1,5 @@
-# Public Cutover and Rollback Lifecycle
+# Public Cutover Scope
 
-Track implementation maturity and **public-default cutover maturity** separately. A new engine may be `VERIFIED` while the public command still defaults to the legacy implementation.
+A replacement can be VERIFIED while users still receive the legacy default. Record implementation maturity for the replacement and the scoped cutover change using the [existing maturity model](MATURITY_DISTRIBUTION.md); do not introduce another maturity enum. Record the current selector/default separately from maturity.
 
-Before changing the default, gate help/version parity, machine-output contracts, diagnostics and telemetry parity, safety/authorization behavior, existing scripts and automation, the entire public integration suite, and rollback-selector evidence.
-
-Flip the default only after those requirements are met. The selector must not secretly migrate shared data back and forth or introduce uncontrolled side effects. After cutover, retain an explicit, tested recovery path for affected users.
+The normative ordering and parity gate live in the [compatibility standard](../02_STANDARD/COMPATIBILITY_MIGRATION_STANDARD.md). Bind cutover evidence to the proposed candidate and preserve the tested recovery path after the flip.
