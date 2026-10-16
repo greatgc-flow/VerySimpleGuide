@@ -32,20 +32,13 @@ def reseal(root=ROOT):
             'path': rel,
             'sha256': sha256(target),
             'size_bytes': target.stat().st_size,
+            'role': prev.get('role', 'HUMAN_GUIDE'),
+            'primary_control': prev.get('primary_control', 'UPS-DOC'),
+            'related_controls': prev.get('related_controls', []),
         }
-        for key in ('role', 'primary_control', 'related_controls'):
-            if key in prev:
-                entry[key] = prev[key]
         updated_files.append(entry)
     manifest['files'] = updated_files
     manifest_file.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8', newline='\n')
-
-    checksums_file = root / 'CHECKSUMS_SHA256.txt'
-    if checksums_file.is_file():
-        lines = [f"{entry['sha256']}  {entry['path']}" for entry in updated_files]
-        lines.append(f"{sha256(manifest_file)}  MANIFEST.json")
-        lines.sort(key=lambda line: line.split('  ', 1)[1])
-        checksums_file.write_text('\n'.join(lines) + '\n', encoding='utf-8', newline='\n')
     return len(updated_files)
 
 

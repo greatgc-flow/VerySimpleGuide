@@ -23,7 +23,9 @@ except ImportError as exc:
 ROOT = Path(__file__).resolve().parents[1]
 VERSION = '1.7.0'
 PACK_NAME = 'VerySimpleGuide'
-EXCLUDED = {'MANIFEST.json', 'CHECKSUMS_SHA256.txt'}
+# MANIFEST.json is explicitly self-excluded from its own file inventory;
+# manifest digests detect accidental changes, not cryptographic provenance.
+EXCLUDED = {'MANIFEST.json'}
 
 
 class EvidenceSink:
@@ -121,26 +123,6 @@ def check_manifest(root, errors):
     return declared
 
 
-def check_checksums(root, declared, errors):
-    text = (root / 'CHECKSUMS_SHA256.txt').read_text(encoding='utf-8')
-    lines = [x for x in text.splitlines() if x.strip()]
-    seen = set()
-    for line in lines:
-        try:
-            digest, rel = line.split('  ', 1)
-            assert len(digest) == 64 and all(c in '0123456789abcdef' for c in digest)
-            if rel in seen:
-                raise ValueError('duplicate')
-            seen.add(rel)
-            target = safe_target(root, rel)
-            if not target.is_file() or sha256(target) != digest:
-                errors.append('checksums-mismatch:' + rel)
-        except (AssertionError, ValueError, OSError) as exc:
-            errors.append('checksums-format:' + str(exc) + ':' + line[:100])
-    if seen != declared | {'MANIFEST.json'}:
-        errors.append('checksums-inventory-diff')
-
-
 def load_schemas(root, errors):
     parsed = {}
     if Draft202012Validator is None:
@@ -214,8 +196,6 @@ def check_controls(root, std, coverage, errors):
     if not actual_standards.issubset(mapped_standards):
         errors.append('standard-owner-unmapped:' + repr(sorted(actual_standards - mapped_standards)))
     for row in rows:
-        if row.get('primary_owner') != row.get('control_id'):
-            errors.append('control-primary-owner:' + str(row.get('control_id')))
         refs = row.get('standard_refs')
         if not isinstance(refs, list) or not refs:
             errors.append('control-without-standard:' + str(row.get('control_id')))
@@ -269,23 +249,35 @@ def check_project_registry(registry, errors):
                 errors.append('project-registry-ephemeral-mandatory-backup:'+ident)
 
 
-def check_artifact_ownership(root, std, errors, ledger_override=None):
-    """All tracked semantic artifacts must have exactly one Control owner and a distinct authority role.
+def expected_role_for_path(rpath):
+    if rpath.startswith('07_CONTRACTS/schemas/'):
+        return 'MACHINE_SSOT'
+    if rpath.startswith('07_CONTRACTS/examples/'):
+        return 'EXAMPLE'
+    if rpath in ('03_LIFECYCLE/12x10_OVERVIEW.md', '06_GOVERNANCE/CONTROL_CATALOG.md'):
+        return 'GENERATED_VIEW'
+    if (rpath.startswith('06_GOVERNANCE/') and rpath.endswith('.json')) or rpath == '03_LIFECYCLE/lifecycle-matrix.json':
+        return 'MACHINE_SSOT'
+    if rpath in ('08_KNOWLEDGE/guidance-catalog.json', '08_KNOWLEDGE/references/catalog.json'):
+        return 'REFERENCE_CATALOG'
+    if rpath.startswith('02_STANDARD/') or rpath in ('LICENSE', 'NOTICE'):
+        return 'NORMATIVE_SOURCE'
+    if rpath.startswith(('tools/', '.github/')):
+        return 'VALIDATION_TOOL'
+    return None
 
-    The ledger complements the hash manifest (identity), it does not replace it.
-    """
-    rel = '06_GOVERNANCE/artifact-ownership.json'
-    ledger = ledger_override if ledger_override is not None else read_json(root / rel)
+
+def check_artifact_ownership(root, std, errors, ledger_override=None):
+    """All tracked semantic artifacts in MANIFEST.json must have a valid Control owner and authority role."""
+    ledger = ledger_override if ledger_override is not None else read_json(root / 'MANIFEST.json')
     control_ids = {c['id'] for c in std.get('controls',[])}
     roles = {'NORMATIVE_SOURCE','MACHINE_SSOT','HUMAN_GUIDE','GENERATED_VIEW',
              'EXAMPLE','REFERENCE_CATALOG','ASSURANCE_EVIDENCE','VALIDATION_TOOL'}
-    records = ledger.get('artifacts',[])
+    records = ledger.get('files', ledger.get('artifacts', []))
     paths = [x.get('path') for x in records]
     if len(paths)!=len(set(paths)):
         errors.append('artifact-ownership-duplicate')
     actual = file_inventory(root)
-    # Normative standards may be referenced by several Controls, but the chosen primary
-    # must be one of the Controls actually claiming this standard in control-coverage SSOT.
     cov = read_json(root/'06_GOVERNANCE/control-coverage.json')
     standard_claims = {}
     for owner in cov.get('controls',[]):
@@ -303,18 +295,14 @@ def check_artifact_ownership(root, std, errors, ledger_override=None):
             errors.append('artifact-invalid-primary-owner:'+str(rpath))
         if row.get('role') not in roles:
             errors.append('artifact-invalid-role:'+str(rpath))
+        expected_role = expected_role_for_path(rpath)
+        if expected_role and row.get('role') != expected_role:
+            errors.append('artifact-authority-role-mismatch:'+str(rpath))
         others = row.get('related_controls',[])
         if not isinstance(others,list) or any(x not in control_ids or x==row.get('primary_control') for x in others) or len(set(others))!=len(others):
             errors.append('artifact-invalid-secondary-owners:'+str(rpath))
         if rpath not in actual:
             errors.append('artifact-unknown-path:'+str(rpath))
-    for must,role in [('06_GOVERNANCE/unified-package-standard.json','MACHINE_SSOT'),
-                      ('03_LIFECYCLE/lifecycle-matrix.json','MACHINE_SSOT'),
-                      ('03_LIFECYCLE/12x10_OVERVIEW.md','GENERATED_VIEW'),
-                      ('07_CONTRACTS/schemas/project-lifecycle.schema.json','MACHINE_SSOT')]:
-        match=[x for x in records if x.get('path')==must]
-        if not match or match[0].get('role')!=role:
-            errors.append('artifact-authority-role-mismatch:'+must)
 
 
 def duplicate_check(items, label, errors):
@@ -547,8 +535,7 @@ def semantic_lint(root, std, errors):
 
 def check_all(root):
     errors = []
-    declared = check_manifest(root, errors)
-    check_checksums(root, declared, errors)
+    check_manifest(root, errors)
     try:
         std = read_json(root / '06_GOVERNANCE/unified-package-standard.json')
         coverage = read_json(root / '06_GOVERNANCE/control-coverage.json')
@@ -561,9 +548,9 @@ def check_all(root):
         schemas = load_schemas(root, errors)
         if schemas:
             try:
-                valid_schema_instance(schemas,'artifact-ownership.schema.json',read_json(root/'06_GOVERNANCE/artifact-ownership.json'))
+                valid_schema_instance(schemas,'manifest.schema.json',read_json(root/'MANIFEST.json'))
             except (ValueError,KeyError,ValidationError,OSError,json.JSONDecodeError) as exc:
-                errors.append('invalid-artifact-ownership-schema:'+str(exc)[:180])
+                errors.append('invalid-manifest-schema:'+str(exc)[:180])
             check_examples(root, schemas, errors)
             check_project_registry(read_json(root / '07_CONTRACTS/examples/component-registry.example.json'),errors)
             if not errors or all(not x.startswith('invalid-example') for x in errors):

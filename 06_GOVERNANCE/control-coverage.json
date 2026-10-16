@@ -4,7 +4,6 @@
   "controls": [
     {
       "control_id": "UPS-CLI",
-      "primary_owner": "UPS-CLI",
       "standard_refs": [
         "02_STANDARD/CLI_STANDARD.md"
       ],
@@ -13,7 +12,6 @@
     },
     {
       "control_id": "UPS-HELP",
-      "primary_owner": "UPS-HELP",
       "standard_refs": [
         "02_STANDARD/CLI_STANDARD.md"
       ],
@@ -22,7 +20,6 @@
     },
     {
       "control_id": "UPS-EXIT",
-      "primary_owner": "UPS-EXIT",
       "standard_refs": [
         "02_STANDARD/CLI_STANDARD.md"
       ],
@@ -31,7 +28,6 @@
     },
     {
       "control_id": "UPS-CONFIG",
-      "primary_owner": "UPS-CONFIG",
       "standard_refs": [
         "02_STANDARD/CONFIG_STATE_SCHEMA.md"
       ],
@@ -40,7 +36,6 @@
     },
     {
       "control_id": "UPS-LAYOUT",
-      "primary_owner": "UPS-LAYOUT",
       "standard_refs": [
         "02_STANDARD/CONFIG_STATE_SCHEMA.md",
         "02_STANDARD/DATA_SAFETY_STANDARD.md",
@@ -52,7 +47,6 @@
     },
     {
       "control_id": "UPS-SCHEMA",
-      "primary_owner": "UPS-SCHEMA",
       "standard_refs": [
         "02_STANDARD/CONFIG_STATE_SCHEMA.md",
         "02_STANDARD/CAPABILITY_CATALOG_STANDARD.md"
@@ -62,7 +56,6 @@
     },
     {
       "control_id": "UPS-COMP",
-      "primary_owner": "UPS-COMP",
       "standard_refs": [
         "02_STANDARD/COMPONENT_BOUNDARY.md",
         "02_STANDARD/UNIFIED_STANDARD.md",
@@ -73,7 +66,6 @@
     },
     {
       "control_id": "UPS-EXT",
-      "primary_owner": "UPS-EXT",
       "standard_refs": [
         "02_STANDARD/EXTENSION_PROVIDER_STANDARD.md",
         "02_STANDARD/PROVIDER_CAPABILITY_STANDARD.md",
@@ -85,7 +77,6 @@
     },
     {
       "control_id": "UPS-OBS",
-      "primary_owner": "UPS-OBS",
       "standard_refs": [
         "02_STANDARD/OBSERVABILITY_EVIDENCE_STANDARD.md",
         "02_STANDARD/PROJECTION_FRESHNESS_STANDARD.md"
@@ -95,7 +86,6 @@
     },
     {
       "control_id": "UPS-EVID",
-      "primary_owner": "UPS-EVID",
       "standard_refs": [
         "02_STANDARD/OBSERVABILITY_EVIDENCE_STANDARD.md",
         "04_ASSURANCE/ASSURANCE_CASE_AND_NEGATIVE_TEST.md"
@@ -105,7 +95,6 @@
     },
     {
       "control_id": "UPS-SEC",
-      "primary_owner": "UPS-SEC",
       "standard_refs": [
         "02_STANDARD/SECURITY_TRUST_STANDARD.md"
       ],
@@ -114,7 +103,6 @@
     },
     {
       "control_id": "UPS-MIG",
-      "primary_owner": "UPS-MIG",
       "standard_refs": [
         "02_STANDARD/COMPATIBILITY_MIGRATION_STANDARD.md",
         "03_LIFECYCLE/CUTOVER_ROLLBACK.md",
@@ -125,7 +113,6 @@
     },
     {
       "control_id": "UPS-TEST",
-      "primary_owner": "UPS-TEST",
       "standard_refs": [
         "04_ASSURANCE/TDD_TRACEABILITY.md",
         "04_ASSURANCE/ASSURANCE_CASE_AND_NEGATIVE_TEST.md",
@@ -137,7 +124,6 @@
     },
     {
       "control_id": "UPS-REL",
-      "primary_owner": "UPS-REL",
       "standard_refs": [
         "03_LIFECYCLE/RELEASE_PROMOTION.md",
         "03_LIFECYCLE/MATURITY_DISTRIBUTION.md"
@@ -147,7 +133,6 @@
     },
     {
       "control_id": "UPS-DOC",
-      "primary_owner": "UPS-DOC",
       "standard_refs": [
         "04_ASSURANCE/DRIFT_CONTROL.md",
         "02_STANDARD/KNOWLEDGE_REFERENCE_STANDARD.md"

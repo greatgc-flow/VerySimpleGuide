@@ -96,7 +96,7 @@ def run_negative_suite(root):
     future_std=copy.deepcopy(std)
     future_coverage=copy.deepcopy(coverage)
     future_std['controls'].append({'id':'UPS-FUTURE','name':'Versioned optional future control'})
-    new_coverage=copy.deepcopy(future_coverage['controls'][0]);new_coverage['control_id']='UPS-FUTURE';new_coverage['primary_owner']='UPS-FUTURE'
+    new_coverage=copy.deepcopy(future_coverage['controls'][0]);new_coverage['control_id']='UPS-FUTURE'
     future_coverage['controls'].append(new_coverage)
     flaws=[];check_controls(root,future_std,future_coverage,flaws);count+=1
     if flaws:errors.append('positive-control-evolution-rejected:'+repr(flaws))
@@ -168,22 +168,22 @@ def run_negative_suite(root):
     second=copy.deepcopy(bad['gates'][0]);second['gate_id']='GATE-2';second['artifact_digest']='sha256:'+'b'*64
     bad['gates'].append(second);bad['feedback'][0]['closure_gate_ids'].append('GATE-2')
     negative_trace('feedback-mixed-gate-artifact',bad)
-    ledger=json.loads((root/'06_GOVERNANCE/artifact-ownership.json').read_text(encoding='utf-8'))
-    bad=copy.deepcopy(ledger);bad['artifacts'][0]['rogue_ownership']='not allowed'
-    negative_json('artifact-ownership-reject-unknown-field','artifact-ownership.schema.json',bad)
-    bad=copy.deepcopy(ledger);bad['artifacts'].pop();flaws=[];check_artifact_ownership(root,std,flaws,bad);count+=1
+    ledger=json.loads((root/'MANIFEST.json').read_text(encoding='utf-8'))
+    bad=copy.deepcopy(ledger);bad['files'][0]['rogue_ownership']='not allowed'
+    negative_json('manifest-reject-unknown-field','manifest.schema.json',bad)
+    bad=copy.deepcopy(ledger);bad['files'].pop();flaws=[];check_artifact_ownership(root,std,flaws,bad);count+=1
     if not any('artifact-ownership-inventory-diff' in x for x in flaws):errors.append('negative-test-accepted-invalid:missing-artifact-owner')
-    bad=copy.deepcopy(ledger);bad['artifacts'][0]['primary_control']='UPS-NOBODY';flaws=[];check_artifact_ownership(root,std,flaws,bad);count+=1
+    bad=copy.deepcopy(ledger);bad['files'][0]['primary_control']='UPS-NOBODY';flaws=[];check_artifact_ownership(root,std,flaws,bad);count+=1
     if not any('artifact-invalid-primary-owner' in x for x in flaws):errors.append('negative-test-accepted-invalid:invalid-artifact-owner')
     bad=copy.deepcopy(ledger)
-    for item in bad['artifacts']:
+    for item in bad['files']:
         if item['path']=='02_STANDARD/CLI_STANDARD.md':
             item['primary_control']='UPS-COMP'
             break
     flaws=[];check_artifact_ownership(root,std,flaws,bad);count+=1
     if not any('artifact-primary-standard-control-mismatch' in x for x in flaws):
         errors.append('negative-test-accepted-invalid:cross-control-normative-owner')
-    bad=copy.deepcopy(ledger);bad['artifacts'].append(copy.deepcopy(bad['artifacts'][0]));flaws=[];check_artifact_ownership(root,std,flaws,bad);count+=1
+    bad=copy.deepcopy(ledger);bad['files'].append(copy.deepcopy(bad['files'][0]));flaws=[];check_artifact_ownership(root,std,flaws,bad);count+=1
     if not any('artifact-ownership-duplicate' in x for x in flaws):errors.append('negative-test-accepted-invalid:duplicate-artifact')
     reg=json.loads((root/'07_CONTRACTS/examples/component-registry.example.json').read_text(encoding='utf-8'))
     bad=copy.deepcopy(reg);bad['components'][0]['id']=bad['components'][1]['id'];flaws=[];check_project_registry(bad,flaws);count+=1
