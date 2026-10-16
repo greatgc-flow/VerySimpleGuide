@@ -102,7 +102,6 @@
       "type": "array",
       "items": {
         "type": "string",
-        "minLength": 1,
         "pattern": "\\S"
       },
       "minItems": 1,
@@ -110,12 +109,10 @@
     },
     "project_id": {
       "type": "string",
-      "minLength": 1,
       "pattern": "\\S"
     },
     "feedback_id": {
       "type": "string",
-      "minLength": 1,
       "pattern": "\\S"
     }
   },
@@ -141,12 +138,10 @@
         "properties": {
           "decision_owner": {
             "type": "string",
-            "minLength": 1,
             "pattern": "\\S"
           },
           "rollback_plan": {
             "type": "string",
-            "minLength": 1,
             "pattern": "\\S"
           }
         },
@@ -163,7 +158,6 @@
             "properties": {
               "reason": {
                 "type": "string",
-                "minLength": 1,
                 "pattern": "\\S"
               }
             }

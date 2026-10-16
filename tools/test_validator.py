@@ -18,6 +18,7 @@ def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=
     count = 0
     schemas = load_schemas(root, errors)
     trace = json.loads((root / '07_CONTRACTS/examples/project-trace.example.json').read_text(encoding='utf-8'))
+    registry=json.loads((root/'07_CONTRACTS/examples/component-registry.example.json').read_text(encoding='utf-8'))
 
     def negative_json(name, schema_name, instance):
         nonlocal count
@@ -47,7 +48,7 @@ def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=
         check_trace(instance, flaws, prior)
         if flaws: errors.append('positive-' + name + '-rejected:' + repr(flaws))
 
-    maturity_valid = {'items':[json.loads((root/'07_CONTRACTS/examples/component-registry.example.json').read_text(encoding='utf-8'))['components'][0]['verification']]}
+    maturity_valid = {'items':[registry['components'][0]['verification']]}
     valid_schema_instance(schemas, 'maturity.schema.json', maturity_valid)
     negative_json('VERIFIED-without-proof', 'maturity.schema.json', {'items':[{'id':'feature-1','status':'VERIFIED','evidence':[]}]})
     bad = copy.deepcopy(maturity_valid); bad['items'][0]['verified_at']='not-a-date'
@@ -74,7 +75,6 @@ def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=
     negative_json('PASS-stale', 'gate-evidence.schema.json', {**gate_valid, 'freshness':'STALE'})
     negative_json('PASS-empty-evidence', 'gate-evidence.schema.json', {**gate_valid,'evidence_refs':[]})
     negative_json('PASS-no-digest', 'gate-evidence.schema.json', {k:v for k,v in gate_valid.items() if k!='artifact_digest'})
-    registry=json.loads((root/'07_CONTRACTS/examples/component-registry.example.json').read_text(encoding='utf-8'))
     bad=copy.deepcopy(registry);bad['components'][1]['required_scopes']=['BASE']
     negative_json('optional-extension-cannot-be-required-for-base','component-registry.schema.json',bad)
     bad=copy.deepcopy(registry);bad['components'][1]['boundary_roles']=['NONE','PROVIDER']
@@ -131,7 +131,6 @@ def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=
     negative_json('unfalsifiable-technology-choice','implementation-choice.schema.json',invalid)
     invalid=copy.deepcopy(example_choice);invalid['alternatives']=[]
     negative_json('no-alternative-evaluated','implementation-choice.schema.json',invalid)
-    registry=json.loads((root/'07_CONTRACTS/examples/component-registry.example.json').read_text(encoding='utf-8'))
     invalid=copy.deepcopy(registry);invalid['components'][1]['extensions']={'no_namespace':True}
     negative_json('non-namespaced-metadata','component-registry.schema.json',invalid)
     invalid=copy.deepcopy(registry);invalid['components'][0]['state_ownership'][0].pop('name',None)
@@ -156,8 +155,7 @@ def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=
     flaws=[];check_controls(root,future_std,future_coverage,flaws);count+=1
     if flaws:errors.append('positive-control-evolution-rejected:'+repr(flaws))
     # Positive reference proof, not just negative tests.
-    flaws=[];check_trace(trace,flaws);count+=1
-    if flaws:errors.append('positive-trace-rejected:'+repr(flaws))
+    positive_trace('trace',trace)
     # R11: full lifecycle / optional knowledge negative controls.
     matrix=json.loads((root/'03_LIFECYCLE/lifecycle-matrix.json').read_text(encoding='utf-8'))
     guidance=json.loads((root/'08_KNOWLEDGE/guidance-catalog.json').read_text(encoding='utf-8'))
@@ -298,8 +296,7 @@ def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=
         errors.append('negative-test-accepted-invalid:cross-control-normative-owner')
     bad=copy.deepcopy(ledger);bad['files'].append(copy.deepcopy(bad['files'][0]));flaws=[];check_artifact_ownership(root,std,flaws,bad);count+=1
     if not any('artifact-ownership-duplicate' in x for x in flaws):errors.append('negative-test-accepted-invalid:duplicate-artifact')
-    reg=json.loads((root/'07_CONTRACTS/examples/component-registry.example.json').read_text(encoding='utf-8'))
-    bad=copy.deepcopy(reg);bad['components'][0]['id']=bad['components'][1]['id'];flaws=[];check_project_registry(bad,flaws);count+=1
+    bad=copy.deepcopy(registry);bad['components'][0]['id']=bad['components'][1]['id'];flaws=[];check_project_registry(bad,flaws);count+=1
     if not any('duplicate-component-id' in x for x in flaws):errors.append('negative-test-accepted-invalid:duplicate-component')
     # Positive project 12+10+cell override.
     good=copy.deepcopy(project)
@@ -393,13 +390,11 @@ def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=
     bad['feedback'][0]['decision_ref']='generic-risk-acceptance'
     negative_trace('generic-decision-cannot-waive-regression',bad,'feedback-contradictory-outcome-not-reopened')
     reopened=copy.deepcopy(bad);fb=reopened['feedback'][0];fb.update(status='OPEN',next_action='Investigate OBS-LATER',decision_ref='decision:regression');fb['history'].append({'event':'REOPEN','at':'2026-10-16T02:10:00Z','actor':'owner','reason':'new target miss','decision_ref':'decision:regression','prior_closure_evidence_ref':'REL-3','observation_ids':['OBS-LATER']})
-    flaws=[];check_trace(reopened,flaws,trace);count+=1
-    if flaws: errors.append('positive-reopen-rejected:'+repr(flaws))
+    positive_trace('reopen',reopened,trace)
     accepted=copy.deepcopy(reopened);fb=accepted['feedback'][0];fb.update(status='CLOSED',outcome_decision='EXCEPTION_ACCEPTED',outcome_observation_id='OBS-EXCEPTION')
     accepted['observations'].append({**accepted['observations'][1], 'id':'OBS-EXCEPTION', 'evaluation':'EXCEPTION_ACCEPTED', 'observed_at':'2026-10-16T02:15:00Z'})
     fb['history'].append({'event':'CLOSE','at':'2026-10-16T02:20:00Z','actor':'owner','reason':'Explicitly accept measured regression risk','decision_ref':'decision:accept-regression','closure_evidence_ref':'REL-3','observation_ids':['OBS-LATER']})
-    flaws=[];check_trace(accepted,flaws,reopened);count+=1
-    if flaws: errors.append('positive-specific-regression-decision-rejected:'+repr(flaws))
+    positive_trace('specific-regression-decision',accepted,reopened)
     bad=copy.deepcopy(trace);bad['feedback'][0]['history'][0]['reason']='rewritten';flaws=[];check_trace(bad,flaws,trace);count+=1
     if not any('feedback-history-rewritten' in x for x in flaws): errors.append('negative-test-accepted-invalid:history-prefix')
     bad=copy.deepcopy(trace);bad['releases'].pop();flaws=[];check_trace(bad,flaws,trace);count+=1
@@ -424,8 +419,7 @@ def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=
     bad=copy.deepcopy(trace);r=copy.deepcopy(bad['requirements'][0]);r['id']='REQ-UNCOVERED';bad['requirements'].append(r)
     negative_trace('accepted-scoped-requirement-untested',bad,'scoped-accepted-requirement-untested')
     pending=copy.deepcopy(trace);pending['feedback']=[];pending['observations']=[];pending['releases']=[];pending['requirements'][0].update(result='NOT_EVALUATED',pending_decision_ref='decision:pending-proof');pending['tests'][0]['status']='NOT_RUN';pending['gates'][0]['status']='PENDING'
-    flaws=[];check_trace(pending,flaws);count+=1
-    if flaws: errors.append('positive-pending-scoped-requirement-rejected:'+repr(flaws))
+    positive_trace('pending-scoped-requirement',pending)
     bad=copy.deepcopy(pending);bad['requirements'][0].pop('pending_decision_ref');negative_trace('pending-requirement-without-decision',bad,'scoped-pending-without-decision')
     bad=copy.deepcopy(trace);bad['requirements'][0]['invariant_ids']=['core_must_not_depend_on_optional_extensions']
     negative_trace('catalog-obligation-unresolved',bad,'scoped-unresolved-obligation')
@@ -437,8 +431,7 @@ def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=
     bad=copy.deepcopy(trace);bad['tests'][0]['candidate_identity']='wrong';flaws=[];check_project_registry(registry,flaws,bad);count+=1
     if not any('scoped-accepted-requirement-untested' in x for x in flaws): errors.append('negative-test-accepted-invalid:registry-scoped-verification')
     interaction=copy.deepcopy(trace);interaction['requirements'][0].update(stage_id='VERIFY',concern_id='QUALITY_ASSURANCE')
-    flaws=[];check_trace(interaction,flaws);count+=1
-    if flaws: errors.append('positive-selected-interaction-rejected:'+repr(flaws))
+    positive_trace('selected-interaction',interaction)
     bad=copy.deepcopy(interaction);bad['requirements'][0]['product_gate_obligations']=[]
     negative_trace('selected-interaction-no-proof',bad,'scoped-without-proof-obligation')
     bad=copy.deepcopy(trace);bad['gates'][0]['artifact_digest']='other'
@@ -499,10 +492,9 @@ def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=
     for field,value in (('artifact_digest','sha256:'+'b'*64),('observed_at','2026-10-16T01:00:00Z')):
         bad=copy.deepcopy(scoped);bad['tests'][0][field]=value
         negative_trace('scoped-executed-proof-'+field,bad,'scoped-proof-artifact-or-order')
-    bad=copy.deepcopy(trace);bad['feedback']=[];bad['observations']=[];bad['tests'][0]['observed_at']='2026-10-16T00:11:00Z'
-    negative_trace('scoped-test-after-gate',bad,'scoped-proof-artifact-or-order')
-    bad=copy.deepcopy(scoped);bad['tests'][0]['observed_at']='2026-10-16T00:11:00Z'
-    negative_trace('scoped-test-only-after-release-gate',bad,'scoped-proof-artifact-or-order')
+    for template,name in ((trace,'scoped-test-after-gate'),(scoped,'scoped-test-only-after-release-gate')):
+        bad=copy.deepcopy(template);bad['feedback']=[];bad['observations']=[];bad['tests'][0]['observed_at']='2026-10-16T00:11:00Z'
+        negative_trace(name,bad,'scoped-proof-artifact-or-order')
     flaws=[];check_project_registry(registry,flaws,multiple);count+=1
     if flaws: errors.append('positive-registry-two-candidates-rejected:'+repr(flaws))
     for field,value,expected in (('status','PENDING','scoped-obligation-not-passing'),
@@ -542,6 +534,10 @@ def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=
             flaws=[];check_trace(bad,flaws,trace);count+=1
             if not any('trace-prior-evidence-rewritten:'+section in x for x in flaws): errors.append('negative-test-accepted-invalid:prior-'+section+'-'+mutation)
     positive_trace('pending-proof-can-complete',trace,pending)
+    bad=copy.deepcopy(trace);bad['changes'][0]['owner']='   '
+    negative_json('trace-shared-nonblank','project-trace.schema.json',bad)
+    bad=copy.deepcopy(trace);bad['changes'][0]['evidence_refs']=['proof','proof']
+    negative_json('trace-shared-unique-references','project-trace.schema.json',bad)
     stats = {'executed': 0, 'skipped': 0, 'n_a': 0}
     if include_fs:
         stats, fs_errors = run_filesystem_fixtures()

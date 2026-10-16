@@ -175,7 +175,6 @@
     },
     "project_id": {
       "type": "string",
-      "minLength": 1,
       "pattern": "\\S"
     }
   }

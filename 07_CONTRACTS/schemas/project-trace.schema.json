@@ -152,54 +152,25 @@
             "minLength": 1
           },
           "control_ids": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "\\S"
-            },
-            "uniqueItems": true,
-            "minItems": 1
+            "$ref": "#/$defs/references"
           },
           "invariant_ids": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "\\S"
-            },
-            "uniqueItems": true,
-            "minItems": 1
+            "$ref": "#/$defs/references"
           },
           "product_gate_obligations": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "\\S"
-            },
-            "uniqueItems": true,
-            "minItems": 1
+            "$ref": "#/$defs/references"
           },
           "stage_id": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "\\S"
+            "$ref": "#/$defs/nonblank"
           },
           "concern_id": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "\\S"
+            "$ref": "#/$defs/nonblank"
           },
           "pending_decision_ref": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "\\S"
+            "$ref": "#/$defs/nonblank"
           },
           "candidate_identity": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "\\S"
+            "$ref": "#/$defs/nonblank"
           },
           "result": {
             "enum": [
@@ -290,14 +261,10 @@
             "minLength": 1
           },
           "candidate_identity": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "\\S"
+            "$ref": "#/$defs/nonblank"
           },
           "artifact_digest": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "\\S"
+            "$ref": "#/$defs/nonblank"
           },
           "observed_at": {
             "type": "string",
@@ -548,19 +515,10 @@
                   "minLength": 1
                 },
                 "closure_evidence_ref": {
-                  "type": "string",
-                  "minLength": 1,
-                  "pattern": "\\S"
+                  "$ref": "#/$defs/nonblank"
                 },
                 "observation_ids": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "minLength": 1,
-                    "pattern": "\\S"
-                  },
-                  "minItems": 1,
-                  "uniqueItems": true
+                  "$ref": "#/$defs/references"
                 }
               },
               "allOf": [
@@ -722,9 +680,7 @@
                   "minItems": 1
                 },
                 "revisit_trigger": {
-                  "type": "string",
-                  "minLength": 1,
-                  "pattern": "\\S"
+                  "$ref": "#/$defs/nonblank"
                 }
               }
             }
@@ -747,44 +703,22 @@
         ],
         "properties": {
           "id": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "\\S"
+            "$ref": "#/$defs/nonblank"
           },
           "owner": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "\\S"
+            "$ref": "#/$defs/nonblank"
           },
           "candidate_identity": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "\\S"
+            "$ref": "#/$defs/nonblank"
           },
           "artifact_digest": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "\\S"
+            "$ref": "#/$defs/nonblank"
           },
           "artifact_refs": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "\\S"
-            },
-            "uniqueItems": true,
-            "minItems": 1
+            "$ref": "#/$defs/references"
           },
           "evidence_refs": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "\\S"
-            },
-            "uniqueItems": true,
-            "minItems": 1
+            "$ref": "#/$defs/references"
           }
         }
       }
@@ -808,24 +742,16 @@
         ],
         "properties": {
           "id": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "\\S"
+            "$ref": "#/$defs/nonblank"
           },
           "owner": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "\\S"
+            "$ref": "#/$defs/nonblank"
           },
           "candidate_identity": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "\\S"
+            "$ref": "#/$defs/nonblank"
           },
           "artifact_digest": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "\\S"
+            "$ref": "#/$defs/nonblank"
           },
           "from": {
             "enum": [
@@ -850,59 +776,28 @@
             "format": "date-time"
           },
           "decision_ref": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "\\S"
+            "$ref": "#/$defs/nonblank"
           },
           "evidence_refs": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "\\S"
-            },
-            "uniqueItems": true,
-            "minItems": 1
+            "$ref": "#/$defs/references"
           },
           "change_ids": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "\\S"
-            },
-            "uniqueItems": true,
-            "minItems": 1
+            "$ref": "#/$defs/references"
           },
           "gate_ids": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "minLength": 1,
-              "pattern": "\\S"
-            },
-            "uniqueItems": true,
-            "minItems": 1
+            "$ref": "#/$defs/references"
           },
           "limitations": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "\\S"
+            "$ref": "#/$defs/nonblank"
           },
           "reason": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "\\S"
+            "$ref": "#/$defs/nonblank"
           },
           "notice_ref": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "\\S"
+            "$ref": "#/$defs/nonblank"
           },
           "recovery_obligations": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "\\S"
+            "$ref": "#/$defs/nonblank"
           },
           "deployment": {
             "type": "object",
@@ -915,35 +810,22 @@
             ],
             "properties": {
               "candidate_identity": {
-                "type": "string",
-                "minLength": 1,
-                "pattern": "\\S"
+                "$ref": "#/$defs/nonblank"
               },
               "artifact_digest": {
-                "type": "string",
-                "minLength": 1,
-                "pattern": "\\S"
+                "$ref": "#/$defs/nonblank"
               },
               "deployed_at": {
                 "type": "string",
                 "format": "date-time"
               },
               "evidence_refs": {
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "pattern": "\\S"
-                },
-                "uniqueItems": true,
-                "minItems": 1
+                "$ref": "#/$defs/references"
               }
             }
           },
           "scope": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "\\S"
+            "$ref": "#/$defs/nonblank"
           }
         },
         "allOf": [
@@ -1006,6 +888,20 @@
           }
         ]
       }
+    }
+  },
+  "$defs": {
+    "nonblank": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/nonblank"
+      },
+      "uniqueItems": true,
+      "minItems": 1
     }
   }
 }

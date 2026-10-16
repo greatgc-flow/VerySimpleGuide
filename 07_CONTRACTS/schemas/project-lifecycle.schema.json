@@ -297,7 +297,6 @@
           "type": "array",
           "items": {
             "type": "string",
-            "minLength": 1,
             "pattern": "\\S"
           },
           "minItems": 1,
@@ -307,7 +306,6 @@
           "type": "array",
           "items": {
             "type": "string",
-            "minLength": 1,
             "pattern": "\\S"
           },
           "minItems": 1,
@@ -348,7 +346,6 @@
               },
               "revisit_trigger": {
                 "type": "string",
-                "minLength": 1,
                 "pattern": "\\S"
               }
             }

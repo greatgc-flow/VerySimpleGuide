@@ -76,24 +76,20 @@
           "properties": {
             "decision_ref": {
               "type": "string",
-              "minLength": 1,
               "pattern": "\\S"
             },
             "approved_by": {
               "type": "string",
-              "minLength": 1,
               "pattern": "\\S"
             },
             "mechanism": {
               "type": "string",
-              "minLength": 1,
               "pattern": "\\S"
             },
             "evidence_refs": {
               "type": "array",
               "items": {
                 "type": "string",
-                "minLength": 1,
                 "pattern": "\\S"
               },
               "minItems": 1,

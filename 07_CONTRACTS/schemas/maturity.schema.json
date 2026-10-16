@@ -55,14 +55,12 @@
           },
           "artifact_digest": {
             "type": "string",
-            "minLength": 1,
             "pattern": "\\S"
           },
           "required_gate_ids": {
             "type": "array",
             "items": {
               "type": "string",
-              "minLength": 1,
               "pattern": "\\S"
             },
             "minItems": 1,

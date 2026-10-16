@@ -1,5 +1,9 @@
 # Design Decisions
 
+## R14 schema simplification
+
+- Share local nonblank/reference shapes in the trace schema and remove minLength where the same nonblank pattern already implies it. Reuse positive trace fixtures and a single registry seed; preserve all constraints, candidate bindings and rejection checks without a contract change.
+
 ## R14 review associations
 
 - Isolate candidate obligations within a shared scope and bind executed proof to the assessed artifact and time. Resolve VERIFIED and ADOPT against the associated trace, retain executed evidence across ledgers, and address withdrawal before leaving feedback closed. Reopened work may progress; exception observations append rather than rewrite evidence. The LF example claims evidence integrity coverage only.
