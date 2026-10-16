@@ -4,13 +4,13 @@
   "files": [
     {
       "path": ".editorconfig",
-      "sha256": "0c4173362d05f6ead1abd851a449ba15dfee368fa507cd570df968cde23ff74a",
-      "size_bytes": 241
+      "sha256": "d1c0e147914585b1d499f00ff295fcaff67db265f11be03a7f6c32ec0009ddc3",
+      "size_bytes": 239
     },
     {
       "path": ".gitattributes",
-      "sha256": "7f2b937ec5646aa18dd88f995b3c90693c9cc85a184213168b5168611a3b9cea",
-      "size_bytes": 158
+      "sha256": "255f6d6a6bc4c031fb8df5a6c5ab1da49aed73a6aab24c66ec5e0674d8b52c19",
+      "size_bytes": 163
     },
     {
       "path": ".github/workflows/validate.yml",
