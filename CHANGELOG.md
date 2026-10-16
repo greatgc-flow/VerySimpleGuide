@@ -1,5 +1,10 @@
 # Design Decisions
 
+## R14 MECE and loop closure
+
+- Bind evidence to the candidate; retain all controls without merging them or adding a blanket rule-ID registry. Enforce B2 selected-interaction obligations and report test skips honestly.
+- Known limitation (M): Same-candidate reinstatement with fresh gate IDs conflicts with historical promotion obligations; rebinding requirements invalidates earlier promotions. Until historical assessment binding is supported, preserve prior records and use a new candidate identity with fresh requirements, tests and gates, even for unchanged bytes. Never rewrite executed evidence.
+
 ## R14 schema simplification
 
 - Share local nonblank/reference shapes in the trace schema and remove minLength where the same nonblank pattern already implies it. Reuse positive trace fixtures and a single registry seed; preserve all constraints, candidate bindings and rejection checks without a contract change.

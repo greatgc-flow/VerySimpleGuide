@@ -737,8 +737,8 @@
     },
     {
       "path": "CHANGELOG.md",
-      "sha256": "0c72889c0ed4aa03aaa98fc600c57dbd7054d82a2bedc3dbf1141d22c29f3cc3",
-      "size_bytes": 3848,
+      "sha256": "55475b671f90163aa376b8afcfd3293caa75011938005278190bf0f1a5f5fb7a",
+      "size_bytes": 4452,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []
