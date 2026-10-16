@@ -31,13 +31,13 @@ def run_negative_suite(root):
             return
         errors.append('negative-test-accepted-invalid:' + name)
 
-    def negative_trace(name, instance):
+    def negative_trace(name, instance, expected_error):
         nonlocal count
         count += 1
         flaws = []
         check_trace(instance, flaws)
-        if not flaws:
-            errors.append('negative-test-accepted-invalid:' + name)
+        if not any(expected_error in f for f in flaws):
+            errors.append('negative-test-accepted-invalid:' + name + ':expected=' + expected_error + ':got=' + repr(flaws))
 
     maturity_valid = {'items':[{'id':'feature-1','status':'VERIFIED','candidate_identity':'commit:abc','verified_at':'2026-10-16T00:00:00Z','evidence':['run:verified']}]}
     valid_schema_instance(schemas, 'maturity.schema.json', maturity_valid)
@@ -53,26 +53,28 @@ def run_negative_suite(root):
     negative_json('optional-extension-cannot-be-required-for-base','component-registry.schema.json',bad)
     bad=copy.deepcopy(registry);bad['components'][1]['boundary_roles']=['NONE','PROVIDER']
     negative_json('NONE-exclusive-boundary-role','component-registry.schema.json',bad)
-    bad=copy.deepcopy(trace);bad['feedback'][0]['test_ids']=['NONEXISTENT'];negative_trace('orphan-feedback-test',bad)
-    bad=copy.deepcopy(trace);bad['tests'][0].pop('red_evidence_ref');negative_trace('closed-without-red-or-exception',bad)
-    bad=copy.deepcopy(trace);bad['feedback'][0].pop('release_evidence_ref');negative_trace('closed-without-release-evidence',bad)
-    bad=copy.deepcopy(trace);bad['observations'][1]['observed_at']='2026-10-15T00:00:00Z';negative_trace('post-outcome-precedes-gate',bad)
-    bad=copy.deepcopy(trace);bad['feedback'][0]['closure_candidate_identity']='source:other';negative_trace('gate-candidate-mismatch',bad)
-    bad=copy.deepcopy(trace);bad['observations'][1]['evaluation']='MISSES_TARGET';negative_trace('outcome-not-accepted',bad)
-    bad=copy.deepcopy(trace);bad['feedback'][0]['outcome_observation_id']='OBS-1';negative_trace('no-post-release-outcome',bad)
-    bad=copy.deepcopy(trace);bad['observations'].append(copy.deepcopy(bad['observations'][0]));negative_trace('duplicate-observation-ids',bad)
-    bad=copy.deepcopy(trace);bad['observations'][0]['metric_id']='NO-METRIC';negative_trace('orphan-measure',bad)
-    bad=copy.deepcopy(trace);bad['feedback']=[];negative_trace('orphan-source-observation',bad)
-    bad=copy.deepcopy(trace);bad['feedback'][0]['disposition']='DEFER';bad['feedback'][0].pop('revisit_trigger',None);negative_trace('defer-without-revisit',bad)
+    bad=copy.deepcopy(trace);bad['feedback'][0]['test_ids'].append('NONEXISTENT');negative_trace('orphan-feedback-test',bad,'feedback-missing-pass-test')
+    bad=copy.deepcopy(trace);bad['tests'][0].pop('red_evidence_ref');negative_trace('closed-without-red-or-exception',bad,'feedback-missing-red-evidence-or-exception')
+    bad=copy.deepcopy(trace);bad['feedback'][0].pop('release_evidence_ref');negative_trace('closed-without-release-evidence',bad,'feedback-closed-without-release-evidence')
+    bad=copy.deepcopy(trace);bad['observations'][1]['observed_at']='2026-10-15T00:00:00Z';negative_trace('post-outcome-precedes-gate',bad,'feedback-outcome-before-gate')
+    bad=copy.deepcopy(trace);bad['gates'][0]['candidate_identity']='source:other';negative_trace('gate-candidate-mismatch',bad,'feedback-invalid-gate-candidate')
+    bad=copy.deepcopy(trace);bad['observations'][1]['candidate_identity']='source:other';negative_trace('outcome-candidate-mismatch',bad,'feedback-missing-post-release-outcome')
+    bad=copy.deepcopy(trace);bad['observations'][1]['evaluation']='MISSES_TARGET';negative_trace('outcome-not-accepted',bad,'feedback-missing-post-release-outcome')
+    bad=copy.deepcopy(trace);bad['feedback'][0]['outcome_observation_id']='OBS-1';negative_trace('no-post-release-outcome',bad,'feedback-missing-post-release-outcome')
+    bad=copy.deepcopy(trace);bad['observations'].append(copy.deepcopy(bad['observations'][0]));negative_trace('duplicate-observation-ids',bad,'duplicate-observation')
+    bad=copy.deepcopy(trace);bad['observations'][0]['metric_id']='NO-METRIC';negative_trace('orphan-measure',bad,'observation-without-fitness-measure')
+    bad=copy.deepcopy(trace);bad['feedback']=[];negative_trace('orphan-source-observation',bad,'orphan-source-observation')
+    bad=copy.deepcopy(trace);bad['feedback'][0]['disposition']='DEFER';bad['feedback'][0]['status']='OPEN';bad['feedback'][0].pop('revisit_trigger',None);negative_trace('defer-without-revisit',bad,'feedback-defer-without-revisit')
+    bad=copy.deepcopy(trace);bad['feedback'][0]['disposition']='DEFER';bad['feedback'][0]['revisit_trigger']='next-quarter';negative_trace('closed-while-deferred',bad,'feedback-closed-deferred')
     coverage=json.loads((root / '06_GOVERNANCE/control-coverage.json').read_text(encoding='utf-8'))
     std=json.loads((root / '06_GOVERNANCE/unified-package-standard.json').read_text(encoding='utf-8'))
     bad=copy.deepcopy(coverage);bad['controls'].pop();flaws=[];check_controls(root,std,bad,flaws);count+=1
-    if not flaws:errors.append('negative-test-accepted-invalid:missing-control')
+    if not any('control-coverage-incomplete' in x for x in flaws):errors.append('negative-test-accepted-invalid:missing-control')
     invariant_index=json.loads((root/'06_GOVERNANCE/invariant-coverage.json').read_text(encoding='utf-8'))
     bad=copy.deepcopy(invariant_index);bad['invariants'].pop();flaws=[];check_invariants(root,std,bad,flaws);count+=1
-    if not flaws:errors.append('negative-test-accepted-invalid:missing-invariant')
+    if not any('invariant-coverage-incomplete' in x for x in flaws):errors.append('negative-test-accepted-invalid:missing-invariant')
     bad=copy.deepcopy(invariant_index);bad['invariants'][0]['primary_control']='BAD';flaws=[];check_invariants(root,std,bad,flaws);count+=1
-    if not flaws:errors.append('negative-test-accepted-invalid:invariant-bad-owner')
+    if not any('invariant-orphan-control' in x for x in flaws):errors.append('negative-test-accepted-invalid:invariant-bad-owner')
     for path in ('../secret.txt','/tmp/other.txt','A\\B','C:/absolute.txt','a//b','./a','a/.','a/'):
         count+=1
         if valid_relative_path(path):errors.append('negative-test-accepted-invalid:unsafe-path:'+path)
@@ -215,37 +217,38 @@ def run_negative_suite(root):
     guidance=json.loads((root/'08_KNOWLEDGE/guidance-catalog.json').read_text(encoding='utf-8'))
     sources=json.loads((root/'08_KNOWLEDGE/references/catalog.json').read_text(encoding='utf-8'))
     project=json.loads((root/'07_CONTRACTS/examples/project-lifecycle.example.json').read_text(encoding='utf-8'))
-    def negative_lifecycle(name,ma=matrix,gu=guidance,rs=sources,pr=project):
+    def negative_lifecycle(name,expected_error,ma=matrix,gu=guidance,rs=sources,pr=project):
         nonlocal count
         count+=1
         flaws=[]
         check_lifecycle_models(ma,gu,rs,pr,std['controls'],flaws)
-        if not flaws: errors.append('negative-test-accepted-invalid:'+name)
-    bad=copy.deepcopy(matrix);bad['stages'].pop();negative_lifecycle('missing-lifecycle-phase',ma=bad)
-    bad=copy.deepcopy(matrix);bad['stages'][1]['id']=bad['stages'][0]['id'];negative_lifecycle('duplicate-lifecycle-phase',ma=bad)
-    bad=copy.deepcopy(matrix);bad['stages'][0]['coverage'].pop('OUTCOME_VALUE');negative_lifecycle('missing-crosscut-concern',ma=bad)
-    bad=copy.deepcopy(matrix);bad['concerns'][0]['primary_control']='UPS-BAD';negative_lifecycle('unowned-crosscut-concern',ma=bad)
-    bad=copy.deepcopy(matrix);bad['concerns'][0]['reference_ids']=['BAD-REF'];negative_lifecycle('crosscut-reference-invalid',ma=bad)
-    bad=copy.deepcopy(matrix);bad['stages'][0]['primary_control']='UPS-INVALID';negative_lifecycle('unowned-lifecycle-stage',ma=bad)
-    bad=copy.deepcopy(matrix);bad['stages'][0]['next_stages']=['NONEXISTENT'];negative_lifecycle('broken-transition',ma=bad)
-    bad=copy.deepcopy(matrix);bad['stages'][0]['reference_ids']=['BAD-REF'];negative_lifecycle('orphan-reference',ma=bad)
-    bad=copy.deepcopy(matrix);bad['stages'][0]['revisit_stages']=[];negative_lifecycle('missing-revisit',ma=bad)
-    bad=copy.deepcopy(matrix);bad['stages'][-1]['next_stages']=['ASSESS'];negative_lifecycle('retirement-learning-lost',ma=bad)
-    bad=copy.deepcopy(guidance);bad['guidance'][0]['applicability']='REQUIRED';negative_lifecycle('mandatory-advisory-guide',gu=bad)
-    bad=copy.deepcopy(guidance);bad['guidance'][0]['avoid_when']='';negative_lifecycle('pattern-without-avoid-when',gu=bad)
-    bad=copy.deepcopy(guidance);bad['guidance'][0]['problem']=bad['guidance'][0]['use_when'];negative_lifecycle('guidance-identical-problem-and-use-when',gu=bad)
-    bad=copy.deepcopy(guidance);bad['guidance'][0]['reference_ids']=['NO-REF'];negative_lifecycle('guidance-missing-source',gu=bad)
-    bad=copy.deepcopy(project);bad['stages'][0]['evidence_refs']=[];negative_lifecycle('lifecycle-pass-without-evidence',pr=bad)
-    bad=copy.deepcopy(project);bad['stages'][0]['candidate_identity']='';negative_lifecycle('lifecycle-pass-without-candidate-identity',pr=bad)
-    bad=copy.deepcopy(project);bad['stages'][0]['acceptance_criteria']='';negative_lifecycle('lifecycle-pass-without-criteria',pr=bad)
-    bad=copy.deepcopy(project);bad['stages'][-1]['revisit_trigger']='';negative_lifecycle('lifecycle-NA-without-trigger',pr=bad)
-    bad=copy.deepcopy(project);bad['stages'].pop();negative_lifecycle('project-stage-unclassified',pr=bad)
-    bad=copy.deepcopy(sources);bad['sources'][0]['stages']=['UNKNOWN'];negative_lifecycle('reference-to-bad-stage',rs=bad)
-    bad=copy.deepcopy(sources);bad['sources'][0]['reviewed_at']='2099-01-01';negative_lifecycle('reference-review-after-snapshot',rs=bad)
+        if not any(expected_error in f for f in flaws):
+            errors.append('negative-test-accepted-invalid:'+name+':expected='+expected_error+':got='+repr(flaws))
+    bad=copy.deepcopy(matrix);bad['stages'].pop();negative_lifecycle('missing-lifecycle-phase','lifecycle-stages-not-complete',ma=bad)
+    bad=copy.deepcopy(matrix);bad['stages'][1]['id']=bad['stages'][0]['id'];negative_lifecycle('duplicate-lifecycle-phase','lifecycle-stages-not-complete',ma=bad)
+    bad=copy.deepcopy(matrix);bad['stages'][0]['coverage'].pop('OUTCOME_VALUE');negative_lifecycle('missing-crosscut-concern','lifecycle-horizontal-gap',ma=bad)
+    bad=copy.deepcopy(matrix);bad['concerns'][0]['primary_control']='UPS-BAD';negative_lifecycle('unowned-crosscut-concern','lifecycle-unowned-concern',ma=bad)
+    bad=copy.deepcopy(matrix);bad['concerns'][0]['reference_ids']=['BAD-REF'];negative_lifecycle('crosscut-reference-invalid','lifecycle-concern-unknown-ref',ma=bad)
+    bad=copy.deepcopy(matrix);bad['stages'][0]['primary_control']='UPS-INVALID';negative_lifecycle('unowned-lifecycle-stage','lifecycle-unowned-stage',ma=bad)
+    bad=copy.deepcopy(matrix);bad['stages'][0]['next_stages']=['NONEXISTENT'];negative_lifecycle('broken-transition','lifecycle-broken-next_stages',ma=bad)
+    bad=copy.deepcopy(matrix);bad['stages'][0]['reference_ids']=['BAD-REF'];negative_lifecycle('orphan-reference','lifecycle-unresolved-reference',ma=bad)
+    bad=copy.deepcopy(matrix);bad['stages'][0]['revisit_stages']=[];negative_lifecycle('missing-revisit','lifecycle-no-feedback-return',ma=bad)
+    bad=copy.deepcopy(matrix);bad['stages'][-1]['next_stages']=['ASSESS'];negative_lifecycle('retirement-learning-lost','lifecycle-retirement-not-learned',ma=bad)
+    bad=copy.deepcopy(guidance);bad['guidance'][0]['applicability']='REQUIRED';negative_lifecycle('mandatory-advisory-guide','guidance-illegal-mandate',gu=bad)
+    bad=copy.deepcopy(guidance);bad['guidance'][0]['avoid_when']='';negative_lifecycle('pattern-without-avoid-when','guidance-missing-tradeoff',gu=bad)
+    bad=copy.deepcopy(guidance);bad['guidance'][0]['problem']=bad['guidance'][0]['use_when'];negative_lifecycle('guidance-identical-problem-and-use-when','guidance-identical-problem-and-use-when',gu=bad)
+    bad=copy.deepcopy(guidance);bad['guidance'][0]['reference_ids']=['NO-REF'];negative_lifecycle('guidance-missing-source','guidance-unknown-reference',gu=bad)
+    bad=copy.deepcopy(project);bad['stages'][0]['evidence_refs']=[];negative_lifecycle('lifecycle-pass-without-evidence','project-stages-pass-no-evidence',pr=bad)
+    bad=copy.deepcopy(project);bad['stages'][0]['candidate_identity']='';negative_lifecycle('lifecycle-pass-without-candidate-identity','project-stages-pass-no-evidence',pr=bad)
+    bad=copy.deepcopy(project);bad['stages'][0]['acceptance_criteria']='';negative_lifecycle('lifecycle-pass-without-criteria','project-stages-pass-no-evidence',pr=bad)
+    bad=copy.deepcopy(project);bad['stages'][-1]['revisit_trigger']='';negative_lifecycle('lifecycle-NA-without-trigger','project-stages-unjustified-N_A',pr=bad)
+    bad=copy.deepcopy(project);bad['stages'].pop();negative_lifecycle('project-stage-unclassified','project-stages-coverage-missing-or-duplicate',pr=bad)
+    bad=copy.deepcopy(sources);bad['sources'][0]['stages']=['UNKNOWN'];negative_lifecycle('reference-to-bad-stage','reference-unrecognized-stage',rs=bad)
+    bad=copy.deepcopy(sources);bad['sources'][0]['reviewed_at']='2099-01-01';negative_lifecycle('reference-review-after-snapshot','reference-reviewed-in-future',rs=bad)
     bad=copy.deepcopy(sources)
     for s in bad['sources']:
         if s['id']=='RADAR': s['stages']=['ASSESS']
-    negative_lifecycle('stage-reference-not-in-source-stages',rs=bad)
+    negative_lifecycle('stage-reference-not-in-source-stages','lifecycle-stage-not-in-reference-stages',rs=bad)
     # Positive future evolution: new lifecycle concern is not rejected solely due to count.
     future=copy.deepcopy(matrix)
     future['concerns'].append({'id':'FUTURE_CONCERN','label':'Future governed dimension','primary_control':'UPS-DOC','reference_ids':['ADR']})
@@ -265,13 +268,13 @@ def run_negative_suite(root):
     check_lifecycle_models(matrix,guidance,sources,project,std['controls'],good)
     if good:errors.append('positive-lifecycle-rejected:'+repr(good))
     # R12 & R13 cross-recursive coverage and false-positive prevention.
-    bad=copy.deepcopy(project);bad['concerns'].pop();negative_lifecycle('project-concern-unclassified',pr=bad)
-    bad=copy.deepcopy(project);bad['concerns'][1]['concern_id']=bad['concerns'][0]['concern_id'];negative_lifecycle('project-concern-duplicate',pr=bad)
-    bad=copy.deepcopy(project);bad['concerns'][0]['result']='PASS';bad['concerns'][0]['evidence_refs']=[];negative_lifecycle('project-concern-pass-no-evidence',pr=bad)
-    bad=copy.deepcopy(project);bad['concerns'][0]['deferred']=True;bad['concerns'][0]['result']='PASS';negative_lifecycle('project-concern-deferred-cannot-pass',pr=bad)
-    bad=copy.deepcopy(project);bad['stages'][8]['approach']='ADAPT';bad['stages'][8]['acceptance_criteria']='';negative_lifecycle('project-stage-adapt-without-criteria',pr=bad)
+    bad=copy.deepcopy(project);bad['concerns'].pop();negative_lifecycle('project-concern-unclassified','project-concerns-coverage-missing-or-duplicate',pr=bad)
+    bad=copy.deepcopy(project);bad['concerns'][1]['concern_id']=bad['concerns'][0]['concern_id'];negative_lifecycle('project-concern-duplicate','project-concerns-coverage-missing-or-duplicate',pr=bad)
+    bad=copy.deepcopy(project);bad['concerns'][0]['result']='PASS';bad['concerns'][0]['evidence_refs']=[];negative_lifecycle('project-concern-pass-no-evidence','project-concerns-pass-no-evidence',pr=bad)
+    bad=copy.deepcopy(project);bad['concerns'][0]['deferred']=True;bad['concerns'][0]['result']='PASS';negative_lifecycle('project-concern-deferred-cannot-pass','project-concerns-deferred-cannot-pass',pr=bad)
+    bad=copy.deepcopy(project);bad['stages'][8]['approach']='ADAPT';bad['stages'][8]['acceptance_criteria']='';negative_lifecycle('project-stage-adapt-without-criteria','project-stages-adapt-without-equivalent-contract',pr=bad)
     bad=copy.deepcopy(project);bad['stages'][5]['applicability']='N_A';bad['stages'][5]['result']='NOT_EVALUATED';bad['stages'][5]['reason']='no code';bad['stages'][5]['revisit_trigger']='later'
-    negative_lifecycle('project-active-flag-marked-na',pr=bad)
+    negative_lifecycle('project-active-flag-marked-na','project-stages-flag-na-conflict',pr=bad)
     # COMPACT profile negative and positive tests.
     compact_valid={
         'project_id':'compact-internal-tool',
@@ -294,28 +297,28 @@ def run_negative_suite(root):
     flaws=[];check_project_lifecycle(compact_valid,{x['id'] for x in matrix['stages']},{x['id'] for x in matrix['concerns']},flaws,matrix=matrix);count+=1
     if flaws:errors.append('positive-compact-lifecycle-rejected:'+repr(flaws))
     bad_compact=copy.deepcopy(compact_valid);bad_compact['escalation_flags']['security_boundary']=True
-    negative_lifecycle('compact-with-escalation-flag',pr=bad_compact)
+    negative_lifecycle('compact-with-escalation-flag','project-compact-forbidden-by-escalation-flag',pr=bad_compact)
     bad_compact2=copy.deepcopy(compact_valid);bad_compact2['stages']=[x for x in bad_compact2['stages'] if x['stage_id']!='IMPLEMENT']
-    negative_lifecycle('compact-missing-activity-flag-stage',pr=bad_compact2)
+    negative_lifecycle('compact-missing-activity-flag-stage','project-stages-coverage-missing-or-duplicate',pr=bad_compact2)
     bad_compact3=copy.deepcopy(compact_valid);bad_compact3['exposure_flags']['human_interaction']=True
-    negative_lifecycle('compact-missing-exposure-flag-concern',pr=bad_compact3)
+    negative_lifecycle('compact-missing-exposure-flag-concern','project-concerns-coverage-missing-or-duplicate',pr=bad_compact3)
     bad=copy.deepcopy(project);bad['cell_overrides']=[{'stage_id':'BAD','concern_id':'OUTCOME_VALUE','applicability':'N_A','approach':'COMPLY','result':'NOT_EVALUATED','deferred':False,'owner':'review','reason':'x','revisit_trigger':'x','acceptance_criteria':'','candidate_identity':'','evidence_refs':[]}]
-    negative_lifecycle('cell-override-bad-coordinate',pr=bad)
+    negative_lifecycle('cell-override-bad-coordinate','project-cell-unknown-coordinate',pr=bad)
     bad=copy.deepcopy(project);record={'stage_id':'DISCOVER','concern_id':'OUTCOME_VALUE','applicability':'N_A','approach':'COMPLY','result':'NOT_EVALUATED','deferred':False,'owner':'review','reason':'x','revisit_trigger':'x','acceptance_criteria':'','candidate_identity':'','evidence_refs':[]};bad['cell_overrides']=[record,copy.deepcopy(record)]
-    negative_lifecycle('cell-override-duplicate',pr=bad)
+    negative_lifecycle('cell-override-duplicate','project-cell-duplicate',pr=bad)
     bad=copy.deepcopy(project);bad['cell_overrides']=[{'stage_id':'DISCOVER','concern_id':'OUTCOME_VALUE','applicability':'REQUIRED','approach':'COMPLY','result':'PASS','deferred':False,'owner':'review','reason':'','revisit_trigger':'','acceptance_criteria':'','candidate_identity':'','evidence_refs':[]}]
-    negative_lifecycle('cell-override-false-pass',pr=bad)
+    negative_lifecycle('cell-override-false-pass','project-cell-pass-no-evidence',pr=bad)
     bad=copy.deepcopy(trace)
     bad['requirements'].append({'id':'REQ-2','scope':'BASE','owner':'engineering','acceptance':'a second independent acceptance'})
     bad['feedback'][0]['requirement_ids'].append('REQ-2')
-    negative_trace('feedback-partially-covered-requirement',bad)
+    negative_trace('feedback-partially-covered-requirement',bad,'feedback-accepted-requirement-untested')
     bad=copy.deepcopy(trace)
     second=copy.deepcopy(bad['gates'][0]);second['gate_id']='GATE-2';second['artifact_digest']='sha256:'+'b'*64
     bad['gates'].append(second);bad['feedback'][0]['closure_gate_ids'].append('GATE-2')
-    negative_trace('feedback-mixed-gate-artifact',bad)
+    negative_trace('feedback-mixed-gate-artifact',bad,'feedback-mixed-gate-artifact-digests')
     bad=copy.deepcopy(trace)
     bad['feedback'][0]['history'].append({'event':'REOPEN','at':'2026-10-16T02:00:00Z','actor':'lead','reason':'regression','decision_ref':'decision:reopen-1','prior_closure_evidence_ref':'evidence:deployment-candidate-B'})
-    negative_trace('feedback-reopen-still-closed',bad)
+    negative_trace('feedback-reopen-still-closed',bad,'feedback-reopen-not-open')
     bad=copy.deepcopy(trace)
     bad['feedback'][0]['status']='OPEN';bad['feedback'][0]['next_action']='fix regression'
     bad['feedback'][0]['history'].append({'event':'REOPEN','at':'2026-10-16T02:00:00Z','actor':'lead','reason':'regression'})

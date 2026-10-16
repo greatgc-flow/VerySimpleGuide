@@ -807,8 +807,8 @@
     },
     {
       "path": "tools/test_validator.py",
-      "sha256": "803a44955c02473f2eb1539c241ac85a5fb861f60d071f89c1e1175bc06ee0d1",
-      "size_bytes": 26790,
+      "sha256": "aaf35534994953bde82b5b6995679a949c2fd2e817de8bcbf3dbcd46a650c749",
+      "size_bytes": 29259,
       "role": "VALIDATION_TOOL",
       "primary_control": "UPS-TEST",
       "related_controls": []
