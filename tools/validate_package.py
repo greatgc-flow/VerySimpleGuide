@@ -611,7 +611,67 @@ def check_candidate_records(trace, errors):
                 errors.append('feedback-outcome-before-deployment:' + fb['id'])
 
 
-def check_trace(trace, errors):
+def check_history(trace, errors, prior=None):
+    observations = {x['id']: x for x in trace.get('observations', [])}
+    feedback = {x['id']: x for x in trace.get('feedback', [])}
+    for fb in feedback.values():
+        history = fb.get('history', [])
+        closed, last_at, prior_evidence = False, None, None
+        for event in history:
+            at = datetime_utc(event['at'])
+            if last_at is not None and at < last_at:
+                errors.append('feedback-history-out-of-order:' + fb['id'])
+            if event['event'] == 'CLOSE':
+                if closed or not event.get('closure_evidence_ref'):
+                    errors.append('feedback-invalid-close-event:' + fb['id'])
+                closed, prior_evidence = True, event.get('closure_evidence_ref')
+            else:
+                if not closed or event.get('prior_closure_evidence_ref') != prior_evidence:
+                    errors.append('feedback-invalid-reopen-history:' + fb['id'])
+                closed = False
+            for oid in event.get('observation_ids', []):
+                observation = observations.get(oid)
+                if not observation or datetime_utc(observation['observed_at']) > at or not event.get('decision_ref'):
+                    errors.append('feedback-history-unaddressed-observation:' + fb['id'])
+            last_at = at
+        if closed != (fb.get('status') == 'CLOSED'):
+            errors.append('feedback-history-state-mismatch:' + fb['id'])
+        if fb.get('status') == 'CLOSED':
+            if not fb.get('revisit_trigger'): errors.append('feedback-closed-without-revisit:' + fb['id'])
+            expected = fb.get('release_evidence_ref') if fb.get('disposition') == 'ACCEPT' else fb.get('decision_ref')
+            if not history or history[-1].get('closure_evidence_ref') != expected:
+                errors.append('feedback-close-evidence-mismatch:' + fb['id'])
+            outcome = observations.get(fb.get('outcome_observation_id'))
+            if outcome:
+                outcome_at = datetime_utc(outcome['observed_at'])
+                if last_at is None or last_at < outcome_at: errors.append('feedback-close-before-outcome:' + fb['id'])
+                for ob in observations.values():
+                    if (ob.get('kind') == 'POST_RELEASE_OUTCOME' and ob.get('evaluation') == 'MISSES_TARGET'
+                        and ob.get('candidate_identity') == outcome.get('candidate_identity') and ob.get('metric_id') == outcome.get('metric_id')
+                        and datetime_utc(ob['observed_at']) >= outcome_at):
+                        decision = history[-1] if history else {}
+                        if (ob['id'] not in decision.get('observation_ids', []) or not decision.get('decision_ref')
+                            or datetime_utc(decision['at']) < datetime_utc(ob['observed_at']) or fb.get('outcome_decision') != 'EXCEPTION_ACCEPTED'):
+                            errors.append('feedback-contradictory-outcome-not-reopened:' + fb['id'] + ':' + ob['id'])
+        elif not fb.get('next_action'):
+            errors.append('feedback-open-without-action:' + fb['id'])
+    if prior is not None:
+        if prior.get('project_id') != trace.get('project_id'):
+            errors.append('trace-prior-project-mismatch')
+            return
+        for old in prior.get('feedback', []):
+            current = feedback.get(old['id'])
+            history = old.get('history', [])
+            if not current or current.get('history', [])[:len(history)] != history:
+                errors.append('feedback-history-rewritten:' + old['id'])
+        for section in ('observations', 'releases', 'changes'):
+            current = {x['id']: x for x in trace.get(section, [])}
+            for old in prior.get(section, []):
+                if current.get(old['id']) != old: errors.append('trace-prior-evidence-rewritten:' + section + ':' + old['id'])
+
+
+def check_trace(trace, errors, prior=None):
+    check_history(trace, errors, prior)
     check_candidate_records(trace, errors)
     req = duplicate_check(trace.get('requirements',[]),'requirement',errors)
     tests = duplicate_check(trace.get('tests',[]),'test',errors)
@@ -734,11 +794,12 @@ def _validate_disposition_record(row, prefix, ident, errors):
     if approach == 'ADAPT' and (not row.get('reason') or not row.get('acceptance_criteria')):
         errors.append(f'{prefix}-adapt-without-equivalent-contract:{ident}')
     if res == 'PASS':
+        if not str(row.get('revisit_trigger', '')).strip(): errors.append(f'{prefix}-pass-without-revisit:{ident}')
         if not row.get('acceptance_criteria') or not row.get('candidate_identity') or not row.get('evidence_refs'):
             errors.append(f'{prefix}-pass-no-evidence:{ident}')
 
 
-def check_project_lifecycle(project, stage_ids, concern_ids, errors, matrix=None):
+def check_project_lifecycle(project, stage_ids, concern_ids, errors, matrix=None, trace=None):
     """Project profile (COMPACT or FULL) classification derived from flags plus sparse cell_overrides."""
     if matrix is None:
         matrix = read_json(ROOT / '03_LIFECYCLE/lifecycle-matrix.json')
@@ -787,6 +848,19 @@ def check_project_lifecycle(project, stage_ids, concern_ids, errors, matrix=None
             if ident in active_ids and row.get('applicability') == 'N_A':
                 errors.append('project-' + section + '-flag-na-conflict:' + ident)
 
+    # A recorded failure or fired trigger needs a resolvable open action.
+    for row in project.get('stages', []) + project.get('concerns', []) + project.get('cell_overrides', []):
+        if row.get('result') != 'FAIL' and not row.get('trigger_observation_ids'): continue
+        if row.get('result') == 'FAIL' and not row.get('trigger_observation_ids'):
+            errors.append('project-failure-without-observation')
+        fbs = {x['id']: x for x in (trace or {}).get('feedback', [])}
+        linked = [fbs.get(fid, {}) for fid in row.get('feedback_ids', [])]
+        if (not trace or trace.get('project_id') != project.get('project_id') or not linked
+            or any(x.get('status') not in ('OPEN', 'IN_PROGRESS') or not x.get('owner') or not x.get('next_action') for x in linked)):
+            errors.append('project-trigger-without-open-feedback')
+        for oid in row.get('trigger_observation_ids', []):
+            if not any(x.get('observation_id') == oid or any(oid in event.get('observation_ids', []) for event in x.get('history', [])) for x in linked):
+                errors.append('project-trigger-observation-unaddressed:' + oid)
     overrides = project.get('cell_overrides', [])
     seen = set()
     for row in overrides:
@@ -974,6 +1048,7 @@ def check_all(root):
 def main(argv=None):
     parser = argparse.ArgumentParser(description='VerySimple static package validator')
     parser.add_argument('--evidence-file',default='.validation/validation_evidence.txt')
+    parser.add_argument('--prior-project-trace', help='Prior ledger for append-only history/evidence comparison; requires --project-trace')
     parser.add_argument('--implementation-choice', help='Adoption record; ADOPT requires --project-trace')
     parser.add_argument('--project-trace',help='Validate a real project trace JSON (structural/semantic only)')
     parser.add_argument('--project-registry',help='Validate a real project component registry JSON (structural only)')
@@ -984,7 +1059,7 @@ def main(argv=None):
         sink = EvidenceSink(
             args.evidence_file,
             root=ROOT,
-            input_paths=(args.project_trace, args.project_registry, args.project_lifecycle, args.implementation_choice),
+            input_paths=(args.project_trace, args.project_registry, args.project_lifecycle, args.implementation_choice, args.prior_project_trace),
         )
     except ValueError as exc:
         print('ERROR=unsafe-evidence-file:' + str(exc))
@@ -1009,15 +1084,17 @@ def main(argv=None):
             try:
                 data = read_json(Path(filename))
                 valid_schema_instance(schemas,schema_name,data)
-                if typ == 'project_trace': check_trace(data,local_errors)
+                if typ == 'project_trace': check_trace(data,local_errors, read_json(Path(args.prior_project_trace)) if args.prior_project_trace else None)
                 if typ == 'project_registry': check_project_registry(data,local_errors)
                 if typ == 'project_lifecycle':
                     mat=read_json(ROOT/'03_LIFECYCLE/lifecycle-matrix.json')
-                    check_project_lifecycle(data,{x['id'] for x in mat['stages']},{x['id'] for x in mat['concerns']},local_errors,matrix=mat)
+                    check_project_lifecycle(data,{x['id'] for x in mat['stages']},{x['id'] for x in mat['concerns']},local_errors,matrix=mat,trace=read_json(Path(args.project_trace)) if args.project_trace else None)
             except (OSError, ValueError, KeyError, ValidationError, json.JSONDecodeError) as exc:
                 local_errors.append(typ + '-invalid:' + str(exc)[:200])
             user_checks.append(typ+'='+('PASS' if not local_errors else 'FAIL'))
             errors.extend(local_errors)
+    if args.prior_project_trace and not args.project_trace:
+        errors.append('prior-trace-requires-current-trace')
     if args.implementation_choice:
         try:
             choice = read_json(Path(args.implementation_choice))

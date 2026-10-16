@@ -451,6 +451,39 @@ def run_negative_suite(root):
     negative_trace('replacement-bytes-same-candidate',bad,'distribution-candidate-artifact-changed')
     bad=copy.deepcopy(trace);bad['tests'][0].pop('candidate_identity')
     negative_json('passed-proof-without-candidate','project-trace.schema.json',bad)
+    from validate_package import check_history
+    bad=copy.deepcopy(trace);bad['feedback'][0]['history']=[]
+    negative_trace('closed-history-deleted',bad,'feedback-history-state-mismatch')
+    bad=copy.deepcopy(trace);bad['feedback'][0]['status']='OPEN';bad['feedback'][0]['next_action']='repair'
+    negative_trace('open-trailing-close',bad,'feedback-history-state-mismatch')
+    bad=copy.deepcopy(trace);bad['feedback'][0]['history'][0]['at']='2026-10-15T00:00:00Z'
+    negative_trace('close-before-measurement',bad,'feedback-close-before-outcome')
+    bad=copy.deepcopy(trace);bad['feedback'][0]['history'].append({'event':'REOPEN','at':'2026-10-15T00:00:00Z','actor':'owner','reason':'regression','decision_ref':'reopen','prior_closure_evidence_ref':'REL-3'})
+    negative_trace('history-not-chronological',bad,'feedback-history-out-of-order')
+    bad=copy.deepcopy(trace);later=copy.deepcopy(bad['observations'][1]);later.update(id='OBS-LATER',observed_at='2026-10-16T02:00:00Z',evaluation='MISSES_TARGET');bad['observations'].append(later)
+    negative_trace('regression-closed',bad,'feedback-contradictory-outcome-not-reopened')
+    bad['feedback'][0]['decision_ref']='generic-risk-acceptance'
+    negative_trace('generic-decision-cannot-waive-regression',bad,'feedback-contradictory-outcome-not-reopened')
+    reopened=copy.deepcopy(bad);fb=reopened['feedback'][0];fb.update(status='OPEN',next_action='Investigate OBS-LATER',decision_ref='decision:regression');fb['history'].append({'event':'REOPEN','at':'2026-10-16T02:10:00Z','actor':'owner','reason':'new target miss','decision_ref':'decision:regression','prior_closure_evidence_ref':'REL-3','observation_ids':['OBS-LATER']})
+    flaws=[];check_trace(reopened,flaws,trace);count+=1
+    if flaws: errors.append('positive-reopen-rejected:'+repr(flaws))
+    accepted=copy.deepcopy(reopened);fb=accepted['feedback'][0];fb.update(status='CLOSED',outcome_decision='EXCEPTION_ACCEPTED');accepted['observations'][1]['evaluation']='EXCEPTION_ACCEPTED'
+    fb['history'].append({'event':'CLOSE','at':'2026-10-16T02:20:00Z','actor':'owner','reason':'Explicitly accept measured regression risk','decision_ref':'decision:accept-regression','closure_evidence_ref':'REL-3','observation_ids':['OBS-LATER']})
+    flaws=[];check_trace(accepted,flaws);count+=1
+    if flaws: errors.append('positive-specific-regression-decision-rejected:'+repr(flaws))
+    bad=copy.deepcopy(trace);bad['feedback'][0]['history'][0]['reason']='rewritten';flaws=[];check_trace(bad,flaws,trace);count+=1
+    if not any('feedback-history-rewritten' in x for x in flaws): errors.append('negative-test-accepted-invalid:history-prefix')
+    bad=copy.deepcopy(trace);bad['releases'].pop();flaws=[];check_trace(bad,flaws,trace);count+=1
+    if not any('trace-prior-evidence-rewritten' in x for x in flaws): errors.append('negative-test-accepted-invalid:prior-release-deleted')
+    for section in ('stages','concerns'):
+        bad=copy.deepcopy(project);bad[section][0]['result']='PASS';bad[section][0]['revisit_trigger']=''
+        negative_lifecycle(section+'-pass-no-revisit','project-'+section+'-pass-without-revisit',pr=bad)
+    bad=copy.deepcopy(project);bad['cell_overrides']=[{**bad['stages'][0],'concern_id':'OUTCOME_VALUE'}];bad['cell_overrides'][0]['revisit_trigger']=''
+    negative_lifecycle('cell-pass-no-revisit','project-cell-pass-without-revisit',pr=bad)
+    bad=copy.deepcopy(project);bad['stages'][0]['result']='FAIL'
+    negative_lifecycle('failed-stage-no-open-action','project-trigger-without-open-feedback',pr=bad)
+    bad=copy.deepcopy(project);bad['stages'][0]['trigger_observation_ids']=['OBS-LATER']
+    negative_lifecycle('recorded-trigger-no-action','project-trigger-without-open-feedback',pr=bad)
     bad=copy.deepcopy(registry);bad['components'][0].pop('verification')
     negative_json('VERIFIED-without-verification','component-registry.schema.json',bad)
     flaws=[];check_project_registry(bad,flaws);count+=1
@@ -461,6 +494,15 @@ def run_negative_suite(root):
     negative_json('measured-missing-baseline','project-trace.schema.json',bad)
     bad=copy.deepcopy(example_choice);bad['rollback_plan']='   '
     negative_json('adopt-blank-rollback','implementation-choice.schema.json',bad)
+    triggered=copy.deepcopy(project);triggered['project_id']=reopened['project_id']
+    triggered['stages'][0].update(result='FAIL',feedback_ids=['FB-1'],trigger_observation_ids=['OBS-LATER'])
+    flaws=[];check_project_lifecycle(triggered,{x['id'] for x in matrix['stages']},{x['id'] for x in matrix['concerns']},flaws,matrix=matrix,trace=reopened);count+=1
+    if flaws: errors.append('positive-triggered-reentry-rejected:'+repr(flaws))
+    bad=copy.deepcopy(triggered);bad['stages'][0]['trigger_observation_ids']=['UNADDRESSED']
+    flaws=[];check_project_lifecycle(bad,{x['id'] for x in matrix['stages']},{x['id'] for x in matrix['concerns']},flaws,matrix=matrix,trace=reopened);count+=1
+    if not any('project-trigger-observation-unaddressed' in x for x in flaws): errors.append('negative-test-accepted-invalid:unaddressed-lifecycle-trigger')
+    bad=copy.deepcopy(project);bad['stages'][0]['result']='FAIL'
+    negative_lifecycle('lifecycle-failure-without-observation','project-failure-without-observation',pr=bad)
     bad=copy.deepcopy(trace);bad['releases'][0].pop('scope')
     negative_json('candidate-without-intended-scope','project-trace.schema.json',bad)
     bad=copy.deepcopy(trace);bad['releases'][-1]['scope']='OTHER'

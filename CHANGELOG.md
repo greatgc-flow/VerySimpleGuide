@@ -1,5 +1,9 @@
 # Design Decisions
 
+## R14 feedback and revisit history
+
+- Check chronological closure/reopening, candidate/metric regressions and specific exception decisions. Compare prior ledgers for history/evidence retention; require revisit conditions and open feedback for recorded lifecycle failures or triggers.
+
 ## R14 candidate and distribution bindings
 
 - Extend existing trace records with minimal changes and ordered releases/deployment evidence. Resolve accepted closure to the same candidate/digest through executed proof, gates, change and outcome; consume the guarded distribution transitions and preserve withdrawal history.

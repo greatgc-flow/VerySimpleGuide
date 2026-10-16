@@ -460,6 +460,21 @@
                 "prior_closure_evidence_ref": {
                   "type": "string",
                   "minLength": 1
+                },
+                "closure_evidence_ref": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "\\S"
+                },
+                "observation_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "\\S"
+                  },
+                  "minItems": 1,
+                  "uniqueItems": true
                 }
               },
               "allOf": [
@@ -478,6 +493,23 @@
                     "required": [
                       "decision_ref",
                       "prior_closure_evidence_ref"
+                    ]
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "event": {
+                        "const": "CLOSE"
+                      }
+                    },
+                    "required": [
+                      "event"
+                    ]
+                  },
+                  "then": {
+                    "required": [
+                      "closure_evidence_ref"
                     ]
                   }
                 }
@@ -579,6 +611,34 @@
                 },
                 "closure_gate_ids": {
                   "minItems": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "status": {
+                  "const": "CLOSED"
+                }
+              },
+              "required": [
+                "status"
+              ]
+            },
+            "then": {
+              "required": [
+                "history",
+                "revisit_trigger"
+              ],
+              "properties": {
+                "history": {
+                  "minItems": 1
+                },
+                "revisit_trigger": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "\\S"
                 }
               }
             }

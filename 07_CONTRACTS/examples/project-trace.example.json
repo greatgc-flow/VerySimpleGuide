@@ -111,9 +111,11 @@
           "event": "CLOSE",
           "at": "2026-10-16T01:15:00Z",
           "actor": "engineering-lead",
-          "reason": "Verified post-release outcome OBS-2 on candidate-B."
+          "reason": "Verified post-release outcome OBS-2 on candidate-B.",
+          "closure_evidence_ref": "REL-3"
         }
-      ]
+      ],
+      "revisit_trigger": "Any later target miss, withdrawal or invalidated gate reopens acceptance."
     }
   ],
   "changes": [
