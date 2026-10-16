@@ -20,8 +20,8 @@
     },
     {
       "path": ".github/workflows/validate.yml",
-      "sha256": "6295460ae6a3eff6a33de3805949d8206c6ff1086144eb4ebf74af08369df638",
-      "size_bytes": 780,
+      "sha256": "9cfa545bf09e0edb2f65401ed45f77c10dc567b6a1b4b17f823687cfae7bf944",
+      "size_bytes": 939,
       "role": "VALIDATION_TOOL",
       "primary_control": "UPS-TEST",
       "related_controls": []
