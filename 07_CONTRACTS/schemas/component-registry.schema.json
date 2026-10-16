@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/verysimple/component-registry/1.7",
+  "$id": "https://example.invalid/verysimple/component-registry/1.8",
   "type": "object",
   "required": [
     "standard_version",
@@ -9,7 +9,7 @@
   "additionalProperties": false,
   "properties": {
     "standard_version": {
-      "const": "1.7.0"
+      "const": "1.8.0"
     },
     "components": {
       "type": "array",

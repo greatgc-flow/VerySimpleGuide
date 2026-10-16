@@ -1,6 +1,6 @@
 {
   "standard_id": "VS-UNIFIED-PACKAGE-STANDARD",
-  "standard_version": "1.7.0",
+  "standard_version": "1.8.0",
   "controls": [
     {
       "control_id": "UPS-CLI",

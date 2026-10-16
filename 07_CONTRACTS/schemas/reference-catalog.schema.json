@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/verysimple/reference-catalog/1.7",
+  "$id": "https://example.invalid/verysimple/reference-catalog/1.8",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -15,7 +15,7 @@
       "const": "VS-REFERENCE-CATALOG"
     },
     "version": {
-      "const": "1.7.0"
+      "const": "1.8.0"
     },
     "as_of": {
       "type": "string",

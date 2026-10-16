@@ -1,21 +1,21 @@
 {
-  "standard_version": "1.7.0",
-  "project_id": "generic-demo",
+  "standard_version": "1.8.0",
+  "project_id": "verysimple-cli-validator",
   "objective": {
-    "statement": "Illustrative example: replace with project-specific evidence and rationale.",
+    "statement": "Guarantee cross-platform package validation without false-positive assurance claims or CRLF checkout drift.",
     "owner": "product-owner",
     "non_goals": [
-      "Illustrative example only; not production evidence."
+      "Certifying downstream product runtime behavior from static schema validation alone."
     ],
     "success_measures": [
       {
         "id": "METRIC-1",
-        "definition": "Illustrative example: replace with project-specific evidence and rationale.",
-        "target": "Illustrative example: replace with project-specific evidence and rationale.",
-        "method": "Illustrative example: replace with project-specific evidence and rationale.",
+        "definition": "Windows and Linux clean checkout validation failure rate caused by line-ending mismatch",
+        "target": "0 failures across CI matrix runs",
+        "method": "Automated GitHub Actions matrix validation on ubuntu-latest and windows-latest",
         "baseline_status": "MEASURED",
         "baseline_evidence_refs": [
-          "evidence:baseline-incident"
+          "evidence:baseline-windows-crlf-failure-2026-10"
         ]
       }
     ]
@@ -24,8 +24,8 @@
     {
       "id": "REQ-1",
       "scope": "BASE",
-      "owner": "engineering",
-      "acceptance": "Illustrative example: replace with project-specific evidence and rationale."
+      "owner": "release-engineering",
+      "acceptance": "All tracked text files normalize to LF in .gitattributes and .editorconfig and pass SHA256/size checks on Windows and Linux."
     }
   ],
   "tests": [
@@ -36,9 +36,9 @@
       ],
       "status": "PASS",
       "evidence_refs": [
-        "evidence:test-after-fix"
+        "evidence:test-lf-normalization-pass"
       ],
-      "red_evidence_ref": "evidence:RED-regression-repro-before-fix"
+      "red_evidence_ref": "evidence:RED-windows-ps1-crlf-size-mismatch"
     }
   ],
   "gates": [
@@ -63,7 +63,7 @@
       "evidence_refs": [
         "evidence:incident-repro"
       ],
-      "finding": "Illustrative example: replace with project-specific evidence and rationale.",
+      "finding": "Windows checkout converted tools/validate_package.ps1 to CRLF (1011 bytes vs 988 bytes in MANIFEST.json).",
       "metric_id": "METRIC-1",
       "evaluation": "MISSES_TARGET"
     },
@@ -75,7 +75,7 @@
       "evidence_refs": [
         "evidence:post-release-measurement"
       ],
-      "finding": "Illustrative example: replace with project-specific evidence and rationale.",
+      "finding": "Fresh clones on Windows and Linux match all MANIFEST.json digests and byte sizes with 0 failures.",
       "metric_id": "METRIC-1",
       "evaluation": "MEETS_TARGET"
     }
@@ -88,7 +88,7 @@
       "priority": "P1",
       "status": "CLOSED",
       "disposition": "ACCEPT",
-      "rationale": "Illustrative example: replace with project-specific evidence and rationale.",
+      "rationale": "Normalized .gitattributes and .editorconfig to LF and resealed MANIFEST.json.",
       "decision_ref": "decision:fix-1",
       "requirement_ids": [
         "REQ-1"
@@ -102,7 +102,15 @@
       "closure_candidate_identity": "source:candidate-B",
       "outcome_observation_id": "OBS-2",
       "outcome_decision": "MEETS_TARGET",
-      "release_evidence_ref": "evidence:deployment-candidate-B"
+      "release_evidence_ref": "evidence:deployment-candidate-B",
+      "history": [
+        {
+          "event": "CLOSE",
+          "at": "2026-10-16T01:15:00Z",
+          "actor": "engineering-lead",
+          "reason": "Verified post-release outcome OBS-2 on candidate-B."
+        }
+      ]
     }
   ]
 }

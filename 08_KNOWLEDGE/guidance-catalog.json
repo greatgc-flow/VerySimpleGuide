@@ -1,6 +1,6 @@
 {
   "catalog_id": "VS-OPTIONAL-GUIDANCE",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "selection_policy": "PULL_ON_DEMAND",
   "default_normative_level": "EXAMPLE_REFERENCE",
   "guidance": [

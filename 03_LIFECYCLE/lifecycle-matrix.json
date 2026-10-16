@@ -1,7 +1,63 @@
 {
   "matrix_id": "VS-LIFECYCLE-12X10",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "baseline_semantics": "FOCUS / CONSIDER are prompts only, not adoption requirements",
+  "profile_rules": {
+    "compact_mandatory_stages": [
+      "SPECIFY",
+      "DESIGN",
+      "VERIFY"
+    ],
+    "compact_mandatory_concerns": [
+      "OUTCOME_VALUE",
+      "RISK_SECURITY",
+      "QUALITY_ASSURANCE",
+      "GOVERNANCE_EVIDENCE"
+    ],
+    "escalation_flags": [
+      "public_contract_change",
+      "authoritative_data",
+      "security_boundary",
+      "external_dependency"
+    ],
+    "activity_flag_stages": {
+      "code": [
+        "IMPLEMENT"
+      ],
+      "distribution": [
+        "RELEASE"
+      ],
+      "supported_operation": [
+        "OPERATE_SUPPORT"
+      ],
+      "compat_or_data_transition": [
+        "EVOLVE"
+      ],
+      "withdrawal": [
+        "RETIRE"
+      ]
+    },
+    "exposure_flag_concerns": {
+      "human_interaction": [
+        "USERS_ACCESSIBILITY"
+      ],
+      "personal_or_sensitive_data": [
+        "DATA_PRIVACY"
+      ],
+      "dependencies": [
+        "ARCHITECTURE_DEPENDENCIES"
+      ],
+      "distribution": [
+        "RELEASE_SUPPLYCHAIN"
+      ],
+      "operation": [
+        "OPERATIONS_RELIABILITY"
+      ],
+      "material_resource_commitments": [
+        "ECONOMICS_SUSTAINABILITY"
+      ]
+    }
+  },
   "concerns": [
     {
       "id": "OUTCOME_VALUE",

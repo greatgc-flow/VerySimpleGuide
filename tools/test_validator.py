@@ -135,10 +135,16 @@ def run_negative_suite(root):
     bad=copy.deepcopy(guidance);bad['guidance'][0]['avoid_when']='';negative_lifecycle('pattern-without-avoid-when',gu=bad)
     bad=copy.deepcopy(guidance);bad['guidance'][0]['reference_ids']=['NO-REF'];negative_lifecycle('guidance-missing-source',gu=bad)
     bad=copy.deepcopy(project);bad['stages'][0]['evidence_refs']=[];negative_lifecycle('lifecycle-pass-without-evidence',pr=bad)
+    bad=copy.deepcopy(project);bad['stages'][0]['candidate_identity']='';negative_lifecycle('lifecycle-pass-without-candidate-identity',pr=bad)
+    bad=copy.deepcopy(project);bad['stages'][0]['acceptance_criteria']='';negative_lifecycle('lifecycle-pass-without-criteria',pr=bad)
     bad=copy.deepcopy(project);bad['stages'][-1]['revisit_trigger']='';negative_lifecycle('lifecycle-NA-without-trigger',pr=bad)
     bad=copy.deepcopy(project);bad['stages'].pop();negative_lifecycle('project-stage-unclassified',pr=bad)
     bad=copy.deepcopy(sources);bad['sources'][0]['stages']=['UNKNOWN'];negative_lifecycle('reference-to-bad-stage',rs=bad)
     bad=copy.deepcopy(sources);bad['sources'][0]['reviewed_at']='2099-01-01';negative_lifecycle('reference-review-after-snapshot',rs=bad)
+    bad=copy.deepcopy(sources)
+    for s in bad['sources']:
+        if s['id']=='RADAR': s['stages']=['ASSESS']
+    negative_lifecycle('stage-reference-not-in-source-stages',rs=bad)
     # Positive future evolution: new lifecycle concern is not rejected solely due to count.
     future=copy.deepcopy(matrix)
     future['concerns'].append({'id':'FUTURE_CONCERN','label':'Future governed dimension','primary_control':'UPS-DOC','reference_ids':['ADR']})
@@ -146,7 +152,7 @@ def run_negative_suite(root):
     future_guidance=copy.deepcopy(guidance)
     future_guidance['guidance'][0]['concern_ids'].append('FUTURE_CONCERN')
     future_project=copy.deepcopy(project)
-    future_project['concerns'].append({'concern_id':'FUTURE_CONCERN','status':'OPTIONAL','owner':'future-reviewer','reason':'governed growth','revisit_trigger':'risk update','evidence_refs':[]})
+    future_project['concerns'].append({'concern_id':'FUTURE_CONCERN','applicability':'OPTIONAL','approach':'COMPLY','result':'NOT_EVALUATED','deferred':False,'owner':'future-reviewer','reason':'governed growth','revisit_trigger':'risk update','acceptance_criteria':'','candidate_identity':'','evidence_refs':[]})
     flaws=[];check_lifecycle_models(future,future_guidance,sources,future_project,std['controls'],flaws);count+=1
     if flaws:errors.append('positive-future-concern-rejected:'+repr(flaws))
     valid_schema_instance(schemas,'lifecycle-matrix.schema.json',matrix)
@@ -157,15 +163,46 @@ def run_negative_suite(root):
     good=[]
     check_lifecycle_models(matrix,guidance,sources,project,std['controls'],good)
     if good:errors.append('positive-lifecycle-rejected:'+repr(good))
-    # R12 cross-recursive coverage and false-positive prevention.
+    # R12 & R13 cross-recursive coverage and false-positive prevention.
     bad=copy.deepcopy(project);bad['concerns'].pop();negative_lifecycle('project-concern-unclassified',pr=bad)
     bad=copy.deepcopy(project);bad['concerns'][1]['concern_id']=bad['concerns'][0]['concern_id'];negative_lifecycle('project-concern-duplicate',pr=bad)
-    bad=copy.deepcopy(project);bad['concerns'][0]['status']='PASS';bad['concerns'][0]['evidence_refs']=[];negative_lifecycle('project-concern-pass-no-evidence',pr=bad)
-    bad=copy.deepcopy(project);bad['cell_overrides']=[{'stage_id':'BAD','concern_id':'OUTCOME_VALUE','status':'N_A','owner':'review','reason':'x','revisit_trigger':'x','evidence_refs':[]}]
+    bad=copy.deepcopy(project);bad['concerns'][0]['result']='PASS';bad['concerns'][0]['evidence_refs']=[];negative_lifecycle('project-concern-pass-no-evidence',pr=bad)
+    bad=copy.deepcopy(project);bad['concerns'][0]['deferred']=True;bad['concerns'][0]['result']='PASS';negative_lifecycle('project-concern-deferred-cannot-pass',pr=bad)
+    bad=copy.deepcopy(project);bad['stages'][8]['approach']='ADAPT';bad['stages'][8]['acceptance_criteria']='';negative_lifecycle('project-stage-adapt-without-criteria',pr=bad)
+    bad=copy.deepcopy(project);bad['stages'][5]['applicability']='N_A';bad['stages'][5]['result']='NOT_EVALUATED';bad['stages'][5]['reason']='no code';bad['stages'][5]['revisit_trigger']='later'
+    negative_lifecycle('project-active-flag-marked-na',pr=bad)
+    # COMPACT profile negative and positive tests.
+    compact_valid={
+        'project_id':'compact-internal-tool',
+        'scope':'INTERNAL_MODULE',
+        'profile':'COMPACT',
+        'escalation_flags':{'public_contract_change':False,'authoritative_data':False,'security_boundary':False,'external_dependency':False},
+        'activity_flags':{'code':True,'distribution':False,'supported_operation':False,'compat_or_data_transition':False,'withdrawal':False},
+        'exposure_flags':{'human_interaction':False,'personal_or_sensitive_data':False,'dependencies':False,'distribution':False,'operation':False,'material_resource_commitments':False},
+        'stages':[
+            {'stage_id':sid,'applicability':'REQUIRED','approach':'COMPLY','result':'NOT_EVALUATED','deferred':False,'owner':'dev','reason':'compact baseline','revisit_trigger':'scope change','acceptance_criteria':'pass checks','candidate_identity':'','evidence_refs':[]}
+            for sid in ('SPECIFY','DESIGN','IMPLEMENT','VERIFY')
+        ],
+        'concerns':[
+            {'concern_id':cid,'applicability':'REQUIRED','approach':'COMPLY','result':'NOT_EVALUATED','deferred':False,'owner':'dev','reason':'compact baseline','revisit_trigger':'scope change','acceptance_criteria':'pass checks','candidate_identity':'','evidence_refs':[]}
+            for cid in ('OUTCOME_VALUE','RISK_SECURITY','QUALITY_ASSURANCE','GOVERNANCE_EVIDENCE')
+        ],
+        'cell_overrides':[]
+    }
+    valid_schema_instance(schemas,'project-lifecycle.schema.json',compact_valid)
+    flaws=[];check_project_lifecycle(compact_valid,{x['id'] for x in matrix['stages']},{x['id'] for x in matrix['concerns']},flaws,matrix=matrix);count+=1
+    if flaws:errors.append('positive-compact-lifecycle-rejected:'+repr(flaws))
+    bad_compact=copy.deepcopy(compact_valid);bad_compact['escalation_flags']['security_boundary']=True
+    negative_lifecycle('compact-with-escalation-flag',pr=bad_compact)
+    bad_compact2=copy.deepcopy(compact_valid);bad_compact2['stages']=[x for x in bad_compact2['stages'] if x['stage_id']!='IMPLEMENT']
+    negative_lifecycle('compact-missing-activity-flag-stage',pr=bad_compact2)
+    bad_compact3=copy.deepcopy(compact_valid);bad_compact3['exposure_flags']['human_interaction']=True
+    negative_lifecycle('compact-missing-exposure-flag-concern',pr=bad_compact3)
+    bad=copy.deepcopy(project);bad['cell_overrides']=[{'stage_id':'BAD','concern_id':'OUTCOME_VALUE','applicability':'N_A','approach':'COMPLY','result':'NOT_EVALUATED','deferred':False,'owner':'review','reason':'x','revisit_trigger':'x','acceptance_criteria':'','candidate_identity':'','evidence_refs':[]}]
     negative_lifecycle('cell-override-bad-coordinate',pr=bad)
-    bad=copy.deepcopy(project);record={'stage_id':'DISCOVER','concern_id':'OUTCOME_VALUE','status':'N_A','owner':'review','reason':'x','revisit_trigger':'x','evidence_refs':[]};bad['cell_overrides']=[record,copy.deepcopy(record)]
+    bad=copy.deepcopy(project);record={'stage_id':'DISCOVER','concern_id':'OUTCOME_VALUE','applicability':'N_A','approach':'COMPLY','result':'NOT_EVALUATED','deferred':False,'owner':'review','reason':'x','revisit_trigger':'x','acceptance_criteria':'','candidate_identity':'','evidence_refs':[]};bad['cell_overrides']=[record,copy.deepcopy(record)]
     negative_lifecycle('cell-override-duplicate',pr=bad)
-    bad=copy.deepcopy(project);bad['cell_overrides']=[{'stage_id':'DISCOVER','concern_id':'OUTCOME_VALUE','status':'PASS','owner':'review','reason':'','revisit_trigger':'','evidence_refs':[]}]
+    bad=copy.deepcopy(project);bad['cell_overrides']=[{'stage_id':'DISCOVER','concern_id':'OUTCOME_VALUE','applicability':'REQUIRED','approach':'COMPLY','result':'PASS','deferred':False,'owner':'review','reason':'','revisit_trigger':'','acceptance_criteria':'','candidate_identity':'','evidence_refs':[]}]
     negative_lifecycle('cell-override-false-pass',pr=bad)
     bad=copy.deepcopy(trace)
     bad['requirements'].append({'id':'REQ-2','scope':'BASE','owner':'engineering','acceptance':'a second independent acceptance'})
@@ -175,6 +212,13 @@ def run_negative_suite(root):
     second=copy.deepcopy(bad['gates'][0]);second['gate_id']='GATE-2';second['artifact_digest']='sha256:'+'b'*64
     bad['gates'].append(second);bad['feedback'][0]['closure_gate_ids'].append('GATE-2')
     negative_trace('feedback-mixed-gate-artifact',bad)
+    bad=copy.deepcopy(trace)
+    bad['feedback'][0]['history'].append({'event':'REOPEN','at':'2026-10-16T02:00:00Z','actor':'lead','reason':'regression','decision_ref':'decision:reopen-1','prior_closure_evidence_ref':'evidence:deployment-candidate-B'})
+    negative_trace('feedback-reopen-still-closed',bad)
+    bad=copy.deepcopy(trace)
+    bad['feedback'][0]['status']='OPEN';bad['feedback'][0]['next_action']='fix regression'
+    bad['feedback'][0]['history'].append({'event':'REOPEN','at':'2026-10-16T02:00:00Z','actor':'lead','reason':'regression'})
+    negative_json('feedback-reopen-without-prior-evidence','project-trace.schema.json',bad)
     ledger=json.loads((root/'MANIFEST.json').read_text(encoding='utf-8'))
     bad=copy.deepcopy(ledger);bad['files'][0]['rogue_ownership']='not allowed'
     negative_json('manifest-reject-unknown-field','manifest.schema.json',bad)
@@ -197,7 +241,7 @@ def run_negative_suite(root):
     if not any('duplicate-component-id' in x for x in flaws):errors.append('negative-test-accepted-invalid:duplicate-component')
     # Positive project 12+10+cell override.
     good=copy.deepcopy(project)
-    good['cell_overrides']=[{'stage_id':'DISCOVER','concern_id':'RISK_SECURITY','status':'DEFERRED','owner':'review','reason':'requires evidence','revisit_trigger':'next risk review','evidence_refs':[]}]
-    flaws=[];check_project_lifecycle(good,{x['id'] for x in matrix['stages']},{x['id'] for x in matrix['concerns']},flaws);count+=1
+    good['cell_overrides']=[{'stage_id':'DISCOVER','concern_id':'RISK_SECURITY','applicability':'REQUIRED','approach':'COMPLY','result':'NOT_EVALUATED','deferred':True,'owner':'review','reason':'requires threat model','revisit_trigger':'before DESIGN exit','acceptance_criteria':'threat model ratified','candidate_identity':'','evidence_refs':[]}]
+    flaws=[];check_project_lifecycle(good,{x['id'] for x in matrix['stages']},{x['id'] for x in matrix['concerns']},flaws,matrix=matrix);count+=1
     if flaws: errors.append('positive-project-cell-override-rejected:'+repr(flaws))
     return count,errors

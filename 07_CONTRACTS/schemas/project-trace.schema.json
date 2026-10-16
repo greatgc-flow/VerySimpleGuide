@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/verysimple/project-trace/1.7",
+  "$id": "https://example.invalid/verysimple/project-trace/1.8",
   "title": "Project Feedback and Traceability Ledger",
   "type": "object",
   "additionalProperties": false,
@@ -16,7 +16,7 @@
   ],
   "properties": {
     "standard_version": {
-      "const": "1.7.0"
+      "const": "1.8.0"
     },
     "project_id": {
       "type": "string",
@@ -284,9 +284,8 @@
           },
           "status": {
             "enum": [
-              "NEW",
-              "TRIAGED",
-              "ACTIVE",
+              "OPEN",
+              "IN_PROGRESS",
               "CLOSED"
             ]
           },
@@ -356,6 +355,67 @@
           "release_evidence_ref": {
             "type": "string",
             "minLength": 1
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "event",
+                "at",
+                "actor",
+                "reason"
+              ],
+              "properties": {
+                "event": {
+                  "enum": [
+                    "CLOSE",
+                    "REOPEN"
+                  ]
+                },
+                "at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "actor": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "decision_ref": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "prior_closure_evidence_ref": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "event": {
+                        "const": "REOPEN"
+                      }
+                    },
+                    "required": [
+                      "event"
+                    ]
+                  },
+                  "then": {
+                    "required": [
+                      "decision_ref",
+                      "prior_closure_evidence_ref"
+                    ]
+                  }
+                }
+              ]
+            }
           }
         },
         "allOf": [
@@ -364,9 +424,8 @@
               "properties": {
                 "status": {
                   "enum": [
-                    "NEW",
-                    "TRIAGED",
-                    "ACTIVE"
+                    "OPEN",
+                    "IN_PROGRESS"
                   ]
                 }
               },

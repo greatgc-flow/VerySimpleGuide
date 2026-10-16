@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/verysimple/state-contract/1.7",
+  "$id": "https://example.invalid/verysimple/state-contract/1.8",
   "title": "State Ownership and Sensitivity Contract",
   "type": "object",
   "additionalProperties": false,

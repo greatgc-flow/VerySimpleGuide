@@ -1,12 +1,16 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/verysimple/project-lifecycle/1.7",
+  "$id": "https://example.invalid/verysimple/project-lifecycle/1.8",
   "title": "Project Lifecycle Applicability and Disposition Ledger",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "project_id",
     "scope",
+    "profile",
+    "escalation_flags",
+    "activity_flags",
+    "exposure_flags",
     "stages",
     "concerns"
   ],
@@ -19,9 +23,99 @@
       "type": "string",
       "minLength": 1
     },
+    "profile": {
+      "enum": [
+        "COMPACT",
+        "FULL"
+      ]
+    },
+    "escalation_flags": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "public_contract_change",
+        "authoritative_data",
+        "security_boundary",
+        "external_dependency"
+      ],
+      "properties": {
+        "public_contract_change": {
+          "type": "boolean"
+        },
+        "authoritative_data": {
+          "type": "boolean"
+        },
+        "security_boundary": {
+          "type": "boolean"
+        },
+        "external_dependency": {
+          "type": "boolean"
+        }
+      }
+    },
+    "activity_flags": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "distribution",
+        "supported_operation",
+        "compat_or_data_transition",
+        "withdrawal"
+      ],
+      "properties": {
+        "code": {
+          "type": "boolean"
+        },
+        "distribution": {
+          "type": "boolean"
+        },
+        "supported_operation": {
+          "type": "boolean"
+        },
+        "compat_or_data_transition": {
+          "type": "boolean"
+        },
+        "withdrawal": {
+          "type": "boolean"
+        }
+      }
+    },
+    "exposure_flags": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "human_interaction",
+        "personal_or_sensitive_data",
+        "dependencies",
+        "distribution",
+        "operation",
+        "material_resource_commitments"
+      ],
+      "properties": {
+        "human_interaction": {
+          "type": "boolean"
+        },
+        "personal_or_sensitive_data": {
+          "type": "boolean"
+        },
+        "dependencies": {
+          "type": "boolean"
+        },
+        "distribution": {
+          "type": "boolean"
+        },
+        "operation": {
+          "type": "boolean"
+        },
+        "material_resource_commitments": {
+          "type": "boolean"
+        }
+      }
+    },
     "stages": {
       "type": "array",
-      "minItems": 12,
+      "minItems": 3,
       "items": {
         "allOf": [
           {
@@ -30,10 +124,15 @@
         ],
         "required": [
           "stage_id",
-          "status",
+          "applicability",
+          "approach",
+          "result",
+          "deferred",
           "owner",
           "reason",
           "revisit_trigger",
+          "acceptance_criteria",
+          "candidate_identity",
           "evidence_refs"
         ],
         "properties": {
@@ -41,10 +140,15 @@
             "type": "string",
             "minLength": 1
           },
-          "status": {},
+          "applicability": {},
+          "approach": {},
+          "result": {},
+          "deferred": {},
           "owner": {},
           "reason": {},
           "revisit_trigger": {},
+          "acceptance_criteria": {},
+          "candidate_identity": {},
           "evidence_refs": {}
         },
         "additionalProperties": false
@@ -52,7 +156,7 @@
     },
     "concerns": {
       "type": "array",
-      "minItems": 10,
+      "minItems": 4,
       "items": {
         "allOf": [
           {
@@ -61,10 +165,15 @@
         ],
         "required": [
           "concern_id",
-          "status",
+          "applicability",
+          "approach",
+          "result",
+          "deferred",
           "owner",
           "reason",
           "revisit_trigger",
+          "acceptance_criteria",
+          "candidate_identity",
           "evidence_refs"
         ],
         "properties": {
@@ -72,10 +181,15 @@
             "type": "string",
             "minLength": 1
           },
-          "status": {},
+          "applicability": {},
+          "approach": {},
+          "result": {},
+          "deferred": {},
           "owner": {},
           "reason": {},
           "revisit_trigger": {},
+          "acceptance_criteria": {},
+          "candidate_identity": {},
           "evidence_refs": {}
         },
         "additionalProperties": false
@@ -93,10 +207,15 @@
         "required": [
           "stage_id",
           "concern_id",
-          "status",
+          "applicability",
+          "approach",
+          "result",
+          "deferred",
           "owner",
           "reason",
           "revisit_trigger",
+          "acceptance_criteria",
+          "candidate_identity",
           "evidence_refs"
         ],
         "properties": {
@@ -108,10 +227,15 @@
             "type": "string",
             "minLength": 1
           },
-          "status": {},
+          "applicability": {},
+          "approach": {},
+          "result": {},
+          "deferred": {},
           "owner": {},
           "reason": {},
           "revisit_trigger": {},
+          "acceptance_criteria": {},
+          "candidate_identity": {},
           "evidence_refs": {}
         },
         "additionalProperties": false
@@ -122,14 +246,29 @@
     "disposition_record": {
       "type": "object",
       "properties": {
-        "status": {
+        "applicability": {
           "enum": [
             "REQUIRED",
             "OPTIONAL",
-            "N_A",
-            "DEFERRED",
-            "PASS"
+            "N_A"
           ]
+        },
+        "approach": {
+          "enum": [
+            "COMPLY",
+            "ADAPT",
+            "PRODUCT_SPECIFIC"
+          ]
+        },
+        "result": {
+          "enum": [
+            "NOT_EVALUATED",
+            "PASS",
+            "FAIL"
+          ]
+        },
+        "deferred": {
+          "type": "boolean"
         },
         "owner": {
           "type": "string",
@@ -139,6 +278,12 @@
           "type": "string"
         },
         "revisit_trigger": {
+          "type": "string"
+        },
+        "acceptance_criteria": {
+          "type": "string"
+        },
+        "candidate_identity": {
           "type": "string"
         },
         "evidence_refs": {
@@ -153,16 +298,31 @@
         {
           "if": {
             "properties": {
-              "status": {
+              "result": {
                 "const": "PASS"
               }
             },
             "required": [
-              "status"
+              "result"
             ]
           },
           "then": {
             "properties": {
+              "applicability": {
+                "enum": [
+                  "REQUIRED",
+                  "OPTIONAL"
+                ]
+              },
+              "deferred": {
+                "const": false
+              },
+              "acceptance_criteria": {
+                "minLength": 1
+              },
+              "candidate_identity": {
+                "minLength": 1
+              },
               "evidence_refs": {
                 "minItems": 1
               }
@@ -172,15 +332,65 @@
         {
           "if": {
             "properties": {
-              "status": {
-                "enum": [
-                  "N_A",
-                  "DEFERRED"
-                ]
+              "applicability": {
+                "const": "N_A"
               }
             },
             "required": [
-              "status"
+              "applicability"
+            ]
+          },
+          "then": {
+            "properties": {
+              "result": {
+                "const": "NOT_EVALUATED"
+              },
+              "reason": {
+                "minLength": 1
+              },
+              "revisit_trigger": {
+                "minLength": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "deferred": {
+                "const": true
+              }
+            },
+            "required": [
+              "deferred"
+            ]
+          },
+          "then": {
+            "properties": {
+              "result": {
+                "enum": [
+                  "NOT_EVALUATED",
+                  "FAIL"
+                ]
+              },
+              "reason": {
+                "minLength": 1
+              },
+              "revisit_trigger": {
+                "minLength": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "approach": {
+                "const": "ADAPT"
+              }
+            },
+            "required": [
+              "approach"
             ]
           },
           "then": {
@@ -188,7 +398,7 @@
               "reason": {
                 "minLength": 1
               },
-              "revisit_trigger": {
+              "acceptance_criteria": {
                 "minLength": 1
               }
             }

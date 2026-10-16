@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/verysimple/manifest/1.7",
+  "$id": "https://example.invalid/verysimple/manifest/1.8",
   "title": "Package File Inventory and Artifact Authority Manifest",
   "type": "object",
   "additionalProperties": false,
@@ -14,7 +14,7 @@
       "const": "VerySimpleGuide"
     },
     "standard_version": {
-      "const": "1.7.0"
+      "const": "1.8.0"
     },
     "files": {
       "type": "array",

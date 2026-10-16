@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/verysimple/protocol-adapter/1.7",
+  "$id": "https://example.invalid/verysimple/protocol-adapter/1.8",
   "type": "object",
   "additionalProperties": false,
   "required": [

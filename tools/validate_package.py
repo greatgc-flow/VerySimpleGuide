@@ -4,7 +4,7 @@ Python 3.8+ and jsonschema >= 4.18. All visible output is mirrored verbatim to e
 Pure validation: no writes to canonical package files; evidence written to ignored .validation area.
 """
 from pathlib import Path, PurePosixPath
-import argparse, copy, hashlib, json, sys
+import argparse, copy, hashlib, json, re, sys
 from datetime import datetime
 
 sys.dont_write_bytecode = True
@@ -21,7 +21,7 @@ except ImportError as exc:
     _IMPORT_ERROR = str(exc)
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = '1.7.0'
+VERSION = '1.8.0'
 PACK_NAME = 'VerySimpleGuide'
 # MANIFEST.json is explicitly self-excluded from its own file inventory;
 # manifest digests detect accidental changes, not cryptographic provenance.
@@ -387,11 +387,19 @@ def check_trace(trace, errors):
             errors.append('feedback-closed-without-release-evidence:' + fb['id'])
         if fb['disposition']=='DEFER' and (not fb.get('revisit_trigger') or not fb.get('decision_ref')):
             errors.append('feedback-defer-without-revisit:' + fb['id'])
+        history = fb.get('history', [])
+        for ev in history:
+            if ev.get('event') == 'REOPEN':
+                if not ev.get('decision_ref') or not ev.get('prior_closure_evidence_ref'):
+                    errors.append('feedback-reopen-missing-decision-or-prior-evidence:' + fb['id'])
+        if history and history[-1].get('event') == 'REOPEN':
+            if fb.get('status') != 'OPEN':
+                errors.append('feedback-reopen-not-open:' + fb['id'])
+            if not fb.get('next_action') or not fb.get('decision_ref'):
+                errors.append('feedback-reopen-missing-next-action-or-decision:' + fb['id'])
     for obs_id, ob in obs.items():
         if ob['kind']=='SOURCE' and not any(fb['observation_id']==obs_id for fb in fbs.values()):
             errors.append('orphan-source-observation:' + obs_id)
-
-
 
 
 def generated_lifecycle_overview(matrix):
@@ -408,38 +416,101 @@ def generated_lifecycle_overview(matrix):
     head+='\nFor owner/ref details use `lifecycle-matrix.json` (not this generated view).\n'
     return head
 
-def check_project_lifecycle(project, stage_ids, concern_ids, errors):
-    """Project 12+10 classification plus optional cell-specific overrides (not a 120-row form)."""
-    for section,key,expected in [('stages','stage_id',stage_ids),('concerns','concern_id',concern_ids)]:
-        rows=project.get(section,[])
-        actual=[x.get(key) for x in rows]
-        if len(rows)!=len(expected) or set(actual)!=set(expected) or len(set(actual))!=len(actual):
-            errors.append('project-'+section+'-coverage-missing-or-duplicate')
+
+def _validate_disposition_record(row, prefix, ident, errors):
+    if not row.get('owner'):
+        errors.append(f'{prefix}-no-owner:{ident}')
+    app = row.get('applicability')
+    approach = row.get('approach')
+    res = row.get('result')
+    deferred = row.get('deferred')
+    if app not in ('REQUIRED', 'OPTIONAL', 'N_A'):
+        errors.append(f'{prefix}-invalid-applicability:{ident}')
+    if approach not in ('COMPLY', 'ADAPT', 'PRODUCT_SPECIFIC'):
+        errors.append(f'{prefix}-invalid-approach:{ident}')
+    if res not in ('NOT_EVALUATED', 'PASS', 'FAIL'):
+        errors.append(f'{prefix}-invalid-result:{ident}')
+    if not isinstance(deferred, bool):
+        errors.append(f'{prefix}-invalid-deferred:{ident}')
+    if app == 'N_A':
+        if not row.get('reason') or not row.get('revisit_trigger'):
+            errors.append(f'{prefix}-unjustified-N_A:{ident}')
+        if res == 'PASS':
+            errors.append(f'{prefix}-na-cannot-pass:{ident}')
+    if deferred is True:
+        if not row.get('reason') or not row.get('revisit_trigger'):
+            errors.append(f'{prefix}-unjustified-DEFERRED:{ident}')
+        if res == 'PASS':
+            errors.append(f'{prefix}-deferred-cannot-pass:{ident}')
+    if approach == 'ADAPT' and (not row.get('reason') or not row.get('acceptance_criteria')):
+        errors.append(f'{prefix}-adapt-without-equivalent-contract:{ident}')
+    if res == 'PASS':
+        if not row.get('acceptance_criteria') or not row.get('candidate_identity') or not row.get('evidence_refs'):
+            errors.append(f'{prefix}-pass-no-evidence:{ident}')
+
+
+def check_project_lifecycle(project, stage_ids, concern_ids, errors, matrix=None):
+    """Project profile (COMPACT or FULL) classification derived from flags plus sparse cell_overrides."""
+    if matrix is None:
+        matrix = read_json(ROOT / '03_LIFECYCLE/lifecycle-matrix.json')
+    rules = matrix.get('profile_rules', {})
+    profile = project.get('profile')
+    if profile not in ('COMPACT', 'FULL'):
+        errors.append('project-invalid-profile:' + str(profile))
+        return
+    esc = project.get('escalation_flags', {})
+    act = project.get('activity_flags', {})
+    exp = project.get('exposure_flags', {})
+    if not isinstance(esc, dict) or set(esc.keys()) != set(rules.get('escalation_flags', [])) or not all(isinstance(v, bool) for v in esc.values()):
+        errors.append('project-invalid-escalation-flags')
+    if not isinstance(act, dict) or set(act.keys()) != set(rules.get('activity_flag_stages', {}).keys()) or not all(isinstance(v, bool) for v in act.values()):
+        errors.append('project-invalid-activity-flags')
+    if not isinstance(exp, dict) or set(exp.keys()) != set(rules.get('exposure_flag_concerns', {}).keys()) or not all(isinstance(v, bool) for v in exp.values()):
+        errors.append('project-invalid-exposure-flags')
+    if profile == 'COMPACT' and any(esc.values()):
+        errors.append('project-compact-forbidden-by-escalation-flag')
+
+    flag_stages = set(rules.get('compact_mandatory_stages', []))
+    for k, v in (act.items() if isinstance(act, dict) else []):
+        if v:
+            flag_stages.update(rules.get('activity_flag_stages', {}).get(k, []))
+    flag_concerns = set(rules.get('compact_mandatory_concerns', []))
+    for k, v in (exp.items() if isinstance(exp, dict) else []):
+        if v:
+            flag_concerns.update(rules.get('exposure_flag_concerns', {}).get(k, []))
+
+    req_stages = set(stage_ids) if profile == 'FULL' else flag_stages
+    req_concerns = set(concern_ids) if profile == 'FULL' else flag_concerns
+
+    for section, key, all_known, required_ids, active_ids in [
+        ('stages', 'stage_id', set(stage_ids), req_stages, flag_stages),
+        ('concerns', 'concern_id', set(concern_ids), req_concerns, flag_concerns),
+    ]:
+        rows = project.get(section, [])
+        actual = [x.get(key) for x in rows]
+        if len(actual) != len(set(actual)) or not set(actual).issubset(all_known) or not required_ids.issubset(set(actual)):
+            errors.append('project-' + section + '-coverage-missing-or-duplicate')
+        if profile == 'FULL' and set(actual) != all_known:
+            errors.append('project-' + section + '-coverage-missing-or-duplicate')
         for row in rows:
-            ident=row.get(key,'unknown')
-            if not row.get('owner'):
-                errors.append('project-'+section+'-no-owner:'+str(ident))
-            status=row.get('status')
-            if status in ('N_A','DEFERRED') and (not row.get('reason') or not row.get('revisit_trigger')):
-                errors.append('project-'+section+'-unjustified-'+str(status)+':'+str(ident))
-            if status=='PASS' and not row.get('evidence_refs'):
-                errors.append('project-'+section+'-pass-no-evidence:'+str(ident))
-    overrides=project.get('cell_overrides',[])
-    seen=set()
+            ident = str(row.get(key, 'unknown'))
+            _validate_disposition_record(row, 'project-' + section, ident, errors)
+            if ident in active_ids and row.get('applicability') == 'N_A':
+                errors.append('project-' + section + '-flag-na-conflict:' + ident)
+            if profile == 'COMPACT' and ident not in required_ids and row.get('applicability') == 'N_A':
+                errors.append('project-compact-omitted-marked-na:' + ident)
+
+    overrides = project.get('cell_overrides', [])
+    seen = set()
     for row in overrides:
-        stage,concern=row.get('stage_id'),row.get('concern_id')
-        key=(stage,concern)
-        if key in seen: errors.append('project-cell-duplicate:'+str(key))
+        stage, concern = row.get('stage_id'), row.get('concern_id')
+        key = (stage, concern)
+        if key in seen:
+            errors.append('project-cell-duplicate:' + str(key))
         seen.add(key)
         if stage not in stage_ids or concern not in concern_ids:
-            errors.append('project-cell-unknown-coordinate:'+str(key))
-        if not row.get('owner'):
-            errors.append('project-cell-owner-missing:'+str(key))
-        status=row.get('status')
-        if status in ('N_A','DEFERRED') and (not row.get('reason') or not row.get('revisit_trigger')):
-            errors.append('project-cell-unjustified:'+str(key))
-        if status=='PASS' and not row.get('evidence_refs'):
-            errors.append('project-cell-pass-no-evidence:'+str(key))
+            errors.append('project-cell-unknown-coordinate:' + str(key))
+        _validate_disposition_record(row, 'project-cell', str(key), errors)
 
 
 def check_lifecycle_models(matrix, guidance, references, project, controls, errors):
@@ -456,6 +527,7 @@ def check_lifecycle_models(matrix, guidance, references, project, controls, erro
     if len(reference_ids)!=len(set(reference_ids)):
         errors.append('reference-ids-duplicate')
     refs=set(reference_ids)
+    source_map={x.get('id'):x for x in reference_list}
     for r in reference_list:
         if r.get('reviewed_at','')>references.get('as_of',''):
             errors.append('reference-reviewed-in-future:'+str(r.get('id')))
@@ -486,6 +558,8 @@ def check_lifecycle_models(matrix, guidance, references, project, controls, erro
         for ref in st.get('reference_ids',[]):
             if ref not in refs:
                 errors.append('lifecycle-unresolved-reference:'+sid+':'+str(ref))
+            elif sid not in source_map[ref].get('stages',[]):
+                errors.append('lifecycle-stage-not-in-reference-stages:'+sid+':'+str(ref))
     # Graph connectivity is a generic guidance sanity test (not a mandated waterfall).
     reachable=set(); todo=['DISCOVER']
     while todo:
@@ -517,7 +591,7 @@ def check_lifecycle_models(matrix, guidance, references, project, controls, erro
     used_refs={rid for x in matrix.get('stages',[])+matrix.get('concerns',[])+guidance.get('guidance',[]) for rid in x.get('reference_ids',[])}
     if refs-used_refs:
         errors.append('knowledge-unreferenced-sources:'+repr(sorted(refs-used_refs)))
-    check_project_lifecycle(project,set(stages),set(concerns),errors)
+    check_project_lifecycle(project,set(stages),set(concerns),errors,matrix=matrix)
 
 def generated_control_catalog(std):
     return '# Control Catalog (machine SSOT generated)\n\n' + ''.join(
@@ -538,8 +612,15 @@ def semantic_lint(root, std, errors):
     if 'RELEASED' in std.get('maturity',[]):errors.append('maturity-distribution-conflation')
     if len(set(std.get('invariants',[])))!=len(std.get('invariants',[])):errors.append('duplicate-invariants')
     for fp in root.rglob('*.md'):
+        rel_md = fp.relative_to(root).as_posix()
+        if rel_md.startswith('07_AUDIT/') or rel_md == 'CHANGELOG.md':
+            continue
         text = fp.read_text(encoding='utf-8')
-        if 'VS-UNIFIED-PACKAGE-STANDARD 1.2' in text:errors.append('stale-standard-label:'+fp.name)
+        for m in re.findall(r'VS-UNIFIED-PACKAGE-STANDARD\s+([0-9]+\.[0-9]+(?:\.[0-9]+)?)', text):
+            if m not in (VERSION, VERSION[:3]):
+                errors.append('stale-standard-label:'+fp.name)
+        if '26+ documented invariants' in text:
+            errors.append('stale-invariant-count:'+fp.name)
     if (root / '06_GOVERNANCE/CONTROL_CATALOG.md').read_text(encoding='utf-8') != generated_control_catalog(std):
         errors.append('human-control-catalog-drift')
     if (not std.get('lifecycle_contract',{}).get('not_a_waterfall') or not std.get('guidance_contract',{}).get('not_normative_by_default')): errors.append('lifecycle-or-reference-improperly-normative')
@@ -591,7 +672,7 @@ def check_all(root):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description='VerySimple 1.7 static package validator')
+    parser = argparse.ArgumentParser(description='VerySimple 1.8 static package validator')
     parser.add_argument('--evidence-file',default='.validation/validation_evidence.txt')
     parser.add_argument('--project-trace',help='Validate a real project trace JSON (structural/semantic only)')
     parser.add_argument('--project-registry',help='Validate a real project component registry JSON (structural only)')
@@ -615,7 +696,7 @@ def main(argv=None):
                 if typ == 'project_registry': check_project_registry(data,local_errors)
                 if typ == 'project_lifecycle':
                     mat=read_json(ROOT/'03_LIFECYCLE/lifecycle-matrix.json')
-                    check_project_lifecycle(data,{x['id'] for x in mat['stages']},{x['id'] for x in mat['concerns']},local_errors)
+                    check_project_lifecycle(data,{x['id'] for x in mat['stages']},{x['id'] for x in mat['concerns']},local_errors,matrix=mat)
             except (OSError, ValueError, KeyError, ValidationError, json.JSONDecodeError) as exc:
                 local_errors.append(typ + '-invalid:' + str(exc)[:200])
             user_checks.append(typ+'='+('PASS' if not local_errors else 'FAIL'))

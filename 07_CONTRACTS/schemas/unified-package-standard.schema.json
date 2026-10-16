@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/verysimple/unified-package-standard/1.7",
+  "$id": "https://example.invalid/verysimple/unified-package-standard/1.8",
   "title": "Unified Package Standard Machine SSOT",
   "type": "object",
   "additionalProperties": false,
@@ -15,8 +15,13 @@
     "recovery_classes",
     "maturity",
     "distribution",
-    "conformance",
     "applicability",
+    "approach",
+    "assessment_results",
+    "feedback_dispositions",
+    "feedback_statuses",
+    "feedback_events",
+    "legacy_feature_strategies",
     "exit_semantics",
     "value_semantics",
     "controls",
@@ -31,7 +36,7 @@
       "const": "VS-UNIFIED-PACKAGE-STANDARD"
     },
     "version": {
-      "const": "1.7.0"
+      "const": "1.8.0"
     },
     "philosophy": {
       "type": "string",
@@ -58,10 +63,25 @@
     "distribution": {
       "$ref": "#/$defs/string_enum_list"
     },
-    "conformance": {
+    "applicability": {
       "$ref": "#/$defs/string_enum_list"
     },
-    "applicability": {
+    "approach": {
+      "$ref": "#/$defs/string_enum_list"
+    },
+    "assessment_results": {
+      "$ref": "#/$defs/string_enum_list"
+    },
+    "feedback_dispositions": {
+      "$ref": "#/$defs/string_enum_list"
+    },
+    "feedback_statuses": {
+      "$ref": "#/$defs/string_enum_list"
+    },
+    "feedback_events": {
+      "$ref": "#/$defs/string_enum_list"
+    },
+    "legacy_feature_strategies": {
       "$ref": "#/$defs/string_enum_list"
     },
     "exit_semantics": {
@@ -110,7 +130,8 @@
         "fitness_measures_or_unratified_required",
         "feedback_post_release_evaluation_required",
         "evidence_to_regression_test_trace_required",
-        "claim_levels"
+        "claim_kinds",
+        "claim_results"
       ],
       "properties": {
         "objective_required": {
@@ -128,7 +149,10 @@
         "evidence_to_regression_test_trace_required": {
           "const": true
         },
-        "claim_levels": {
+        "claim_kinds": {
+          "$ref": "#/$defs/string_enum_list"
+        },
+        "claim_results": {
           "$ref": "#/$defs/string_enum_list"
         }
       }
