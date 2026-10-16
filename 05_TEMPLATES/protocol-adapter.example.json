@@ -1,0 +1,10 @@
+{
+  "id": "external-agent-adapter",
+  "protocol": "example-protocol",
+  "versions": [
+    "1.x"
+  ],
+  "identity_mapping": "OPAQUE_EXTERNAL_REF",
+  "storage_access": "PUBLIC_PORT_ONLY",
+  "declared_capability_semantics": "DECLARED_NOT_MEASURED"
+}

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "projection_id",
+    "recovery_class",
+    "authority_refs",
+    "rebuildable"
+  ],
+  "properties": {
+    "projection_id": {
+      "type": "string"
+    },
+    "recovery_class": {
+      "const": "REBUILDABLE"
+    },
+    "authority_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "rebuildable": {
+      "const": true
+    },
+    "generation": {
+      "type": [
+        "string",
+        "integer",
+        "null"
+      ]
+    },
+    "source_watermark": {
+      "type": [
+        "string",
+        "integer",
+        "null"
+      ]
+    },
+    "score_semantics": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

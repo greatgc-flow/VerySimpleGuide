@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "id",
+    "protocol",
+    "versions",
+    "identity_mapping",
+    "storage_access"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "protocol": {
+      "type": "string"
+    },
+    "versions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "identity_mapping": {
+      "enum": [
+        "OPAQUE_EXTERNAL_REF",
+        "INGEST_VERIFIED_COPY"
+      ]
+    },
+    "storage_access": {
+      "const": "PUBLIC_PORT_ONLY"
+    },
+    "declared_capability_semantics": {
+      "const": "DECLARED_NOT_MEASURED"
+    }
+  }
+}

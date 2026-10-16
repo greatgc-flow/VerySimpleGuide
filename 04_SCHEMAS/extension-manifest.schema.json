@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "id",
+    "version",
+    "component_class",
+    "required_scopes",
+    "boundary_roles",
+    "capabilities",
+    "state_ownership"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "component_class": {
+      "const": "EXTENSION"
+    },
+    "required_scopes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "boundary_roles": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "NONE",
+          "ADAPTER",
+          "PROVIDER",
+          "EXPORTER"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "config_schema_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "state_ownership": {
+      "type": "array",
+      "items": {
+        "$ref": "state-contract.schema.json#/$defs/state"
+      }
+    },
+    "product_specific": {
+      "type": "object"
+    },
+    "extensions": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-z0-9_.-]*[/:][a-zA-Z0-9_.:-]+$": {}
+      },
+      "additionalProperties": false,
+      "description": "Product-specific metadata using namespaced keys (e.g. pkg.example/accelerator). Strict common namespace is preserved."
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "properties": {
+        "required_scopes": {
+          "not": {
+            "contains": {
+              "const": "BASE"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "boundary_roles": {
+            "contains": {
+              "const": "NONE"
+            }
+          }
+        },
+        "required": [
+          "boundary_roles"
+        ]
+      },
+      "then": {
+        "properties": {
+          "boundary_roles": {
+            "maxItems": 1
+          }
+        }
+      }
+    }
+  ]
+}

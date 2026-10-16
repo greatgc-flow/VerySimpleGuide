@@ -1,0 +1,233 @@
+{
+  "standard_id": "VS-UNIFIED-PACKAGE-STANDARD",
+  "version": "1.7.0",
+  "philosophy": "semantic standardization first; syntactic sameness only when it reduces total complexity",
+  "planes": [
+    "PRODUCT_RUNTIME",
+    "DELIVERY"
+  ],
+  "component_classes": [
+    "CORE",
+    "MODULE",
+    "EXTENSION",
+    "GENERATED_VIEW",
+    "EXTERNAL"
+  ],
+  "boundary_roles": [
+    "NONE",
+    "ADAPTER",
+    "PROVIDER",
+    "EXPORTER"
+  ],
+  "state_kinds": [
+    "CONFIG",
+    "DOMAIN_DATA",
+    "EVIDENCE",
+    "LOG",
+    "CACHE",
+    "TEMP",
+    "BACKUP",
+    "SCHEMA",
+    "SECRET",
+    "EXTERNAL_REF"
+  ],
+  "recovery_classes": [
+    "AUTHORITATIVE",
+    "DURABLE_DERIVED",
+    "REBUILDABLE",
+    "EPHEMERAL",
+    "EXTERNAL"
+  ],
+  "maturity": [
+    "PLANNED",
+    "DESIGN_FROZEN",
+    "IMPLEMENTING",
+    "IMPLEMENTED",
+    "VERIFIED",
+    "DEPRECATED",
+    "RETIRED"
+  ],
+  "distribution": [
+    "NOT_PUBLISHED",
+    "CANDIDATE",
+    "PUBLISHED",
+    "PROMOTED",
+    "WITHDRAWN"
+  ],
+  "conformance": [
+    "COMPLY",
+    "ADAPT",
+    "PRODUCT_SPECIFIC",
+    "N_A",
+    "PASS"
+  ],
+  "applicability": [
+    "REQUIRED",
+    "OPTIONAL",
+    "N_A",
+    "PASS",
+    "DEFERRED"
+  ],
+  "exit_semantics": [
+    "SUCCESS",
+    "USAGE",
+    "DECLINED",
+    "PRECONDITION_FAILED",
+    "BLOCKED",
+    "VERIFICATION_FAILED",
+    "ROLLED_BACK",
+    "RUNTIME_FAILED",
+    "INTERNAL_ERROR"
+  ],
+  "value_semantics": [
+    "ABSENT",
+    "NULL",
+    "EMPTY_STRING",
+    "EMPTY_ARRAY",
+    "UNKNOWN"
+  ],
+  "controls": [
+    {
+      "id": "UPS-CLI",
+      "name": "CLI / Interface"
+    },
+    {
+      "id": "UPS-HELP",
+      "name": "Help / Discoverability"
+    },
+    {
+      "id": "UPS-EXIT",
+      "name": "Exit Semantics"
+    },
+    {
+      "id": "UPS-CONFIG",
+      "name": "Configuration"
+    },
+    {
+      "id": "UPS-LAYOUT",
+      "name": "State / Filesystem"
+    },
+    {
+      "id": "UPS-SCHEMA",
+      "name": "Schema / Version"
+    },
+    {
+      "id": "UPS-COMP",
+      "name": "Component Boundary"
+    },
+    {
+      "id": "UPS-EXT",
+      "name": "Extension / Boundary"
+    },
+    {
+      "id": "UPS-OBS",
+      "name": "Observation / Diagnostics"
+    },
+    {
+      "id": "UPS-EVID",
+      "name": "Evidence"
+    },
+    {
+      "id": "UPS-SEC",
+      "name": "Security / Trust"
+    },
+    {
+      "id": "UPS-MIG",
+      "name": "Migration / Compatibility"
+    },
+    {
+      "id": "UPS-TEST",
+      "name": "Assurance"
+    },
+    {
+      "id": "UPS-REL",
+      "name": "Release / Promotion"
+    },
+    {
+      "id": "UPS-DOC",
+      "name": "Documentation / SSOT"
+    }
+  ],
+  "invariants": [
+    "core_must_not_depend_on_optional_extensions",
+    "base_scope_survives_with_all_optional_extensions_disabled",
+    "boundary_roles_are_orthogonal_to_component_class",
+    "state_kind_is_orthogonal_to_recovery_class",
+    "maturity_is_orthogonal_to_distribution",
+    "unknown_must_not_be_silently_promoted_to_positive_fact",
+    "derived_projection_must_be_rebuildable_when_classified_rebuildable",
+    "external_protocol_identity_must_not_be_internal_identity",
+    "declared_capability_is_not_measured_capability",
+    "routing_selects_orchestration_executes",
+    "orchestration_must_be_bounded",
+    "uncertain_execution_must_not_be_blindly_retried",
+    "approval_binds_to_exact_effect",
+    "build_once_and_promote_same_artifact",
+    "blocking_gate_requires_fresh_exact_candidate_pass",
+    "public_cutover_is_separate_from_implementation_maturity",
+    "human_views_must_not_drift_from_machine_ssot",
+    "procedure_source_generated_index_catalog_policy_are_distinct",
+    "volatile_measured_fact_belongs_to_observation_not_static_catalog",
+    "provider_specific_behavior_is_selected_by_capability_not_core_vendor_branch",
+    "projection_results_must_expose_freshness_or_watermark_when_staleness_matters",
+    "transport_connection_lifetime_must_not_define_domain_identity",
+    "feedback_must_link_observation_to_disposition_and_revisit_or_outcome",
+    "accepted_feedback_requires_requirement_test_and_gate_trace",
+    "closed_feedback_requires_post_release_outcome_evidence",
+    "general_package_validation_does_not_imply_product_runtime_verified",
+    "technology_choice_is_product_local_not_general_mandated",
+    "normative_invariant_and_design_heuristic_are_separate",
+    "innovative_alternative_has_bounded_falsifiable_evidence_path",
+    "control_and_taxonomy_evolution_is_versioned_not_forbidden",
+    "conformance_may_be_proved_by_equivalent_non_reference_tool",
+    "lifecycle_stages_have_outcome_owner_exit_and_revisit",
+    "each_lifecycle_crosscut_concern_has_explicit_applicability",
+    "optional_guidance_requires_project_adoption_to_become_normative",
+    "reference_catalog_preserves_source_status_and_review_trigger",
+    "retirement_must_consider_access_data_and_residual_obligations",
+    "knowledge_selection_must_keep_alternatives_and_avoid_conditions"
+  ],
+  "outcome_contract": {
+    "objective_required": true,
+    "scope_and_non_goals_required": true,
+    "fitness_measures_or_unratified_required": true,
+    "feedback_post_release_evaluation_required": true,
+    "evidence_to_regression_test_trace_required": true,
+    "claim_levels": [
+      "DESIGN_COVERED",
+      "SCHEMA_CHECKED",
+      "NEGATIVE_TESTED",
+      "PRODUCT_NOT_VERIFIED",
+      "PRODUCT_VERIFIED"
+    ]
+  },
+  "openness_contract": {
+    "language_agnostic": true,
+    "platform_agnostic": true,
+    "reference_tool_non_normative": true,
+    "baseline_controls_not_immutable": true,
+    "innovation_proposals_supported": true,
+    "normative_levels": [
+      "INVARIANT",
+      "DEFAULT_HEURISTIC",
+      "EXAMPLE_REFERENCE"
+    ]
+  },
+  "lifecycle_contract": {
+    "model": "12 logical stages x 10 crosscut concerns",
+    "stage_matrix": "09_LIFECYCLE/lifecycle-matrix.json",
+    "product_checklist": "05_TEMPLATES/project-lifecycle.example.json",
+    "not_a_waterfall": true,
+    "stage_applicability_product_local": true,
+    "stage_owners_and_exit_required_when_applicable": true,
+    "retirement_and_revisit_covered": true
+  },
+  "guidance_contract": {
+    "mode": "OPTIONAL_PULL_ON_DEMAND",
+    "catalog": "08_KNOWLEDGE/guidance-catalog.json",
+    "references": "08_KNOWLEDGE/references/catalog.json",
+    "not_normative_by_default": true,
+    "reference_tool_non_normative": true,
+    "requires_adoption_record_for_mandate": true
+  }
+}

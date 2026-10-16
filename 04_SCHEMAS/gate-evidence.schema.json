@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "candidate_identity",
+    "gate_id",
+    "status",
+    "observed_at",
+    "freshness"
+  ],
+  "properties": {
+    "candidate_identity": {
+      "type": "string",
+      "minLength": 1
+    },
+    "artifact_digest": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "gate_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "HOLD",
+        "QUEUED",
+        "RUNNING",
+        "PENDING",
+        "CANCELLED",
+        "STALE",
+        "UNAVAILABLE",
+        "UNKNOWN",
+        "SKIPPED"
+      ]
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "freshness": {
+      "enum": [
+        "FRESH",
+        "STALE"
+      ]
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "PASS"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "required": [
+          "evidence_refs",
+          "artifact_digest"
+        ],
+        "properties": {
+          "evidence_refs": {
+            "minItems": 1
+          },
+          "freshness": {
+            "const": "FRESH"
+          },
+          "artifact_digest": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  ]
+}

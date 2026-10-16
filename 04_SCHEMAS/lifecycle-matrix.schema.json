@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "matrix_id",
+    "version",
+    "concerns",
+    "stages"
+  ],
+  "properties": {
+    "matrix_id": {
+      "const": "VS-LIFECYCLE-12X10"
+    },
+    "version": {
+      "const": "1.7.0"
+    },
+    "baseline_semantics": {
+      "type": "string"
+    },
+    "concerns": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "primary_control",
+          "reference_ids"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "primary_control": {
+            "type": "string",
+            "pattern": "^UPS-[A-Z]+$"
+          },
+          "reference_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "stages": {
+      "type": "array",
+      "minItems": 12,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "objective",
+          "minimum_output",
+          "exit_decision",
+          "primary_control",
+          "next_stages",
+          "revisit_stages",
+          "reference_ids",
+          "coverage"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "objective": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minimum_output": {
+            "type": "string",
+            "minLength": 1
+          },
+          "exit_decision": {
+            "type": "string",
+            "minLength": 1
+          },
+          "primary_control": {
+            "type": "string",
+            "pattern": "^UPS-[A-Z]+$"
+          },
+          "next_stages": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "revisit_stages": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "reference_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "coverage": {
+            "type": "object",
+            "minProperties": 10,
+            "additionalProperties": {
+              "enum": [
+                "FOCUS",
+                "CONSIDER"
+              ]
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

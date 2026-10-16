@@ -1,0 +1,264 @@
+{
+  "standard_version": "1.7.0",
+  "invariants": [
+    {
+      "invariant_id": "core_must_not_depend_on_optional_extensions",
+      "primary_control": "UPS-COMP",
+      "standard_ref": "02_STANDARD/COMPONENT_BOUNDARY.md",
+      "product_gate_obligation": "dependency-graph",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "base_scope_survives_with_all_optional_extensions_disabled",
+      "primary_control": "UPS-COMP",
+      "standard_ref": "02_STANDARD/COMPONENT_BOUNDARY.md",
+      "product_gate_obligation": "core-only-smoke",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "boundary_roles_are_orthogonal_to_component_class",
+      "primary_control": "UPS-EXT",
+      "standard_ref": "02_STANDARD/EXTENSION_PROVIDER_STANDARD.md",
+      "product_gate_obligation": "component-boundary",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "state_kind_is_orthogonal_to_recovery_class",
+      "primary_control": "UPS-LAYOUT",
+      "standard_ref": "02_STANDARD/CONFIG_STATE_SCHEMA.md",
+      "product_gate_obligation": "state-recovery",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "maturity_is_orthogonal_to_distribution",
+      "primary_control": "UPS-REL",
+      "standard_ref": "03_LIFECYCLE/RELEASE_PROMOTION.md",
+      "product_gate_obligation": "maturity-distribution",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "unknown_must_not_be_silently_promoted_to_positive_fact",
+      "primary_control": "UPS-OBS",
+      "standard_ref": "02_STANDARD/OBSERVABILITY_EVIDENCE_STANDARD.md",
+      "product_gate_obligation": "unknown-failclosed",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "derived_projection_must_be_rebuildable_when_classified_rebuildable",
+      "primary_control": "UPS-LAYOUT",
+      "standard_ref": "02_STANDARD/CONFIG_STATE_SCHEMA.md",
+      "product_gate_obligation": "projection-replay",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "external_protocol_identity_must_not_be_internal_identity",
+      "primary_control": "UPS-EXT",
+      "standard_ref": "02_STANDARD/EXTENSION_PROVIDER_STANDARD.md",
+      "product_gate_obligation": "protocol-identity",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "declared_capability_is_not_measured_capability",
+      "primary_control": "UPS-EXT",
+      "standard_ref": "02_STANDARD/EXTENSION_PROVIDER_STANDARD.md",
+      "product_gate_obligation": "capability-provenance",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "routing_selects_orchestration_executes",
+      "primary_control": "UPS-COMP",
+      "standard_ref": "02_STANDARD/COMPONENT_BOUNDARY.md",
+      "product_gate_obligation": "routing-execution-separation",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "orchestration_must_be_bounded",
+      "primary_control": "UPS-TEST",
+      "standard_ref": "04_ASSURANCE/TDD_TRACEABILITY.md",
+      "product_gate_obligation": "bounded-execution",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "uncertain_execution_must_not_be_blindly_retried",
+      "primary_control": "UPS-TEST",
+      "standard_ref": "04_ASSURANCE/TDD_TRACEABILITY.md",
+      "product_gate_obligation": "uncertain-retry",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "approval_binds_to_exact_effect",
+      "primary_control": "UPS-SEC",
+      "standard_ref": "02_STANDARD/SECURITY_TRUST_STANDARD.md",
+      "product_gate_obligation": "approval-fencing",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "build_once_and_promote_same_artifact",
+      "primary_control": "UPS-REL",
+      "standard_ref": "03_LIFECYCLE/RELEASE_PROMOTION.md",
+      "product_gate_obligation": "build-once",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "blocking_gate_requires_fresh_exact_candidate_pass",
+      "primary_control": "UPS-REL",
+      "standard_ref": "03_LIFECYCLE/RELEASE_PROMOTION.md",
+      "product_gate_obligation": "candidate-gate-freshness",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "public_cutover_is_separate_from_implementation_maturity",
+      "primary_control": "UPS-MIG",
+      "standard_ref": "02_STANDARD/COMPATIBILITY_MIGRATION_STANDARD.md",
+      "product_gate_obligation": "cutover-parity",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "human_views_must_not_drift_from_machine_ssot",
+      "primary_control": "UPS-DOC",
+      "standard_ref": "04_ASSURANCE/DRIFT_CONTROL.md",
+      "product_gate_obligation": "view-drift",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "procedure_source_generated_index_catalog_policy_are_distinct",
+      "primary_control": "UPS-CONFIG",
+      "standard_ref": "02_STANDARD/CONFIG_STATE_SCHEMA.md",
+      "product_gate_obligation": "skill-catalog-ownership",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "volatile_measured_fact_belongs_to_observation_not_static_catalog",
+      "primary_control": "UPS-OBS",
+      "standard_ref": "02_STANDARD/OBSERVABILITY_EVIDENCE_STANDARD.md",
+      "product_gate_obligation": "observation-freshness",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "provider_specific_behavior_is_selected_by_capability_not_core_vendor_branch",
+      "primary_control": "UPS-EXT",
+      "standard_ref": "02_STANDARD/EXTENSION_PROVIDER_STANDARD.md",
+      "product_gate_obligation": "provider-capability",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "projection_results_must_expose_freshness_or_watermark_when_staleness_matters",
+      "primary_control": "UPS-OBS",
+      "standard_ref": "02_STANDARD/OBSERVABILITY_EVIDENCE_STANDARD.md",
+      "product_gate_obligation": "projection-watermark",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "transport_connection_lifetime_must_not_define_domain_identity",
+      "primary_control": "UPS-EXT",
+      "standard_ref": "02_STANDARD/EXTENSION_PROVIDER_STANDARD.md",
+      "product_gate_obligation": "stateless-handle",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "feedback_must_link_observation_to_disposition_and_revisit_or_outcome",
+      "primary_control": "UPS-TEST",
+      "standard_ref": "04_ASSURANCE/TDD_TRACEABILITY.md",
+      "product_gate_obligation": "feedback-intake",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "accepted_feedback_requires_requirement_test_and_gate_trace",
+      "primary_control": "UPS-TEST",
+      "standard_ref": "04_ASSURANCE/TDD_TRACEABILITY.md",
+      "product_gate_obligation": "feedback-req-test-gate",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "closed_feedback_requires_post_release_outcome_evidence",
+      "primary_control": "UPS-OBS",
+      "standard_ref": "02_STANDARD/OBSERVABILITY_EVIDENCE_STANDARD.md",
+      "product_gate_obligation": "post-release-outcome",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "general_package_validation_does_not_imply_product_runtime_verified",
+      "primary_control": "UPS-TEST",
+      "standard_ref": "04_ASSURANCE/TDD_TRACEABILITY.md",
+      "product_gate_obligation": "assurance-claim-boundary",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "technology_choice_is_product_local_not_general_mandated",
+      "primary_control": "UPS-COMP",
+      "standard_ref": "01_METHOD/OPEN_TECHNOLOGY_PRINCIPLES.md",
+      "product_gate_obligation": "Scope-local technology neutrality, innovation proposal or conformance-equivalence evidence",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "normative_invariant_and_design_heuristic_are_separate",
+      "primary_control": "UPS-DOC",
+      "standard_ref": "01_METHOD/OPEN_TECHNOLOGY_PRINCIPLES.md",
+      "product_gate_obligation": "Scope-local technology neutrality, innovation proposal or conformance-equivalence evidence",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "innovative_alternative_has_bounded_falsifiable_evidence_path",
+      "primary_control": "UPS-TEST",
+      "standard_ref": "01_METHOD/TECHNOLOGY_EXPLORATION_LOOP.md",
+      "product_gate_obligation": "Scope-local technology neutrality, innovation proposal or conformance-equivalence evidence",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "control_and_taxonomy_evolution_is_versioned_not_forbidden",
+      "primary_control": "UPS-SCHEMA",
+      "standard_ref": "06_GOVERNANCE/EVOLUTION_POLICY.md",
+      "product_gate_obligation": "Scope-local technology neutrality, innovation proposal or conformance-equivalence evidence",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "conformance_may_be_proved_by_equivalent_non_reference_tool",
+      "primary_control": "UPS-TEST",
+      "standard_ref": "02_STANDARD/INTEROPERABILITY_NEUTRALITY.md",
+      "product_gate_obligation": "Scope-local technology neutrality, innovation proposal or conformance-equivalence evidence",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "lifecycle_stages_have_outcome_owner_exit_and_revisit",
+      "primary_control": "UPS-DOC",
+      "standard_ref": "02_STANDARD/LIFECYCLE_COVERAGE_STANDARD.md",
+      "product_gate_obligation": "lifecycle-stage-entry-exit",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "each_lifecycle_crosscut_concern_has_explicit_applicability",
+      "primary_control": "UPS-TEST",
+      "standard_ref": "02_STANDARD/LIFECYCLE_COVERAGE_STANDARD.md",
+      "product_gate_obligation": "lifecycle-12x10-coverage",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "optional_guidance_requires_project_adoption_to_become_normative",
+      "primary_control": "UPS-DOC",
+      "standard_ref": "02_STANDARD/KNOWLEDGE_REFERENCE_STANDARD.md",
+      "product_gate_obligation": "guidance-adoption-boundary",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "reference_catalog_preserves_source_status_and_review_trigger",
+      "primary_control": "UPS-EVID",
+      "standard_ref": "02_STANDARD/KNOWLEDGE_REFERENCE_STANDARD.md",
+      "product_gate_obligation": "reference-staleness",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "retirement_must_consider_access_data_and_residual_obligations",
+      "primary_control": "UPS-MIG",
+      "standard_ref": "02_STANDARD/LIFECYCLE_COVERAGE_STANDARD.md",
+      "product_gate_obligation": "retirement-finalization",
+      "assurance_level": "DESIGN_COVERED"
+    },
+    {
+      "invariant_id": "knowledge_selection_must_keep_alternatives_and_avoid_conditions",
+      "primary_control": "UPS-COMP",
+      "standard_ref": "02_STANDARD/KNOWLEDGE_REFERENCE_STANDARD.md",
+      "product_gate_obligation": "pattern-tradeoff",
+      "assurance_level": "DESIGN_COVERED"
+    }
+  ]
+}

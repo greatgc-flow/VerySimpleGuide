@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vs://schema/state-contract/1.4",
+  "$defs": {
+    "state": {
+      "type": "object",
+      "required": [
+        "kind",
+        "recovery_class"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "CONFIG",
+            "DOMAIN_DATA",
+            "EVIDENCE",
+            "LOG",
+            "CACHE",
+            "TEMP",
+            "BACKUP",
+            "SCHEMA",
+            "SECRET",
+            "EXTERNAL_REF"
+          ]
+        },
+        "recovery_class": {
+          "enum": [
+            "AUTHORITATIVE",
+            "DURABLE_DERIVED",
+            "REBUILDABLE",
+            "EPHEMERAL",
+            "EXTERNAL"
+          ]
+        },
+        "backup_policy": {
+          "enum": [
+            "REQUIRED",
+            "OPTIONAL",
+            "EXCLUDE",
+            "REFERENCE_ONLY"
+          ]
+        },
+        "secret": {
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  "type": "object",
+  "required": [
+    "states"
+  ],
+  "properties": {
+    "states": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/state"
+      }
+    }
+  }
+}

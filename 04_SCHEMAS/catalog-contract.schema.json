@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "catalog_id",
+    "catalog_kind",
+    "authority_class"
+  ],
+  "properties": {
+    "catalog_id": {
+      "type": "string"
+    },
+    "catalog_kind": {
+      "enum": [
+        "PROCEDURE_SOURCE",
+        "GENERATED_INDEX",
+        "DECLARED_CAPABILITY",
+        "SELECTION_POLICY",
+        "MEASURED_OBSERVATION"
+      ]
+    },
+    "authority_class": {
+      "enum": [
+        "AUTHORITATIVE",
+        "DURABLE_DERIVED",
+        "REBUILDABLE",
+        "EPHEMERAL",
+        "EXTERNAL"
+      ]
+    },
+    "source_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

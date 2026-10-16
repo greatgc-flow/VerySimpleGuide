@@ -1,0 +1,247 @@
+{
+  "catalog_id": "VS-REFERENCE-CATALOG",
+  "version": "1.7.0",
+  "as_of": "2026-10-16",
+  "default_authority": "ADVISORY",
+  "sources": [
+    {
+      "id": "NIST-SSDF",
+      "title": "NIST SP 800-218 SSDF 1.1",
+      "url": "https://csrc.nist.gov/pubs/sp/800/218/final",
+      "source_type": "OFFICIAL",
+      "source_status": "ACTIVE",
+      "stages": [
+        "INITIATE",
+        "SPECIFY",
+        "DESIGN",
+        "IMPLEMENT",
+        "VERIFY",
+        "OPERATE_SUPPORT",
+        "EVOLVE"
+      ],
+      "usage_note": "security practices throughout lifecycle",
+      "reviewed_at": "2026-10-16",
+      "review_trigger": "new edition, archive, link change, material project decision"
+    },
+    {
+      "id": "OWASP-SAMM",
+      "title": "OWASP Software Assurance Maturity Model",
+      "url": "https://owaspsamm.org/model/",
+      "source_type": "OFFICIAL",
+      "source_status": "ACTIVE",
+      "stages": [
+        "ASSESS",
+        "INITIATE",
+        "DESIGN",
+        "IMPLEMENT",
+        "VERIFY",
+        "OPERATE_SUPPORT",
+        "IMPROVE"
+      ],
+      "usage_note": "governance/design/implementation/verification/operations security",
+      "reviewed_at": "2026-10-16",
+      "review_trigger": "new edition, archive, link change, material project decision"
+    },
+    {
+      "id": "GOOGLE-ENG",
+      "title": "Google Engineering Practices (archived 2025-11-21)",
+      "url": "https://github.com/google/eng-practices",
+      "source_type": "VENDOR_GUIDANCE",
+      "source_status": "ARCHIVED",
+      "stages": [
+        "IMPLEMENT",
+        "VERIFY"
+      ],
+      "usage_note": "historical code review and code health guidance; not a current policy",
+      "reviewed_at": "2026-10-16",
+      "review_trigger": "new edition, archive, link change, material project decision"
+    },
+    {
+      "id": "MS-ARCH",
+      "title": "Microsoft Azure Architecture Fundamentals",
+      "url": "https://learn.microsoft.com/en-us/azure/architecture/guide/",
+      "source_type": "VENDOR_GUIDANCE",
+      "source_status": "ACTIVE",
+      "stages": [
+        "ASSESS",
+        "DESIGN",
+        "EVOLVE"
+      ],
+      "usage_note": "architecture style, choices and tradeoffs; relevant beyond cloud if adapted",
+      "reviewed_at": "2026-10-16",
+      "review_trigger": "new edition, archive, link change, material project decision"
+    },
+    {
+      "id": "SRE-ERROR",
+      "title": "Google SRE Workbook Error Budget Policy",
+      "url": "https://sre.google/workbook/error-budget-policy/",
+      "source_type": "VENDOR_GUIDANCE",
+      "source_status": "ACTIVE",
+      "stages": [
+        "RELEASE",
+        "OPERATE_SUPPORT",
+        "IMPROVE"
+      ],
+      "usage_note": "example SLO/error-budget tradeoff, never copy thresholds blindly",
+      "reviewed_at": "2026-10-16",
+      "review_trigger": "new edition, archive, link change, material project decision"
+    },
+    {
+      "id": "DORA-2026",
+      "title": "DORA software delivery metrics history (2026)",
+      "url": "https://dora.dev/insights/dora-metrics-history/",
+      "source_type": "INDUSTRY_GUIDANCE",
+      "source_status": "ACTIVE",
+      "stages": [
+        "RELEASE",
+        "OPERATE_SUPPORT",
+        "IMPROVE"
+      ],
+      "usage_note": "delivery throughput and instability measurements",
+      "reviewed_at": "2026-10-16",
+      "review_trigger": "new edition, archive, link change, material project decision"
+    },
+    {
+      "id": "SLSA-1.2",
+      "title": "SLSA 1.2 Specification",
+      "url": "https://slsa.dev/spec/v1.2/",
+      "source_type": "OPEN_STANDARD",
+      "source_status": "ACTIVE",
+      "stages": [
+        "IMPLEMENT",
+        "VERIFY",
+        "RELEASE"
+      ],
+      "usage_note": "build and source provenance assurance tracks",
+      "reviewed_at": "2026-10-16",
+      "review_trigger": "new edition, archive, link change, material project decision"
+    },
+    {
+      "id": "OTEL",
+      "title": "OpenTelemetry specifications",
+      "url": "https://opentelemetry.io/docs/specs/",
+      "source_type": "OPEN_STANDARD",
+      "source_status": "ACTIVE",
+      "stages": [
+        "DESIGN",
+        "OPERATE_SUPPORT",
+        "IMPROVE"
+      ],
+      "usage_note": "vendor-neutral telemetry standard; optional",
+      "reviewed_at": "2026-10-16",
+      "review_trigger": "new edition, archive, link change, material project decision"
+    },
+    {
+      "id": "OPENSSF-SCORECARD",
+      "title": "OpenSSF Scorecard",
+      "url": "https://openssf.org/scorecard/",
+      "source_type": "INDUSTRY_GUIDANCE",
+      "source_status": "ACTIVE",
+      "stages": [
+        "ASSESS",
+        "IMPLEMENT",
+        "OPERATE_SUPPORT",
+        "EVOLVE"
+      ],
+      "usage_note": "external dependencies/supply chain risk assessment",
+      "reviewed_at": "2026-10-16",
+      "review_trigger": "new edition, archive, link change, material project decision"
+    },
+    {
+      "id": "FINOPS",
+      "title": "FinOps Framework Phases",
+      "url": "https://www.finops.org/framework/phases/",
+      "source_type": "INDUSTRY_GUIDANCE",
+      "source_status": "ACTIVE",
+      "stages": [
+        "ASSESS",
+        "RELEASE",
+        "OPERATE_SUPPORT",
+        "IMPROVE",
+        "RETIRE"
+      ],
+      "usage_note": "inform/optimize/operate; cost-value cycle",
+      "reviewed_at": "2026-10-16",
+      "review_trigger": "new edition, archive, link change, material project decision"
+    },
+    {
+      "id": "RADAR",
+      "title": "Thoughtworks Technology Radar",
+      "url": "https://www.thoughtworks.com/radar",
+      "source_type": "TECH_RADAR",
+      "source_status": "ACTIVE",
+      "stages": [
+        "DISCOVER",
+        "ASSESS",
+        "DESIGN",
+        "EVOLVE"
+      ],
+      "usage_note": "ideas for candidate exploration, not mandatory adoption",
+      "reviewed_at": "2026-10-16",
+      "review_trigger": "new edition, archive, link change, material project decision"
+    },
+    {
+      "id": "MICROSOFT-PATTERNS",
+      "title": "Azure Cloud Design Patterns",
+      "url": "https://learn.microsoft.com/en-us/azure/architecture/patterns",
+      "source_type": "VENDOR_GUIDANCE",
+      "source_status": "ACTIVE",
+      "stages": [
+        "DESIGN",
+        "IMPLEMENT",
+        "EVOLVE"
+      ],
+      "usage_note": "problem-driven tradeoff pattern catalog",
+      "reviewed_at": "2026-10-16",
+      "review_trigger": "new edition, archive, link change, material project decision"
+    },
+    {
+      "id": "ADR",
+      "title": "Architecture Decision Records community",
+      "url": "https://adr.github.io/",
+      "source_type": "COMMUNITY",
+      "source_status": "ACTIVE",
+      "stages": [
+        "INITIATE",
+        "DESIGN",
+        "IMPROVE",
+        "EVOLVE"
+      ],
+      "usage_note": "lightweight decision record practice",
+      "reviewed_at": "2026-10-16",
+      "review_trigger": "new edition, archive, link change, material project decision"
+    },
+    {
+      "id": "W3C-WCAG",
+      "title": "W3C Web Content Accessibility Guidelines",
+      "url": "https://www.w3.org/TR/WCAG22/",
+      "source_type": "OPEN_STANDARD",
+      "source_status": "ACTIVE",
+      "stages": [
+        "SPECIFY",
+        "DESIGN",
+        "VERIFY",
+        "OPERATE_SUPPORT"
+      ],
+      "usage_note": "for applicable user-facing web interfaces; no blanket mandate for CLI-only software",
+      "reviewed_at": "2026-10-16",
+      "review_trigger": "new edition, archive, link change, material project decision"
+    },
+    {
+      "id": "OPENAPI",
+      "title": "OpenAPI Specification",
+      "url": "https://spec.openapis.org/oas/latest.html",
+      "source_type": "OPEN_STANDARD",
+      "source_status": "ACTIVE",
+      "stages": [
+        "SPECIFY",
+        "DESIGN",
+        "VERIFY",
+        "EVOLVE"
+      ],
+      "usage_note": "optional interoperable HTTP API contract",
+      "reviewed_at": "2026-10-16",
+      "review_trigger": "new edition, archive, link change, material project decision"
+    }
+  ]
+}

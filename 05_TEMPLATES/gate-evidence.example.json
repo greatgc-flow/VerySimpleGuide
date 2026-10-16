@@ -1,0 +1,11 @@
+{
+  "candidate_identity": "git:0123456789abcdef",
+  "artifact_digest": "sha256:example",
+  "gate_id": "reality-provider",
+  "status": "PASS",
+  "observed_at": "2026-10-16T00:00:00Z",
+  "freshness": "FRESH",
+  "evidence_refs": [
+    "run:123"
+  ]
+}

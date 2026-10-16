@@ -1,0 +1,9 @@
+{
+  "operation": "reset",
+  "idempotency": "REQUIRED",
+  "retry": "CONDITIONAL",
+  "crash_boundary": "REQUIRED",
+  "rollback": "COMPENSATION",
+  "concurrency": "SERIALIZED",
+  "uncertain_execution": "RECONCILE"
+}

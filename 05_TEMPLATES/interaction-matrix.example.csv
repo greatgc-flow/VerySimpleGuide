@@ -1,0 +1,4 @@
+interaction_id,left,right,scenario,applicability,test_or_gate,status
+INT-001,mutation,crash,restart after side-effect boundary,REQUIRED,T-CRASH-001,PLANNED
+INT-002,cutover,legacy-cli,default selector flip compatibility,REQUIRED,G-CUTOVER-001,PLANNED
+INT-003,provider,unknown,unknown quota/capability behavior,REQUIRED,T-OBS-001,PLANNED

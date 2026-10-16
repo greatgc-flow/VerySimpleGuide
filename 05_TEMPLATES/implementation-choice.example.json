@@ -1,0 +1,41 @@
+{
+  "decision_id": "TECH-001",
+  "scope": "cross-platform application",
+  "candidate": {
+    "languages": [
+      "Rust",
+      "Go",
+      "Java",
+      "C#",
+      "Python"
+    ],
+    "operating_systems": [
+      "Linux",
+      "Windows",
+      "macOS"
+    ],
+    "contract_format": "OpenAPI / optional Protobuf"
+  },
+  "alternatives": [
+    "single-language implementation",
+    "FFI module",
+    "service boundary",
+    "WASI component"
+  ],
+  "criteria": [
+    "measured latency",
+    "operational complexity",
+    "portability",
+    "security",
+    "migration cost"
+  ],
+  "constraints": {
+    "policy": "none globally mandated",
+    "runtime": "project-local choice"
+  },
+  "evidence_plan": "Compare bounded prototypes using measured evidence; no invented numbers",
+  "decision": "EXPERIMENT",
+  "decision_owner": "architecture owner",
+  "review_trigger": "prototype evidence or risk change",
+  "rollback_plan": "restore prior adapter / configuration and verify postconditions"
+}

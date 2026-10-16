@@ -1,0 +1,18 @@
+{
+  "proposal_id": "EVOL-001",
+  "kind": "ADD",
+  "affected_controls": [
+    "UPS-EXT"
+  ],
+  "coverage_gap": "Example: new workload has a semantic ownership gap not covered by baseline controls",
+  "alternatives": [
+    "ADAPT existing UPS-EXT",
+    "PRODUCT_SPECIFIC controlled overlay",
+    "new control"
+  ],
+  "migration_plan": "Bump standard version with explicit mapping and grandfathering plan",
+  "verification": "Add schema fixtures, negative tests and compatibility matrix",
+  "owner": "standards maintainer",
+  "status": "PROPOSED",
+  "review_trigger": "new conformance data / owner decision"
+}

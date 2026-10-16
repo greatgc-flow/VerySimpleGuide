@@ -1,0 +1,16 @@
+source_lesson_domain,generalized_rule,standard_location,status
+durable-authority,authority vs projection,02_STANDARD/AUTHORITY_PROJECTION_STANDARD.md,DESIGN_COVERED
+durable-artifact,blob-before-reference,02_STANDARD/AUTHORITY_PROJECTION_STANDARD.md,DESIGN_COVERED
+observation,UNKNOWN/STALE explicit,02_STANDARD/OBSERVABILITY_EVIDENCE_STANDARD.md,DESIGN_COVERED
+capability,catalog vs observation vs policy,02_STANDARD/CAPABILITY_CATALOG_STANDARD.md,DESIGN_COVERED
+external-protocol,identity and stateless handles,02_STANDARD/PROTOCOL_ADAPTER_STANDARD.md,DESIGN_COVERED
+routing,routing selects,05_ARCHITECTURE/BOUNDED_ORCHESTRATION.md,DESIGN_COVERED
+orchestration,bounded executor,05_ARCHITECTURE/BOUNDED_ORCHESTRATION.md,DESIGN_COVERED
+approval,exact-effect single-use,05_ARCHITECTURE/BOUNDED_ORCHESTRATION.md,DESIGN_COVERED
+portable-lifecycle,core/module/extension,02_STANDARD/COMPONENT_BOUNDARY.md,DESIGN_COVERED
+provider,capability descriptor,02_STANDARD/PROVIDER_CAPABILITY_STANDARD.md,DESIGN_COVERED
+data-safety,state-classified backup/restore/reset,02_STANDARD/DATA_SAFETY_STANDARD.md,DESIGN_COVERED
+release,build once/promote same artifact,03_LIFECYCLE/RELEASE_PROMOTION.md,DESIGN_COVERED
+cutover,implementation vs public default,03_LIFECYCLE/CUTOVER_ROLLBACK.md,DESIGN_COVERED
+diagnostics,read-only vs repair,02_STANDARD/OBSERVABILITY_EVIDENCE_STANDARD.md,DESIGN_COVERED
+drift,machine SSOT before PASS,04_ASSURANCE/DRIFT_CONTROL.md,DESIGN_COVERED

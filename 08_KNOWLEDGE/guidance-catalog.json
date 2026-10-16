@@ -1,0 +1,528 @@
+{
+  "catalog_id": "VS-OPTIONAL-GUIDANCE",
+  "version": "1.7.0",
+  "selection_policy": "PULL_ON_DEMAND",
+  "default_normative_level": "EXAMPLE_REFERENCE",
+  "guidance": [
+    {
+      "id": "G01",
+      "title": "Problem framing and user outcomes",
+      "stage_ids": [
+        "DISCOVER"
+      ],
+      "concern_ids": [
+        "OUTCOME_VALUE"
+      ],
+      "applicability": "OPTIONAL",
+      "problem": "The problem recurs and its cost or impact can be measured.",
+      "use_when": "The problem recurs and its cost or impact can be measured.",
+      "avoid_when": "The users or problem remain unknown, or a solution has already been chosen.",
+      "technique": "Interview affected users, observe outcomes, and formulate falsifiable hypotheses.",
+      "tradeoffs": [
+        "Surveys alone can introduce selection bias."
+      ],
+      "alternatives": [
+        "Retain the simplest proven current approach",
+        "Document and accept the risk instead of adopting the pattern"
+      ],
+      "reference_ids": [
+        "RADAR"
+      ],
+      "evidence_strategy": "Define a measurable project baseline, a falsification method and acceptance evidence.",
+      "review_trigger": "new failure mode, source revision, project context change"
+    },
+    {
+      "id": "G02",
+      "title": "Build, buy, or reuse",
+      "stage_ids": [
+        "ASSESS"
+      ],
+      "concern_ids": [
+        "ECONOMICS_SUSTAINABILITY"
+      ],
+      "applicability": "OPTIONAL",
+      "problem": "Adoption, maintenance and ownership costs differ materially.",
+      "use_when": "Adoption, maintenance and ownership costs differ materially.",
+      "avoid_when": "Alternatives are excluded solely because of a preferred language or vendor.",
+      "technique": "Evaluate existing products, run a small proof of concept and compare total cost.",
+      "tradeoffs": [
+        "Buying risks vendor lock-in; building introduces maintenance obligations."
+      ],
+      "alternatives": [
+        "Retain the simplest proven current approach",
+        "Document and accept the risk instead of adopting the pattern"
+      ],
+      "reference_ids": [
+        "MS-ARCH"
+      ],
+      "evidence_strategy": "Define a measurable project baseline, a falsification method and acceptance evidence.",
+      "review_trigger": "new failure mode, source revision, project context change"
+    },
+    {
+      "id": "G03",
+      "title": "Project charter and decision ownership",
+      "stage_ids": [
+        "INITIATE"
+      ],
+      "concern_ids": [
+        "GOVERNANCE_EVIDENCE"
+      ],
+      "applicability": "OPTIONAL",
+      "problem": "Multiple decision makers or consequential changes require clear authority.",
+      "use_when": "Multiple decision makers or consequential changes require clear authority.",
+      "avoid_when": "Excessive sign-off prevents small, low-risk improvements.",
+      "technique": "Write a concise architecture decision record and name the acceptance owner.",
+      "tradeoffs": [
+        "Documentation and review have a real time cost."
+      ],
+      "alternatives": [
+        "Retain the simplest proven current approach",
+        "Document and accept the risk instead of adopting the pattern"
+      ],
+      "reference_ids": [
+        "ADR"
+      ],
+      "evidence_strategy": "Define a measurable project baseline, a falsification method and acceptance evidence.",
+      "review_trigger": "new failure mode, source revision, project context change"
+    },
+    {
+      "id": "G04",
+      "title": "Requirements, acceptance and accessibility",
+      "stage_ids": [
+        "SPECIFY"
+      ],
+      "concern_ids": [
+        "USERS_ACCESSIBILITY"
+      ],
+      "applicability": "OPTIONAL",
+      "problem": "A user interface, API or other public contract is involved.",
+      "use_when": "A user interface, API or other public contract is involved.",
+      "avoid_when": "Web accessibility checks are imposed on systems without a web interface.",
+      "technique": "Describe behavioral scenarios and write contract-level acceptance tests.",
+      "tradeoffs": [
+        "Overly formal specifications can obscure actual user value."
+      ],
+      "alternatives": [
+        "Retain the simplest proven current approach",
+        "Document and accept the risk instead of adopting the pattern"
+      ],
+      "reference_ids": [
+        "W3C-WCAG"
+      ],
+      "evidence_strategy": "Define a measurable project baseline, a falsification method and acceptance evidence.",
+      "review_trigger": "new failure mode, source revision, project context change"
+    },
+    {
+      "id": "G05",
+      "title": "Data authority and recovery design",
+      "stage_ids": [
+        "DESIGN"
+      ],
+      "concern_ids": [
+        "DATA_PRIVACY"
+      ],
+      "applicability": "OPTIONAL",
+      "problem": "Personal data or important long-lived state must be preserved.",
+      "use_when": "Personal data or important long-lived state must be preserved.",
+      "avoid_when": "Temporary data is incorrectly treated as the source of truth.",
+      "technique": "Document ownership, recovery classes and perform a restore exercise.",
+      "tradeoffs": [
+        "Backups increase cost and can expand sensitive-data exposure."
+      ],
+      "alternatives": [
+        "Retain the simplest proven current approach",
+        "Document and accept the risk instead of adopting the pattern"
+      ],
+      "reference_ids": [
+        "NIST-SSDF"
+      ],
+      "evidence_strategy": "Define a measurable project baseline, a falsification method and acceptance evidence.",
+      "review_trigger": "new failure mode, source revision, project context change"
+    },
+    {
+      "id": "G06",
+      "title": "Choose patterns by the problem",
+      "stage_ids": [
+        "DESIGN"
+      ],
+      "concern_ids": [
+        "ARCHITECTURE_DEPENDENCIES"
+      ],
+      "applicability": "OPTIONAL",
+      "problem": "A repeated complexity or failure mode has been demonstrated.",
+      "use_when": "A repeated complexity or failure mode has been demonstrated.",
+      "avoid_when": "Microservices or CQRS are adopted without a relevant problem.",
+      "technique": "Compare the simplest implementation, alternatives and failure trade-offs.",
+      "tradeoffs": [
+        "Premature abstraction can increase maintenance."
+      ],
+      "alternatives": [
+        "Retain the simplest proven current approach",
+        "Document and accept the risk instead of adopting the pattern"
+      ],
+      "reference_ids": [
+        "MICROSOFT-PATTERNS"
+      ],
+      "evidence_strategy": "Define a measurable project baseline, a falsification method and acceptance evidence.",
+      "review_trigger": "new failure mode, source revision, project context change"
+    },
+    {
+      "id": "G07",
+      "title": "Code review and static analysis",
+      "stage_ids": [
+        "IMPLEMENT"
+      ],
+      "concern_ids": [
+        "QUALITY_ASSURANCE"
+      ],
+      "applicability": "OPTIONAL",
+      "problem": "Changes are hard to understand or carry significant regression risk.",
+      "use_when": "Changes are hard to understand or carry significant regression risk.",
+      "avoid_when": "Formal reviews delay tiny, explicitly timeboxed experiments.",
+      "technique": "Use focused changes, review criteria and proportionate automated checks.",
+      "tradeoffs": [
+        "Code review can become a queue bottleneck."
+      ],
+      "alternatives": [
+        "Retain the simplest proven current approach",
+        "Document and accept the risk instead of adopting the pattern"
+      ],
+      "reference_ids": [
+        "GOOGLE-ENG"
+      ],
+      "evidence_strategy": "Define a measurable project baseline, a falsification method and acceptance evidence.",
+      "review_trigger": "new failure mode, source revision, project context change"
+    },
+    {
+      "id": "G08",
+      "title": "Dependencies and supply-chain assessment",
+      "stage_ids": [
+        "IMPLEMENT"
+      ],
+      "concern_ids": [
+        "RELEASE_SUPPLYCHAIN"
+      ],
+      "applicability": "OPTIONAL",
+      "problem": "External packages, services or build infrastructure are introduced.",
+      "use_when": "External packages, services or build infrastructure are introduced.",
+      "avoid_when": "A package score is mistaken for a security guarantee.",
+      "technique": "Review maturity, vulnerabilities, support lifetime and SBOM relevance.",
+      "tradeoffs": [
+        "Scanning incurs costs and false positives."
+      ],
+      "alternatives": [
+        "Retain the simplest proven current approach",
+        "Document and accept the risk instead of adopting the pattern"
+      ],
+      "reference_ids": [
+        "OPENSSF-SCORECARD"
+      ],
+      "evidence_strategy": "Define a measurable project baseline, a falsification method and acceptance evidence.",
+      "review_trigger": "new failure mode, source revision, project context change"
+    },
+    {
+      "id": "G09",
+      "title": "Risk-based layered verification",
+      "stage_ids": [
+        "VERIFY"
+      ],
+      "concern_ids": [
+        "QUALITY_ASSURANCE"
+      ],
+      "applicability": "OPTIONAL",
+      "problem": "A change affects users or production operations.",
+      "use_when": "A change affects users or production operations.",
+      "avoid_when": "The number of tests becomes the goal rather than meaningful evidence.",
+      "technique": "Select unit, contract, negative, fault-injection and real-environment tests.",
+      "tradeoffs": [
+        "Excessive end-to-end tests can be expensive and flaky."
+      ],
+      "alternatives": [
+        "Retain the simplest proven current approach",
+        "Document and accept the risk instead of adopting the pattern"
+      ],
+      "reference_ids": [
+        "OWASP-SAMM"
+      ],
+      "evidence_strategy": "Define a measurable project baseline, a falsification method and acceptance evidence.",
+      "review_trigger": "new failure mode, source revision, project context change"
+    },
+    {
+      "id": "G10",
+      "title": "Safe promotion of the same candidate",
+      "stage_ids": [
+        "RELEASE"
+      ],
+      "concern_ids": [
+        "RELEASE_SUPPLYCHAIN"
+      ],
+      "applicability": "OPTIONAL",
+      "problem": "A stable release or audit trail is required.",
+      "use_when": "A stable release or audit trail is required.",
+      "avoid_when": "A separately rebuilt, unverified artifact is promoted.",
+      "technique": "Bind artifact digests, provenance, real-environment gates and canary rollout.",
+      "tradeoffs": [
+        "Release gates increase process and infrastructure complexity."
+      ],
+      "alternatives": [
+        "Retain the simplest proven current approach",
+        "Document and accept the risk instead of adopting the pattern"
+      ],
+      "reference_ids": [
+        "SLSA-1.2"
+      ],
+      "evidence_strategy": "Define a measurable project baseline, a falsification method and acceptance evidence.",
+      "review_trigger": "new failure mode, source revision, project context change"
+    },
+    {
+      "id": "G11",
+      "title": "Operational readiness and incident response",
+      "stage_ids": [
+        "RELEASE"
+      ],
+      "concern_ids": [
+        "OPERATIONS_RELIABILITY"
+      ],
+      "applicability": "OPTIONAL",
+      "problem": "Downtime, retry or rollback errors can cause harm.",
+      "use_when": "Downtime, retry or rollback errors can cause harm.",
+      "avoid_when": "Deployment occurs without operator handover or recovery ownership.",
+      "technique": "Prepare runbooks, contact routes and rollback rehearsals.",
+      "tradeoffs": [
+        "Readiness exercises require up-front time."
+      ],
+      "alternatives": [
+        "Retain the simplest proven current approach",
+        "Document and accept the risk instead of adopting the pattern"
+      ],
+      "reference_ids": [
+        "SRE-ERROR"
+      ],
+      "evidence_strategy": "Define a measurable project baseline, a falsification method and acceptance evidence.",
+      "review_trigger": "new failure mode, source revision, project context change"
+    },
+    {
+      "id": "G12",
+      "title": "SLOs and error budgets",
+      "stage_ids": [
+        "OPERATE_SUPPORT"
+      ],
+      "concern_ids": [
+        "OPERATIONS_RELIABILITY"
+      ],
+      "applicability": "OPTIONAL",
+      "problem": "User-perceived availability and reliability matter.",
+      "use_when": "User-perceived availability and reliability matter.",
+      "avoid_when": "Numerical targets are promised without measurements or agreement.",
+      "technique": "Define meaningful SLIs/SLOs, error budgets and incident review.",
+      "tradeoffs": [
+        "Instrumentation and analysis consume resources."
+      ],
+      "alternatives": [
+        "Retain the simplest proven current approach",
+        "Document and accept the risk instead of adopting the pattern"
+      ],
+      "reference_ids": [
+        "SRE-ERROR"
+      ],
+      "evidence_strategy": "Define a measurable project baseline, a falsification method and acceptance evidence.",
+      "review_trigger": "new failure mode, source revision, project context change"
+    },
+    {
+      "id": "G13",
+      "title": "Observability and customer support",
+      "stage_ids": [
+        "OPERATE_SUPPORT"
+      ],
+      "concern_ids": [
+        "USERS_ACCESSIBILITY"
+      ],
+      "applicability": "OPTIONAL",
+      "problem": "Production users and support requests exist.",
+      "use_when": "Production users and support requests exist.",
+      "avoid_when": "Raw log counts are used as a proxy for service health.",
+      "technique": "Combine support backlog, telemetry and incident outcomes.",
+      "tradeoffs": [
+        "Excessive collection creates privacy and storage risks."
+      ],
+      "alternatives": [
+        "Retain the simplest proven current approach",
+        "Document and accept the risk instead of adopting the pattern"
+      ],
+      "reference_ids": [
+        "OTEL"
+      ],
+      "evidence_strategy": "Define a measurable project baseline, a falsification method and acceptance evidence.",
+      "review_trigger": "new failure mode, source revision, project context change"
+    },
+    {
+      "id": "G14",
+      "title": "Prevent recurrence with feedback",
+      "stage_ids": [
+        "IMPROVE"
+      ],
+      "concern_ids": [
+        "GOVERNANCE_EVIDENCE"
+      ],
+      "applicability": "OPTIONAL",
+      "problem": "User complaints, incidents or performance regressions are observed.",
+      "use_when": "User complaints, incidents or performance regressions are observed.",
+      "avoid_when": "An issue is closed without verifying post-release impact.",
+      "technique": "Connect observation, decision, regression test, gate and later outcome.",
+      "tradeoffs": [
+        "Measurement and periodic review require ownership."
+      ],
+      "alternatives": [
+        "Retain the simplest proven current approach",
+        "Document and accept the risk instead of adopting the pattern"
+      ],
+      "reference_ids": [
+        "DORA-2026"
+      ],
+      "evidence_strategy": "Define a measurable project baseline, a falsification method and acceptance evidence.",
+      "review_trigger": "new failure mode, source revision, project context change"
+    },
+    {
+      "id": "G15",
+      "title": "Long-horizon technology experiments",
+      "stage_ids": [
+        "EVOLVE"
+      ],
+      "concern_ids": [
+        "ARCHITECTURE_DEPENDENCIES"
+      ],
+      "applicability": "OPTIONAL",
+      "problem": "Security, support lifetime or economics of a technology changes.",
+      "use_when": "Security, support lifetime or economics of a technology changes.",
+      "avoid_when": "A technology is replaced merely because it is new.",
+      "technique": "Use baselines, explicit hypotheses and bounded reversible experiments.",
+      "tradeoffs": [
+        "Migration and learning costs can dominate expected gains."
+      ],
+      "alternatives": [
+        "Retain the simplest proven current approach",
+        "Document and accept the risk instead of adopting the pattern"
+      ],
+      "reference_ids": [
+        "RADAR"
+      ],
+      "evidence_strategy": "Define a measurable project baseline, a falsification method and acceptance evidence.",
+      "review_trigger": "new failure mode, source revision, project context change"
+    },
+    {
+      "id": "G16",
+      "title": "Compatibility and controlled cutover",
+      "stage_ids": [
+        "EVOLVE"
+      ],
+      "concern_ids": [
+        "RELEASE_SUPPLYCHAIN"
+      ],
+      "applicability": "OPTIONAL",
+      "problem": "A public API, CLI, data format or database schema changes.",
+      "use_when": "A public API, CLI, data format or database schema changes.",
+      "avoid_when": "Existing users lose a working rollback route.",
+      "technique": "Use reversible selection, compatibility parity and dual-run if justified.",
+      "tradeoffs": [
+        "A compatibility period temporarily doubles some operational burdens."
+      ],
+      "alternatives": [
+        "Retain the simplest proven current approach",
+        "Document and accept the risk instead of adopting the pattern"
+      ],
+      "reference_ids": [
+        "MS-ARCH"
+      ],
+      "evidence_strategy": "Define a measurable project baseline, a falsification method and acceptance evidence.",
+      "review_trigger": "new failure mode, source revision, project context change"
+    },
+    {
+      "id": "G17",
+      "title": "Service and data retirement",
+      "stage_ids": [
+        "RETIRE"
+      ],
+      "concern_ids": [
+        "DATA_PRIVACY"
+      ],
+      "applicability": "OPTIONAL",
+      "problem": "Service, contractual or data ownership is ending.",
+      "use_when": "Service, contractual or data ownership is ending.",
+      "avoid_when": "Closure is declared with residual backups or permissions remaining.",
+      "technique": "Inventory dependencies, notify owners, migrate or delete with evidence.",
+      "tradeoffs": [
+        "Retention law and deletion goals may conflict."
+      ],
+      "alternatives": [
+        "Retain the simplest proven current approach",
+        "Document and accept the risk instead of adopting the pattern"
+      ],
+      "reference_ids": [
+        "FINOPS"
+      ],
+      "evidence_strategy": "Define a measurable project baseline, a falsification method and acceptance evidence.",
+      "review_trigger": "new failure mode, source revision, project context change"
+    },
+    {
+      "id": "G18",
+      "title": "Cost and sustainability",
+      "stage_ids": [
+        "OPERATE_SUPPORT"
+      ],
+      "concern_ids": [
+        "ECONOMICS_SUSTAINABILITY"
+      ],
+      "applicability": "OPTIONAL",
+      "problem": "Cloud, compute, AI or data usage is materially growing.",
+      "use_when": "Cloud, compute, AI or data usage is materially growing.",
+      "avoid_when": "Across-the-board cuts sacrifice reliability or safety.",
+      "technique": "Track unit cost and resource consumption against a measured baseline.",
+      "tradeoffs": [
+        "Fine-grained metering itself has a cost."
+      ],
+      "alternatives": [
+        "Retain the simplest proven current approach",
+        "Document and accept the risk instead of adopting the pattern"
+      ],
+      "reference_ids": [
+        "FINOPS"
+      ],
+      "evidence_strategy": "Define a measurable project baseline, a falsification method and acceptance evidence.",
+      "review_trigger": "new failure mode, source revision, project context change"
+    },
+    {
+      "id": "G19",
+      "title": "Security and supply-chain controls across the lifecycle",
+      "stage_ids": [
+        "ASSESS",
+        "DESIGN",
+        "IMPLEMENT",
+        "VERIFY",
+        "OPERATE_SUPPORT",
+        "RETIRE"
+      ],
+      "concern_ids": [
+        "RISK_SECURITY"
+      ],
+      "applicability": "OPTIONAL",
+      "problem": "Personal information, unauthorized access, supply-chain threats or safety impacts create material risk.",
+      "use_when": "Personal information, unauthorized access, supply-chain threats or safety impacts create material risk.",
+      "avoid_when": "Heavy frameworks are imposed on all low-risk prototypes without assessing scope.",
+      "technique": "Combine threat modeling, security requirements, verification, vulnerability triage and provenance based on risk.",
+      "tradeoffs": [
+        "Controls consume resources and may affect usability; legal mandates can still apply.",
+        "Legal and industry rules may be binding for the applicable scope."
+      ],
+      "alternatives": [
+        "Begin with a scoped risk register and lightweight static checks",
+        "Apply a stricter scoped agreement where regulations or certification require it"
+      ],
+      "reference_ids": [
+        "NIST-SSDF",
+        "OWASP-SAMM"
+      ],
+      "evidence_strategy": "Link prioritized risks to mitigations, negative tests and post-release threat signals.",
+      "review_trigger": "new threats, CVEs, regulatory changes, material data-handling changes"
+    }
+  ]
+}

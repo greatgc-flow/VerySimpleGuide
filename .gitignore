@@ -1,0 +1,33 @@
+# Validation evidence is generated, not source authority
+.validation/
+*.log
+
+# Python reference tools
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.coverage
+
+# Local editor and operating-system noise
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+
+# Local secrets and private overrides
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.key
