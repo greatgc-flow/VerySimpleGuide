@@ -20,8 +20,8 @@
     },
     {
       "path": ".github/workflows/validate.yml",
-      "sha256": "82d3048046e34182b591e25c28fc080b5723af8ab0f91bced01dc33abbe88d55",
-      "size_bytes": 958,
+      "sha256": "0d68a0f0cdfded192e239a3da108115ac3731390857f32531fdf1dbb3db3d59e",
+      "size_bytes": 1006,
       "role": "VALIDATION_TOOL",
       "primary_control": "UPS-TEST",
       "related_controls": []
@@ -390,6 +390,16 @@
       ]
     },
     {
+      "path": "04_ASSURANCE/package-trace.json",
+      "sha256": "89a54c8ad959aa42e16892f75c1218d9333c4b556a93037ca035cafd65667164",
+      "size_bytes": 4536,
+      "role": "ASSURANCE_EVIDENCE",
+      "primary_control": "UPS-TEST",
+      "related_controls": [
+        "UPS-DOC"
+      ]
+    },
+    {
       "path": "05_ARCHITECTURE/ANTI_PATTERNS.md",
       "sha256": "e71d85937942539f5f63e27586cae4d3e6b969bfc7aab9c79fcbc1ab06725d15",
       "size_bytes": 1091,
@@ -463,8 +473,8 @@
     },
     {
       "path": "06_GOVERNANCE/EVOLUTION_POLICY.md",
-      "sha256": "baefbdc726852aa6315e6d8dc1b0b1ec0964df0d886f8927e90a679350891aaf",
-      "size_bytes": 350,
+      "sha256": "1d6db4eb72c44216cfc62f5fbe2872b6cfb62bb43435c9fc0e57327be823065a",
+      "size_bytes": 797,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []
@@ -727,8 +737,8 @@
     },
     {
       "path": "CHANGELOG.md",
-      "sha256": "3a39ec51440f5ad307e2c529399fd5ad3955a6028d51d77d804449d8fe0a3197",
-      "size_bytes": 2780,
+      "sha256": "fa5db87a3d5e048e51c131ea13d98b5cb22a66d788cb29e6413094fed9b37481",
+      "size_bytes": 3094,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []
@@ -807,8 +817,8 @@
     },
     {
       "path": "tools/test_validator.py",
-      "sha256": "c461fb6c70ee2b4b170ca21bad240a9cb4c8c1864b7265f98cd82e874250257a",
-      "size_bytes": 50128,
+      "sha256": "98c48020c0f2cb63142821b552b1fb578a47dfd2ecb90ca1b6d42787a4471b72",
+      "size_bytes": 51418,
       "role": "VALIDATION_TOOL",
       "primary_control": "UPS-TEST",
       "related_controls": []
@@ -823,8 +833,8 @@
     },
     {
       "path": "tools/validate_package.py",
-      "sha256": "b74ac24bd89b708ce6b290713bb128e153896b8187481ae8aa2e838571ce1db3",
-      "size_bytes": 71467,
+      "sha256": "be98d17b1a5f16ffb8b2fca5cf44da4b5311acc09d7cbf4b702676b4ff0cb26b",
+      "size_bytes": 72730,
       "role": "VALIDATION_TOOL",
       "primary_control": "UPS-TEST",
       "related_controls": []

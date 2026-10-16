@@ -484,6 +484,21 @@ def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=
         count+=1
         if bool(filesystem_gate_errors({'skipped':skipped},required)) != expected:
             errors.append('negative-test-accepted-invalid:filesystem-required-accounting')
+    from validate_package import check_package_trace, PACKAGE_TRACE
+    actual=json.loads((root/PACKAGE_TRACE).read_text(encoding='utf-8'))
+    valid_schema_instance(schemas,'project-trace.schema.json',actual)
+    flaws=[];check_package_trace(root,actual,flaws);count+=1
+    if flaws: errors.append('positive-package-trace-rejected:'+repr(flaws))
+    for mutation,expected in (('example','package-trace-not-actual-work'),('missing-artifact','package-change-artifact-missing'),('unsafe-artifact','package-change-artifact-unsafe'),('empty-feedback','package-trace-not-actual-work')):
+        bad=copy.deepcopy(actual)
+        if mutation=='example': bad['project_id']='example-project'
+        if mutation=='missing-artifact': bad['changes'][0]['artifact_refs']=['nonexistent-package-file']
+        if mutation=='unsafe-artifact': bad['changes'][0]['artifact_refs']=['../outside']
+        if mutation=='empty-feedback': bad['feedback']=[]
+        flaws=[];check_package_trace(root,bad,flaws);count+=1
+        if not any(expected in x for x in flaws): errors.append('negative-test-accepted-invalid:actual-package-'+mutation)
+    bad=copy.deepcopy(actual);bad['feedback'][0]['status']='CLOSED'
+    negative_json('package-closure-without-deployment-and-outcome','project-trace.schema.json',bad)
     return count,errors
 
 

@@ -1,5 +1,9 @@
 # Design Decisions
 
+## R14 actual package self-review
+
+- Validate the package-owned R13/R14 trace in CI through the same project contract. Record executed local proof and the minimal change; retain IN_PROGRESS while commit/PR, required CI, deployment and measured outcome are pending. Examples never substitute for this work record.
+
 ## R14 scoped coverage and honest execution
 
 - Reuse scoped requirements for selected controls/interactions and resolve their declared proof obligations at acceptance. Keep all fifteen controls. Inherit registry authority only through a checked project trace association. Separate filesystem execution/skips/N_A and require applicable defenses in CI.

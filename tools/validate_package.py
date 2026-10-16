@@ -24,6 +24,7 @@ except ImportError as exc:
 ROOT = Path(__file__).resolve().parents[1]
 VERSION = json.loads((ROOT / '06_GOVERNANCE/unified-package-standard.json').read_text(encoding='utf-8'))['version']
 PACK_NAME = 'VerySimpleGuide'
+PACKAGE_TRACE = '04_ASSURANCE/package-trace.json'
 # MANIFEST.json is explicitly self-excluded from its own file inventory;
 # manifest digests detect accidental changes, not cryptographic provenance.
 EXCLUDED = {'MANIFEST.json'}
@@ -472,6 +473,8 @@ def check_project_registry(registry, errors, trace=None):
 
 
 def expected_role_for_path(rpath):
+    if rpath == PACKAGE_TRACE:
+        return 'ASSURANCE_EVIDENCE'
     if rpath.startswith('07_CONTRACTS/schemas/'):
         return 'MACHINE_SSOT'
     if rpath.startswith('07_CONTRACTS/examples/'):
@@ -1069,6 +1072,18 @@ def semantic_lint(root, std, errors):
         errors.append('missing-operational-closure-contract')
 
 
+def check_package_trace(root, trace, errors):
+    if trace.get('project_id') != PACK_NAME or not trace.get('feedback') or not trace.get('changes'):
+        errors.append('package-trace-not-actual-work')
+    check_trace(trace, errors)
+    for change in trace.get('changes', []):
+        for ref in change.get('artifact_refs', []):
+            try:
+                if not safe_target(root, ref).is_file(): errors.append('package-change-artifact-missing:' + ref)
+            except ValueError:
+                errors.append('package-change-artifact-unsafe:' + ref)
+
+
 def check_all(root):
     errors = []
     check_manifest(root, errors)
@@ -1093,6 +1108,12 @@ def check_all(root):
             except (ValueError,KeyError,ValidationError,OSError,json.JSONDecodeError) as exc:
                 errors.append('invalid-unified-package-standard-schema:'+str(exc)[:180])
             check_examples(root, schemas, errors)
+            package_trace = read_json(root / PACKAGE_TRACE)
+            try:
+                valid_schema_instance(schemas, 'project-trace.schema.json', package_trace)
+                check_package_trace(root, package_trace, errors)
+            except (ValueError, KeyError, ValidationError) as exc:
+                errors.append('invalid-package-trace:' + str(exc)[:180])
             check_choice(read_json(root / '07_CONTRACTS/examples/implementation-choice.example.json'), trace, errors)
             check_project_registry(read_json(root / '07_CONTRACTS/examples/component-registry.example.json'),errors,trace)
             if not errors or all(not x.startswith('invalid-example') for x in errors):
@@ -1203,6 +1224,8 @@ def main(argv=None):
         sink.say('registry_accountable_owner=' + ('CHECKED' if args.project_trace and not static_errors else 'UNASSESSED'))
     sink.say('external_project_trace=' + ('CHECKED' if args.project_trace else 'NOT_SUPPLIED'))
     sink.say('external_project_lifecycle=' + ('CHECKED' if args.project_lifecycle else 'NOT_SUPPLIED'))
+    actual_trace = read_json(ROOT / PACKAGE_TRACE)
+    sink.say('package_loop=' + ('CLOSED' if actual_trace.get('feedback') and all(x.get('status') == 'CLOSED' for x in actual_trace['feedback']) else 'OPEN'))
     sink.say('lifecycle_matrix=12x10')
     sink.say('project_classification=12_stages+10_concerns+optional_overrides')
     if not errors:
