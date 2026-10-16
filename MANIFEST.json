@@ -510,70 +510,6 @@
       "related_controls": []
     },
     {
-      "path": "07_AUDIT/BASELINE_VALIDATION_EVIDENCE.txt",
-      "sha256": "e64ced94b518538aba126c239f0fd79da4b8ac3b9c3c3a3e9b8ad04cca059054",
-      "size_bytes": 361,
-      "role": "ASSURANCE_EVIDENCE",
-      "primary_control": "UPS-EVID",
-      "related_controls": []
-    },
-    {
-      "path": "07_AUDIT/CROSS_PACKAGE_LESSONS_GENERALIZED.md",
-      "sha256": "9024a65a275eec62e81c308c4f2cb0f2fd8707cd3d933d2e961cde60f52cc02e",
-      "size_bytes": 1498,
-      "role": "ASSURANCE_EVIDENCE",
-      "primary_control": "UPS-EVID",
-      "related_controls": []
-    },
-    {
-      "path": "07_AUDIT/FINAL_GENERALIZATION_AUDIT.md",
-      "sha256": "a71b4e4c93f2449be0d6e2e324d84833dec674c9e4b0dbaf01517a1b4fb4893e",
-      "size_bytes": 1453,
-      "role": "ASSURANCE_EVIDENCE",
-      "primary_control": "UPS-EVID",
-      "related_controls": []
-    },
-    {
-      "path": "07_AUDIT/FINAL_RECURSIVE_AUDIT_R9.md",
-      "sha256": "31bd94fa2e69a4480f4cd131002e6d1462a840028ad7a3ef14d57f053d268b81",
-      "size_bytes": 2570,
-      "role": "ASSURANCE_EVIDENCE",
-      "primary_control": "UPS-EVID",
-      "related_controls": []
-    },
-    {
-      "path": "07_AUDIT/FINAL_RECURSIVE_MECE_R12.md",
-      "sha256": "2b7bc864676638040db58f3f8ad8c89ffb200509176f2534c7efd83962aa4532",
-      "size_bytes": 2911,
-      "role": "ASSURANCE_EVIDENCE",
-      "primary_control": "UPS-EVID",
-      "related_controls": []
-    },
-    {
-      "path": "07_AUDIT/GENERALIZATION_COVERAGE.csv",
-      "sha256": "2ed57c7c40a3f7b065a98dda648c0e47f42a5a31804d9d60f1ae762f705e0579",
-      "size_bytes": 1454,
-      "role": "ASSURANCE_EVIDENCE",
-      "primary_control": "UPS-EVID",
-      "related_controls": []
-    },
-    {
-      "path": "07_AUDIT/TECHNOLOGY_OPENNESS_AUDIT_R10.md",
-      "sha256": "7fcbb8ca773f6c75c0bc77734553a0905d583930c2e450742e086050cfe14a46",
-      "size_bytes": 4073,
-      "role": "ASSURANCE_EVIDENCE",
-      "primary_control": "UPS-EVID",
-      "related_controls": []
-    },
-    {
-      "path": "07_AUDIT/VERTICAL_HORIZONTAL_LIFECYCLE_AUDIT_R11.md",
-      "sha256": "66a65014ddf4cc13f5caddf4cdb7a358b6888a1336d30d7f80af71c739d3bbe9",
-      "size_bytes": 1992,
-      "role": "ASSURANCE_EVIDENCE",
-      "primary_control": "UPS-EVID",
-      "related_controls": []
-    },
-    {
       "path": "07_CONTRACTS/examples/component-registry.example.json",
       "sha256": "3b112b04fa1a66a56c1b1fc47a0e0b6df1b36da2891d436493902f25af2b6568",
       "size_bytes": 1575,
@@ -790,6 +726,14 @@
       "related_controls": []
     },
     {
+      "path": "CHANGELOG.md",
+      "sha256": "35cd42c0a00912643ab06aa4eed9e6fad17ac3bd6734166d9b0e8df588597dfa",
+      "size_bytes": 1043,
+      "role": "HUMAN_GUIDE",
+      "primary_control": "UPS-DOC",
+      "related_controls": []
+    },
+    {
       "path": "CONTRIBUTING.md",
       "sha256": "897960ca8490692269cd9260a408a614daf6c63002e71ff17e0c102b5b3d269f",
       "size_bytes": 1206,
@@ -815,8 +759,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "3c0b47fc18126c78d281d4ab281c02c61786ef248b9f5e49c1c9eab6a864f5a7",
-      "size_bytes": 4011,
+      "sha256": "796def86e872429f6006845c16e096d16c27a3ad5f7135c8093f1e513ff79c6f",
+      "size_bytes": 2440,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []
@@ -831,8 +775,8 @@
     },
     {
       "path": "START_HERE.md",
-      "sha256": "8d898898924c61faefcd3a6f8af84a47fd0b45860176fa481d7a31c5454f4ff2",
-      "size_bytes": 3375,
+      "sha256": "de72415dca4cd71070635dac178f553ba1c375e62e8d0591938502ec43218712",
+      "size_bytes": 2133,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []
