@@ -391,8 +391,8 @@
     },
     {
       "path": "04_ASSURANCE/package-trace.json",
-      "sha256": "89a54c8ad959aa42e16892f75c1218d9333c4b556a93037ca035cafd65667164",
-      "size_bytes": 4536,
+      "sha256": "5d1e5a2e9b6467a6f7b155757a648fa0417d50e9124869ab3be08fcbc2666416",
+      "size_bytes": 12182,
       "role": "ASSURANCE_EVIDENCE",
       "primary_control": "UPS-TEST",
       "related_controls": [
@@ -737,8 +737,8 @@
     },
     {
       "path": "CHANGELOG.md",
-      "sha256": "55475b671f90163aa376b8afcfd3293caa75011938005278190bf0f1a5f5fb7a",
-      "size_bytes": 4452,
+      "sha256": "a81b037d049bda757911530b96550c3f972714e16ecd7fda8a8e334895fc89cc",
+      "size_bytes": 4560,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []
@@ -817,8 +817,8 @@
     },
     {
       "path": "tools/test_validator.py",
-      "sha256": "7fcfbf684cb47e8cfc6cf27a2bc937e63d1dc0774acd6380ef54b1b34db9dcdc",
-      "size_bytes": 57446,
+      "sha256": "9067fb5dc0c63e18d20dd388a67dc5c282fa5f699f1f62b645d505ec1cb0d733",
+      "size_bytes": 57573,
       "role": "VALIDATION_TOOL",
       "primary_control": "UPS-TEST",
       "related_controls": []
