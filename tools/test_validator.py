@@ -11,7 +11,8 @@ if _TOOLS_DIR not in sys.path:
 def run_negative_suite(root):
     # Imported only after main validator loads successfully; no mutation to product files.
     from validate_package import (check_trace, check_controls, valid_schema_instance,
-                                  valid_relative_path, check_manifest, load_schemas, check_invariants, check_lifecycle_models, check_project_lifecycle, check_artifact_ownership, check_project_registry)
+                                  valid_relative_path, resolve_safe_evidence_path, check_manifest, load_schemas, check_invariants, check_lifecycle_models, check_project_lifecycle, check_artifact_ownership, check_project_registry)
+    from suggest_guidance import select as select_guidance
     from jsonschema import ValidationError
     errors = []
     count = 0
@@ -72,9 +73,28 @@ def run_negative_suite(root):
     if not flaws:errors.append('negative-test-accepted-invalid:missing-invariant')
     bad=copy.deepcopy(invariant_index);bad['invariants'][0]['primary_control']='BAD';flaws=[];check_invariants(root,std,bad,flaws);count+=1
     if not flaws:errors.append('negative-test-accepted-invalid:invariant-bad-owner')
-    for path in ('../secret.txt','/tmp/other.txt','A\\B','C:/absolute.txt'):
+    for path in ('../secret.txt','/tmp/other.txt','A\\B','C:/absolute.txt','a//b','./a','a/.','a/'):
         count+=1
         if valid_relative_path(path):errors.append('negative-test-accepted-invalid:unsafe-path:'+path)
+    for bad_ev,inps in (('MANIFEST.json',()),('06_GOVERNANCE/unified-package-standard.json',()),('.validation/../MANIFEST.json',()),('../outside.txt',()),('.validation',()),('.validation/input_alias.json',('.validation/input_alias.json',))):
+        count+=1
+        try:
+            resolve_safe_evidence_path(bad_ev,root=root,input_paths=inps)
+            errors.append('negative-test-accepted-invalid:unsafe-evidence-path:'+bad_ev)
+        except ValueError:
+            pass
+    count+=1
+    try:
+        select_guidance(stage='UNKNOWN_STAGE')
+        errors.append('negative-test-accepted-invalid:unknown-guidance-stage')
+    except ValueError:
+        pass
+    count+=1
+    try:
+        select_guidance(concern='UNKNOWN_CONCERN')
+        errors.append('negative-test-accepted-invalid:unknown-guidance-concern')
+    except ValueError:
+        pass
     # R10: openness and namespace regression. Strict common fields, permissive namespaced extensions.
     example_choice=json.loads((root/'07_CONTRACTS/examples/implementation-choice.example.json').read_text(encoding='utf-8'))
     invalid=copy.deepcopy(example_choice);invalid['decision']='INSTANT_ADOPT'

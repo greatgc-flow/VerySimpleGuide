@@ -1,10 +1,10 @@
-"""General 1.7 validation: integrity, JSON-schema, traceability, negative-test harness.
+"""General 1.8 validation: integrity, JSON-schema, traceability, negative-test harness.
 
 Python 3.8+ and jsonschema >= 4.18. All visible output is mirrored verbatim to evidence.
 Pure validation: no writes to canonical package files; evidence written to ignored .validation area.
 """
 from pathlib import Path, PurePosixPath
-import argparse, copy, hashlib, json, re, sys
+import argparse, copy, hashlib, json, os, re, sys
 from datetime import datetime
 
 sys.dont_write_bytecode = True
@@ -28,10 +28,61 @@ PACK_NAME = 'VerySimpleGuide'
 EXCLUDED = {'MANIFEST.json'}
 
 
+def _is_link_or_reparse(path_obj):
+    try:
+        st = os.lstat(path_obj)
+    except OSError:
+        return False
+    return path_obj.is_symlink() or getattr(st, 'st_reparse_tag', 0) != 0
+
+
+def resolve_safe_evidence_path(raw_path, root=ROOT, input_paths=()):
+    if raw_path is None:
+        return None
+    raw_str = str(raw_path).strip()
+    if not raw_str:
+        raise ValueError('Evidence path cannot be empty')
+    norm_segs = raw_str.replace('\\', '/').split('/')
+    if '..' in norm_segs:
+        raise ValueError('Evidence path cannot contain parent traversal: ' + raw_str)
+    p = Path(raw_str)
+    root_real = root.resolve(strict=False)
+    val_dir = root_real / '.validation'
+    if _is_link_or_reparse(val_dir):
+        raise ValueError('Evidence directory .validation cannot be a symlink or junction')
+    val_real = val_dir.resolve(strict=False)
+    candidate = p if p.is_absolute() else (root_real / p)
+    # Check candidate and its ancestors up to root_real for symlinks/junctions
+    cur = candidate
+    while True:
+        if _is_link_or_reparse(cur):
+            raise ValueError('Evidence path cannot traverse symlink or junction: ' + raw_str)
+        if cur == val_real or cur == root_real or cur.parent == cur:
+            break
+        cur = cur.parent
+    target = candidate.resolve(strict=False)
+    if val_real not in target.parents:
+        raise ValueError('Evidence output must reside strictly inside .validation/: ' + raw_str)
+    if target.exists() and target.is_dir():
+        raise ValueError('Evidence path cannot be a directory: ' + raw_str)
+    for inp in input_paths:
+        if not inp:
+            continue
+        inp_p = Path(str(inp))
+        inp_abs = (inp_p if inp_p.is_absolute() else (root_real / inp_p)).resolve(strict=False)
+        inp_cwd = inp_p.resolve(strict=False)
+        if target in (inp_abs, inp_cwd):
+            raise ValueError('Evidence output cannot alias input file: ' + str(inp))
+    return target
+
+
 class EvidenceSink:
     """stdout single source, persisted byte-for-byte as UTF-8 evidence."""
-    def __init__(self, path=None):
+    def __init__(self, path=None, root=ROOT, input_paths=()):
+        self.root = root
+        self.input_paths = tuple(input_paths)
         self.path = Path(path) if path else None
+        self.target = resolve_safe_evidence_path(self.path, root=self.root, input_paths=self.input_paths) if self.path else None
         self.lines = []
     def say(self, msg):
         line = str(msg)
@@ -40,10 +91,10 @@ class EvidenceSink:
     def close(self):
         if self.path is None:
             return
-        target = self.path.resolve(strict=False)
-        if target == (ROOT / '07_AUDIT/BASELINE_VALIDATION_EVIDENCE.txt').resolve():
-            raise ValueError('Evidence output cannot overwrite frozen baseline evidence')
+        target = resolve_safe_evidence_path(self.path, root=self.root, input_paths=self.input_paths)
         target.parent.mkdir(parents=True, exist_ok=True)
+        if _is_link_or_reparse(target.parent) or _is_link_or_reparse(target):
+            raise ValueError('Evidence path cannot traverse symlink or junction')
         target.write_text('\n'.join(self.lines) + '\n', encoding='utf-8')
 
 
@@ -62,8 +113,13 @@ def read_json(path):
 def valid_relative_path(rel):
     if not isinstance(rel, str) or not rel or '\\' in rel or ':' in rel:
         return False
+    if rel.startswith('/') or rel.endswith('/'):
+        return False
+    raw_parts = rel.split('/')
+    if any(seg in ('', '.', '..') for seg in raw_parts):
+        return False
     pure = PurePosixPath(rel)
-    return (not pure.is_absolute() and all(x not in ('', '.', '..') for x in pure.parts))
+    return not pure.is_absolute() and pure.as_posix() == rel
 
 
 def safe_target(root, rel):
@@ -679,7 +735,16 @@ def main(argv=None):
     parser.add_argument('--project-lifecycle',help='Validate the project-specific 12-stage lifecycle applicability JSON')
     parser.add_argument('--skip-negative-tests',action='store_true',help='Local development only; not a release gate')
     args = parser.parse_args(argv)
-    sink = EvidenceSink(args.evidence_file)
+    try:
+        sink = EvidenceSink(
+            args.evidence_file,
+            root=ROOT,
+            input_paths=(args.project_trace, args.project_registry, args.project_lifecycle),
+        )
+    except ValueError as exc:
+        print('ERROR=unsafe-evidence-file:' + str(exc))
+        print('RESULT=FAIL')
+        return 1
     errors = check_all(ROOT)
     user_checks = []
     if args.project_trace or args.project_registry or args.project_lifecycle:
@@ -701,30 +766,42 @@ def main(argv=None):
                 local_errors.append(typ + '-invalid:' + str(exc)[:200])
             user_checks.append(typ+'='+('PASS' if not local_errors else 'FAIL'))
             errors.extend(local_errors)
+    static_errors = list(errors)
+    neg_checks = None
+    neg_result = 'NOT_EVALUATED'
+    if not args.skip_negative_tests:
+        try:
+            from test_validator import run_negative_suite
+            neg_checks, test_errors = run_negative_suite(ROOT)
+            errors.extend(test_errors)
+            neg_result = 'PASS' if not test_errors else 'FAIL'
+        except Exception as exc:
+            errors.append('negative-suite-error:' + repr(exc))
+            neg_result = 'FAIL'
+    else:
+        errors.append('negative-tests-mandatory-for-release')
+    std_doc = read_json(ROOT / '06_GOVERNANCE/unified-package-standard.json')
     sink.say('PACKAGE=' + PACK_NAME)
     sink.say('standard_version=' + VERSION)
-    sink.say('controls=' + str(len(read_json(ROOT / '06_GOVERNANCE/unified-package-standard.json')['controls'])))
-    sink.say('invariants=' + str(len(read_json(ROOT / '06_GOVERNANCE/unified-package-standard.json')['invariants'])))
-    sink.say('assurance_level=SCHEMA_AND_STATIC_VALIDATED')
-    sink.say('product_runtime_assurance=NOT_EVALUATED')
+    sink.say('controls=' + str(len(std_doc['controls'])))
+    sink.say('invariants=' + str(len(std_doc['invariants'])))
+    sink.say('claim_DESIGN_COVERED=' + ('PASS' if not static_errors else 'FAIL'))
+    sink.say('claim_SCHEMA_CHECKED=' + ('PASS' if not static_errors else 'FAIL'))
+    sink.say('claim_NEGATIVE_TESTED=' + neg_result)
+    sink.say('claim_PRODUCT_VERIFIED=NOT_EVALUATED')
     sink.say('external_project_trace=' + ('CHECKED' if args.project_trace else 'NOT_SUPPLIED'))
     sink.say('external_project_lifecycle=' + ('CHECKED' if args.project_lifecycle else 'NOT_SUPPLIED'))
     sink.say('lifecycle_matrix=12x10')
     sink.say('project_classification=12_stages+10_concerns+optional_overrides')
-    sink.say('artifact_ownership=CHECKED')
+    if not errors:
+        sink.say('artifact_ownership=CHECKED')
+        sink.say('package_assurance=PASS')
     for result in user_checks: sink.say(result)
-    sink.say('static_checks=' + ('PASS' if not errors else 'FAIL'))
-    if not args.skip_negative_tests:
-        try:
-            from test_validator import run_negative_suite
-            checks, test_errors = run_negative_suite(ROOT)
-            sink.say('contract_fixture_checks=' + str(checks))
-            errors.extend(test_errors)
-        except Exception as exc:
-            errors.append('negative-suite-error:' + repr(exc))
-    else:
+    sink.say('static_checks=' + ('PASS' if not static_errors else 'FAIL'))
+    if neg_checks is not None:
+        sink.say('contract_fixture_checks=' + str(neg_checks))
+    elif args.skip_negative_tests:
         sink.say('contract_fixture_checks=SKIPPED')
-        errors.append('negative-tests-mandatory-for-release')
     for e in errors:
         sink.say('ERROR=' + e)
     sink.say('RESULT=' + ('PASS' if not errors else 'FAIL'))
