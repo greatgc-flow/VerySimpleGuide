@@ -1,0 +1,124 @@
+{
+  "standard_version": "1.9.0",
+  "project_id": "VerySimpleGuide",
+  "objective": {
+    "statement": "Address the agreed R13/R14 MECE and feedback audit gaps with existing records and proportionate checks.",
+    "owner": "repository-maintainer",
+    "non_goals": [
+      "Exhaustive control pairing, new control taxonomy, or claims of unexecuted CI/deployment."
+    ],
+    "success_measures": [
+      {
+        "id": "R14-FITNESS",
+        "definition": "Known audit bypasses rejected and required Windows/Linux CI checks complete.",
+        "target": "Zero accepted bypass fixtures; all applicable CI filesystem defenses executed.",
+        "method": "python -I tools/validate_package.py --require-fs-tests --project-trace 04_ASSURANCE/package-trace.json; compare deployed outcome before closure.",
+        "baseline_status": "UNKNOWN"
+      }
+    ]
+  },
+  "requirements": [
+    {
+      "id": "R14-COVERAGE",
+      "scope": "PACKAGE",
+      "owner": "repository-maintainer",
+      "acceptance": "Implement the seven agreed themes; keep deployment and outcome pending until independently observed.",
+      "control_ids": [
+        "UPS-SCHEMA",
+        "UPS-TEST",
+        "UPS-DOC"
+      ],
+      "product_gate_obligations": [
+        "R14-LOCAL",
+        "R14-CI"
+      ],
+      "result": "NOT_EVALUATED",
+      "pending_decision_ref": "decision:r14-await-required-ci-and-deployed-outcome"
+    }
+  ],
+  "tests": [
+    {
+      "id": "R14-LOCAL",
+      "requirement_ids": [
+        "R14-COVERAGE"
+      ],
+      "status": "PASS",
+      "candidate_identity": "workspace:refactor/r14-mece",
+      "artifact_digest": "sha256:5abef632135a0861bdadfbe818139b14a3c653651a0e0f66f5d96565951ced40",
+      "observed_at": "2026-10-16T12:16:16Z",
+      "evidence_refs": [
+        "command:python -B tools/test_validator.py --no-fs-tests",
+        "file:.validation/mece-series/07-validation.txt",
+        "snapshot:sha256(sorted(path + NUL + file_sha256 + LF)); excludes MANIFEST and this trace to avoid self-reference"
+      ]
+    }
+  ],
+  "gates": [
+    {
+      "gate_id": "R14-CI",
+      "candidate_identity": "workspace:refactor/r14-mece",
+      "artifact_digest": "sha256:5abef632135a0861bdadfbe818139b14a3c653651a0e0f66f5d96565951ced40",
+      "status": "PENDING",
+      "observed_at": "2026-10-16T12:07:34Z",
+      "freshness": "FRESH",
+      "evidence_refs": []
+    }
+  ],
+  "observations": [
+    {
+      "id": "R13-R14-AUDIT",
+      "kind": "SOURCE",
+      "candidate_identity": "git:0ac4eff",
+      "observed_at": "2026-10-16T12:07:34Z",
+      "evidence_refs": [
+        "git:0ac4eff:tools/validate_package.py",
+        "git:0ac4eff:tools/test_validator.py",
+        "CHANGELOG.md"
+      ],
+      "finding": "Vertical/horizontal audits accepted missing proof bindings and incomplete feedback; R13 simplification left the package validating example work rather than its own improvement.",
+      "metric_id": "R14-FITNESS",
+      "evaluation": "MISSES_TARGET"
+    }
+  ],
+  "feedback": [
+    {
+      "id": "R14-WORK",
+      "observation_id": "R13-R14-AUDIT",
+      "owner": "repository-maintainer",
+      "priority": "P1",
+      "status": "IN_PROGRESS",
+      "disposition": "ACCEPT",
+      "rationale": "Apply the agreed amendments in seven independently checked themes; preserve fifteen controls and reuse existing records.",
+      "decision_ref": "decision:r14-agreed-triage",
+      "requirement_ids": [
+        "R14-COVERAGE"
+      ],
+      "test_ids": [
+        "R14-LOCAL"
+      ],
+      "next_action": "Review/apply .validation/mece-series/07-package-self-review.cumulative.patch; record actual commit/PR and required CI run refs, deployment, then measured outcome before CLOSE.",
+      "revisit_trigger": "Any rejected regression fixture, skipped applicable CI filesystem defense, invalidated evidence or later target miss returns work to the affected theme.",
+      "history": []
+    }
+  ],
+  "changes": [
+    {
+      "id": "R14-CHANGE",
+      "owner": "repository-maintainer",
+      "candidate_identity": "workspace:refactor/r14-mece",
+      "artifact_digest": "sha256:5abef632135a0861bdadfbe818139b14a3c653651a0e0f66f5d96565951ced40",
+      "artifact_refs": [
+        "tools/validate_package.py",
+        "tools/test_validator.py",
+        ".github/workflows/validate.yml",
+        "07_CONTRACTS/schemas/project-trace.schema.json",
+        "CHANGELOG.md"
+      ],
+      "evidence_refs": [
+        "CHANGELOG.md",
+        "file:.validation/mece-series/07-package-self-review.cumulative.patch"
+      ]
+    }
+  ],
+  "releases": []
+}

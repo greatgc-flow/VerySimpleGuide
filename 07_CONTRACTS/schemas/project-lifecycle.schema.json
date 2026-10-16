@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/verysimple/project-lifecycle/1.8",
+  "$id": "https://example.invalid/verysimple/project-lifecycle/1.9",
   "title": "Project Lifecycle Applicability and Disposition Ledger",
   "type": "object",
   "additionalProperties": false,
@@ -292,6 +292,24 @@
             "type": "string",
             "minLength": 1
           }
+        },
+        "feedback_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "trigger_observation_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "minItems": 1,
+          "uniqueItems": true
         }
       },
       "allOf": [
@@ -325,6 +343,10 @@
               },
               "evidence_refs": {
                 "minItems": 1
+              },
+              "revisit_trigger": {
+                "type": "string",
+                "pattern": "\\S"
               }
             }
           }
@@ -402,6 +424,24 @@
                 "minLength": 1
               }
             }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "result": {
+                "const": "FAIL"
+              }
+            },
+            "required": [
+              "result"
+            ]
+          },
+          "then": {
+            "required": [
+              "feedback_ids",
+              "trigger_observation_ids"
+            ]
           }
         }
       ]

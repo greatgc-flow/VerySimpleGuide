@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/verysimple/project-trace/1.8",
+  "$id": "https://example.invalid/verysimple/project-trace/1.9",
   "title": "Project Feedback and Traceability Ledger",
   "type": "object",
   "additionalProperties": false,
@@ -12,11 +12,14 @@
     "tests",
     "gates",
     "observations",
-    "feedback"
+    "feedback",
+    "changes",
+    "releases"
   ],
   "properties": {
     "standard_version": {
-      "const": "1.8.0"
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
     },
     "project_id": {
       "type": "string",
@@ -91,7 +94,31 @@
                 },
                 "uniqueItems": true
               }
-            }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "baseline_status": {
+                      "const": "MEASURED"
+                    }
+                  },
+                  "required": [
+                    "baseline_status"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "baseline_evidence_refs"
+                  ],
+                  "properties": {
+                    "baseline_evidence_refs": {
+                      "minItems": 1
+                    }
+                  }
+                }
+              }
+            ]
           }
         }
       }
@@ -123,8 +150,65 @@
           "owner": {
             "type": "string",
             "minLength": 1
+          },
+          "control_ids": {
+            "$ref": "#/$defs/references"
+          },
+          "invariant_ids": {
+            "$ref": "#/$defs/references"
+          },
+          "product_gate_obligations": {
+            "$ref": "#/$defs/references"
+          },
+          "stage_id": {
+            "$ref": "#/$defs/nonblank"
+          },
+          "concern_id": {
+            "$ref": "#/$defs/nonblank"
+          },
+          "pending_decision_ref": {
+            "$ref": "#/$defs/nonblank"
+          },
+          "candidate_identity": {
+            "$ref": "#/$defs/nonblank"
+          },
+          "result": {
+            "enum": [
+              "NOT_EVALUATED",
+              "PASS",
+              "FAIL"
+            ]
           }
-        }
+        },
+        "dependentRequired": {
+          "stage_id": [
+            "concern_id",
+            "control_ids"
+          ],
+          "concern_id": [
+            "stage_id",
+            "control_ids"
+          ]
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "result": {
+                  "const": "PASS"
+                }
+              },
+              "required": [
+                "result"
+              ]
+            },
+            "then": {
+              "required": [
+                "candidate_identity"
+              ]
+            }
+          }
+        ]
       }
     },
     "tests": {
@@ -175,8 +259,44 @@
           "accepted_red_exception_ref": {
             "type": "string",
             "minLength": 1
+          },
+          "candidate_identity": {
+            "$ref": "#/$defs/nonblank"
+          },
+          "artifact_digest": {
+            "$ref": "#/$defs/nonblank"
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time"
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "status": {
+                  "const": "PASS"
+                }
+              },
+              "required": [
+                "status"
+              ]
+            },
+            "then": {
+              "required": [
+                "candidate_identity",
+                "artifact_digest",
+                "observed_at"
+              ],
+              "properties": {
+                "evidence_refs": {
+                  "minItems": 1
+                }
+              }
+            }
+          }
+        ]
       }
     },
     "gates": {
@@ -393,6 +513,12 @@
                 "prior_closure_evidence_ref": {
                   "type": "string",
                   "minLength": 1
+                },
+                "closure_evidence_ref": {
+                  "$ref": "#/$defs/nonblank"
+                },
+                "observation_ids": {
+                  "$ref": "#/$defs/references"
                 }
               },
               "allOf": [
@@ -411,6 +537,23 @@
                     "required": [
                       "decision_ref",
                       "prior_closure_evidence_ref"
+                    ]
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "event": {
+                        "const": "CLOSE"
+                      }
+                    },
+                    "required": [
+                      "event"
+                    ]
+                  },
+                  "then": {
+                    "required": [
+                      "closure_evidence_ref"
                     ]
                   }
                 }
@@ -515,9 +658,250 @@
                 }
               }
             }
+          },
+          {
+            "if": {
+              "properties": {
+                "status": {
+                  "const": "CLOSED"
+                }
+              },
+              "required": [
+                "status"
+              ]
+            },
+            "then": {
+              "required": [
+                "history",
+                "revisit_trigger"
+              ],
+              "properties": {
+                "history": {
+                  "minItems": 1
+                },
+                "revisit_trigger": {
+                  "$ref": "#/$defs/nonblank"
+                }
+              }
+            }
           }
         ]
       }
+    },
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "owner",
+          "candidate_identity",
+          "artifact_digest",
+          "artifact_refs",
+          "evidence_refs"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/nonblank"
+          },
+          "owner": {
+            "$ref": "#/$defs/nonblank"
+          },
+          "candidate_identity": {
+            "$ref": "#/$defs/nonblank"
+          },
+          "artifact_digest": {
+            "$ref": "#/$defs/nonblank"
+          },
+          "artifact_refs": {
+            "$ref": "#/$defs/references"
+          },
+          "evidence_refs": {
+            "$ref": "#/$defs/references"
+          }
+        }
+      }
+    },
+    "releases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "owner",
+          "candidate_identity",
+          "artifact_digest",
+          "from",
+          "to",
+          "released_at",
+          "decision_ref",
+          "evidence_refs",
+          "scope"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/nonblank"
+          },
+          "owner": {
+            "$ref": "#/$defs/nonblank"
+          },
+          "candidate_identity": {
+            "$ref": "#/$defs/nonblank"
+          },
+          "artifact_digest": {
+            "$ref": "#/$defs/nonblank"
+          },
+          "from": {
+            "enum": [
+              "NOT_PUBLISHED",
+              "CANDIDATE",
+              "PUBLISHED",
+              "PROMOTED",
+              "WITHDRAWN"
+            ]
+          },
+          "to": {
+            "enum": [
+              "NOT_PUBLISHED",
+              "CANDIDATE",
+              "PUBLISHED",
+              "PROMOTED",
+              "WITHDRAWN"
+            ]
+          },
+          "released_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "decision_ref": {
+            "$ref": "#/$defs/nonblank"
+          },
+          "evidence_refs": {
+            "$ref": "#/$defs/references"
+          },
+          "change_ids": {
+            "$ref": "#/$defs/references"
+          },
+          "gate_ids": {
+            "$ref": "#/$defs/references"
+          },
+          "limitations": {
+            "$ref": "#/$defs/nonblank"
+          },
+          "reason": {
+            "$ref": "#/$defs/nonblank"
+          },
+          "notice_ref": {
+            "$ref": "#/$defs/nonblank"
+          },
+          "recovery_obligations": {
+            "$ref": "#/$defs/nonblank"
+          },
+          "deployment": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "candidate_identity",
+              "artifact_digest",
+              "deployed_at",
+              "evidence_refs"
+            ],
+            "properties": {
+              "candidate_identity": {
+                "$ref": "#/$defs/nonblank"
+              },
+              "artifact_digest": {
+                "$ref": "#/$defs/nonblank"
+              },
+              "deployed_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "evidence_refs": {
+                "$ref": "#/$defs/references"
+              }
+            }
+          },
+          "scope": {
+            "$ref": "#/$defs/nonblank"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "to": {
+                  "const": "PUBLISHED"
+                }
+              },
+              "required": [
+                "to"
+              ]
+            },
+            "then": {
+              "required": [
+                "limitations",
+                "change_ids",
+                "deployment"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "to": {
+                  "const": "PROMOTED"
+                }
+              },
+              "required": [
+                "to"
+              ]
+            },
+            "then": {
+              "required": [
+                "change_ids",
+                "gate_ids",
+                "deployment"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "to": {
+                  "const": "WITHDRAWN"
+                }
+              },
+              "required": [
+                "to"
+              ]
+            },
+            "then": {
+              "required": [
+                "reason",
+                "notice_ref",
+                "recovery_obligations"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "nonblank": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/nonblank"
+      },
+      "uniqueItems": true,
+      "minItems": 1
     }
   }
 }

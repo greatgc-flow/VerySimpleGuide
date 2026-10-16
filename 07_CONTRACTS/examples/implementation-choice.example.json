@@ -1,5 +1,5 @@
 {
-  "decision_id": "TECH-001",
+  "decision_id": "decision:fix-1",
   "scope": "cross-platform application",
   "candidate": {
     "languages": [
@@ -34,8 +34,11 @@
     "runtime": "project-local choice"
   },
   "evidence_plan": "Compare bounded prototypes using measured evidence; no invented numbers",
-  "decision": "EXPERIMENT",
+  "decision": "ADOPT",
   "decision_owner": "architecture owner",
   "review_trigger": "prototype evidence or risk change",
-  "rollback_plan": "restore prior adapter / configuration and verify postconditions"
+  "rollback_plan": "restore prior adapter / configuration and verify postconditions",
+  "project_id": "verysimple-cli-validator",
+  "feedback_id": "FB-1",
+  "reason": "Illustration: retain the existing local toolchain; no material experimental uncertainty."
 }

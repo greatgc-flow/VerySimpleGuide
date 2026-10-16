@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/verysimple/maturity/1.8",
+  "$id": "https://example.invalid/verysimple/maturity/1.9",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -52,6 +52,26 @@
               "null"
             ],
             "format": "date-time"
+          },
+          "artifact_digest": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "required_gate_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "\\S"
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "gates": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "gate-evidence.schema.json"
+            }
           }
         },
         "additionalProperties": false,
@@ -70,7 +90,10 @@
             "then": {
               "required": [
                 "candidate_identity",
-                "verified_at"
+                "verified_at",
+                "artifact_digest",
+                "required_gate_ids",
+                "gates"
               ],
               "properties": {
                 "candidate_identity": {

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/verysimple/unified-package-standard/1.8",
+  "$id": "https://example.invalid/verysimple/unified-package-standard/1.9",
   "title": "Unified Package Standard Machine SSOT",
   "type": "object",
   "additionalProperties": false,
@@ -36,59 +36,200 @@
       "const": "VS-UNIFIED-PACKAGE-STANDARD"
     },
     "version": {
-      "const": "1.8.0"
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
     },
     "philosophy": {
       "type": "string",
       "minLength": 1
     },
     "planes": {
-      "$ref": "#/$defs/string_enum_list"
+      "$ref": "#/$defs/string_enum_list",
+      "items": {
+        "enum": [
+          "PRODUCT_RUNTIME",
+          "DELIVERY"
+        ]
+      }
     },
     "component_classes": {
-      "$ref": "#/$defs/string_enum_list"
+      "$ref": "#/$defs/string_enum_list",
+      "items": {
+        "enum": [
+          "CORE",
+          "MODULE",
+          "EXTENSION",
+          "GENERATED_VIEW",
+          "EXTERNAL"
+        ]
+      }
     },
     "boundary_roles": {
-      "$ref": "#/$defs/string_enum_list"
+      "$ref": "#/$defs/string_enum_list",
+      "items": {
+        "enum": [
+          "NONE",
+          "ADAPTER",
+          "PROVIDER",
+          "EXPORTER"
+        ]
+      }
     },
     "state_kinds": {
-      "$ref": "#/$defs/string_enum_list"
+      "$ref": "#/$defs/string_enum_list",
+      "items": {
+        "enum": [
+          "CONFIG",
+          "DOMAIN_DATA",
+          "EVIDENCE",
+          "LOG",
+          "CACHE",
+          "TEMP",
+          "BACKUP",
+          "SCHEMA",
+          "SECRET",
+          "EXTERNAL_REF"
+        ]
+      }
     },
     "recovery_classes": {
-      "$ref": "#/$defs/string_enum_list"
+      "$ref": "#/$defs/string_enum_list",
+      "items": {
+        "enum": [
+          "AUTHORITATIVE",
+          "DURABLE_DERIVED",
+          "REBUILDABLE",
+          "EPHEMERAL",
+          "EXTERNAL"
+        ]
+      }
     },
     "maturity": {
-      "$ref": "#/$defs/string_enum_list"
+      "$ref": "#/$defs/string_enum_list",
+      "items": {
+        "enum": [
+          "PLANNED",
+          "DESIGN_FROZEN",
+          "IMPLEMENTING",
+          "IMPLEMENTED",
+          "VERIFIED",
+          "DEPRECATED",
+          "RETIRED"
+        ]
+      }
     },
     "distribution": {
-      "$ref": "#/$defs/string_enum_list"
+      "$ref": "#/$defs/string_enum_list",
+      "items": {
+        "enum": [
+          "NOT_PUBLISHED",
+          "CANDIDATE",
+          "PUBLISHED",
+          "PROMOTED",
+          "WITHDRAWN"
+        ]
+      }
     },
     "applicability": {
-      "$ref": "#/$defs/string_enum_list"
+      "$ref": "#/$defs/string_enum_list",
+      "items": {
+        "enum": [
+          "REQUIRED",
+          "OPTIONAL",
+          "N_A"
+        ]
+      }
     },
     "approach": {
-      "$ref": "#/$defs/string_enum_list"
+      "$ref": "#/$defs/string_enum_list",
+      "items": {
+        "enum": [
+          "COMPLY",
+          "ADAPT",
+          "PRODUCT_SPECIFIC"
+        ]
+      }
     },
     "assessment_results": {
-      "$ref": "#/$defs/string_enum_list"
+      "$ref": "#/$defs/string_enum_list",
+      "items": {
+        "enum": [
+          "NOT_EVALUATED",
+          "PASS",
+          "FAIL"
+        ]
+      }
     },
     "feedback_dispositions": {
-      "$ref": "#/$defs/string_enum_list"
+      "$ref": "#/$defs/string_enum_list",
+      "items": {
+        "enum": [
+          "PENDING",
+          "ACCEPT",
+          "REJECT",
+          "DEFER",
+          "DUPLICATE"
+        ]
+      }
     },
     "feedback_statuses": {
-      "$ref": "#/$defs/string_enum_list"
+      "$ref": "#/$defs/string_enum_list",
+      "items": {
+        "enum": [
+          "OPEN",
+          "IN_PROGRESS",
+          "CLOSED"
+        ]
+      }
     },
     "feedback_events": {
-      "$ref": "#/$defs/string_enum_list"
+      "$ref": "#/$defs/string_enum_list",
+      "items": {
+        "enum": [
+          "CLOSE",
+          "REOPEN"
+        ]
+      }
     },
     "legacy_feature_strategies": {
-      "$ref": "#/$defs/string_enum_list"
+      "$ref": "#/$defs/string_enum_list",
+      "items": {
+        "enum": [
+          "RETAIN",
+          "ABSORB",
+          "SUPERSEDE",
+          "EXTRACT_EXTENSION",
+          "RETIRE"
+        ]
+      }
     },
     "exit_semantics": {
-      "$ref": "#/$defs/string_enum_list"
+      "$ref": "#/$defs/string_enum_list",
+      "items": {
+        "enum": [
+          "SUCCESS",
+          "USAGE",
+          "DECLINED",
+          "PRECONDITION_FAILED",
+          "BLOCKED",
+          "VERIFICATION_FAILED",
+          "ROLLED_BACK",
+          "RUNTIME_FAILED",
+          "INTERNAL_ERROR"
+        ]
+      }
     },
     "value_semantics": {
-      "$ref": "#/$defs/string_enum_list"
+      "$ref": "#/$defs/string_enum_list",
+      "items": {
+        "enum": [
+          "ABSENT",
+          "NULL",
+          "EMPTY_STRING",
+          "EMPTY_ARRAY",
+          "UNKNOWN"
+        ]
+      }
     },
     "controls": {
       "type": "array",
@@ -150,10 +291,25 @@
           "const": true
         },
         "claim_kinds": {
-          "$ref": "#/$defs/string_enum_list"
+          "$ref": "#/$defs/string_enum_list",
+          "items": {
+            "enum": [
+              "DESIGN_COVERED",
+              "SCHEMA_CHECKED",
+              "NEGATIVE_TESTED",
+              "PRODUCT_VERIFIED"
+            ]
+          }
         },
         "claim_results": {
-          "$ref": "#/$defs/string_enum_list"
+          "$ref": "#/$defs/string_enum_list",
+          "items": {
+            "enum": [
+              "NOT_EVALUATED",
+              "PASS",
+              "FAIL"
+            ]
+          }
         }
       }
     },
@@ -185,7 +341,14 @@
           "const": true
         },
         "normative_levels": {
-          "$ref": "#/$defs/string_enum_list"
+          "$ref": "#/$defs/string_enum_list",
+          "items": {
+            "enum": [
+              "INVARIANT",
+              "DEFAULT_HEURISTIC",
+              "EXAMPLE_REFERENCE"
+            ]
+          }
         }
       }
     },

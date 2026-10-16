@@ -1,5 +1,5 @@
 {
-  "standard_version": "1.8.0",
+  "standard_version": "1.9.0",
   "components": [
     {
       "id": "kernel",
@@ -11,16 +11,50 @@
       "boundary_roles": [
         "NONE"
       ],
-      "maturity": "DESIGN_FROZEN",
+      "maturity": "VERIFIED",
       "state_ownership": [
         {
           "name": "authority",
           "kind": "DOMAIN_DATA",
           "recovery_class": "AUTHORITATIVE",
-          "backup_policy": "REQUIRED",
-          "secret": false
+          "backup_policy": "EXCLUDE",
+          "secret": false,
+          "recovery_alternative": {
+            "decision_ref": "example:recovery-approval",
+            "approved_by": "project-owner",
+            "mechanism": "encrypted offsite authority replica with tested restore",
+            "evidence_refs": [
+              "example:restore-test"
+            ]
+          }
         }
-      ]
+      ],
+      "verification": {
+        "id": "kernel",
+        "status": "VERIFIED",
+        "candidate_identity": "source:candidate-B",
+        "artifact_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "verified_at": "2026-10-16T00:10:00Z",
+        "evidence": [
+          "example:component-verification"
+        ],
+        "required_gate_ids": [
+          "GATE-1"
+        ],
+        "gates": [
+          {
+            "candidate_identity": "source:candidate-B",
+            "artifact_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "gate_id": "GATE-1",
+            "status": "PASS",
+            "observed_at": "2026-10-16T00:10:00Z",
+            "freshness": "FRESH",
+            "evidence_refs": [
+              "run:regression-pass"
+            ]
+          }
+        ]
+      }
     },
     {
       "id": "optional-runtime-provider",
@@ -65,5 +99,6 @@
         }
       ]
     }
-  ]
+  ],
+  "project_id": "verysimple-cli-validator"
 }

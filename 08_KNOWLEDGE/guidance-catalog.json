@@ -1,6 +1,6 @@
 {
   "catalog_id": "VS-OPTIONAL-GUIDANCE",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "selection_policy": "PULL_ON_DEMAND",
   "default_normative_level": "EXAMPLE_REFERENCE",
   "default_alternatives": [
@@ -396,8 +396,7 @@
         "DESIGN",
         "IMPLEMENT",
         "VERIFY",
-        "OPERATE_SUPPORT",
-        "RETIRE"
+        "OPERATE_SUPPORT"
       ],
       "concern_ids": [
         "RISK_SECURITY"

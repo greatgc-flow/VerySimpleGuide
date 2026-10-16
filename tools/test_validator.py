@@ -8,7 +8,7 @@ if _TOOLS_DIR not in sys.path:
     sys.path.insert(0, _TOOLS_DIR)
 
 
-def run_negative_suite(root):
+def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=None):
     # Imported only after main validator loads successfully; no mutation to product files.
     from validate_package import (check_trace, check_controls, valid_schema_instance, check_format_checkers,
                                   valid_relative_path, resolve_safe_evidence_path, check_manifest, load_schemas, check_invariants, check_lifecycle_models, check_project_lifecycle, check_artifact_ownership, check_project_registry)
@@ -18,6 +18,7 @@ def run_negative_suite(root):
     count = 0
     schemas = load_schemas(root, errors)
     trace = json.loads((root / '07_CONTRACTS/examples/project-trace.example.json').read_text(encoding='utf-8'))
+    registry=json.loads((root/'07_CONTRACTS/examples/component-registry.example.json').read_text(encoding='utf-8'))
 
     def negative_json(name, schema_name, instance):
         nonlocal count
@@ -39,7 +40,15 @@ def run_negative_suite(root):
         if not any(expected_error in f for f in flaws):
             errors.append('negative-test-accepted-invalid:' + name + ':expected=' + expected_error + ':got=' + repr(flaws))
 
-    maturity_valid = {'items':[{'id':'feature-1','status':'VERIFIED','candidate_identity':'commit:abc','verified_at':'2026-10-16T00:00:00Z','evidence':['run:verified']}]}
+    def positive_trace(name, instance, prior=None):
+        nonlocal count
+        count += 1
+        valid_schema_instance(schemas, 'project-trace.schema.json', instance)
+        flaws = []
+        check_trace(instance, flaws, prior)
+        if flaws: errors.append('positive-' + name + '-rejected:' + repr(flaws))
+
+    maturity_valid = {'items':[registry['components'][0]['verification']]}
     valid_schema_instance(schemas, 'maturity.schema.json', maturity_valid)
     negative_json('VERIFIED-without-proof', 'maturity.schema.json', {'items':[{'id':'feature-1','status':'VERIFIED','evidence':[]}]})
     bad = copy.deepcopy(maturity_valid); bad['items'][0]['verified_at']='not-a-date'
@@ -66,7 +75,6 @@ def run_negative_suite(root):
     negative_json('PASS-stale', 'gate-evidence.schema.json', {**gate_valid, 'freshness':'STALE'})
     negative_json('PASS-empty-evidence', 'gate-evidence.schema.json', {**gate_valid,'evidence_refs':[]})
     negative_json('PASS-no-digest', 'gate-evidence.schema.json', {k:v for k,v in gate_valid.items() if k!='artifact_digest'})
-    registry=json.loads((root/'07_CONTRACTS/examples/component-registry.example.json').read_text(encoding='utf-8'))
     bad=copy.deepcopy(registry);bad['components'][1]['required_scopes']=['BASE']
     negative_json('optional-extension-cannot-be-required-for-base','component-registry.schema.json',bad)
     bad=copy.deepcopy(registry);bad['components'][1]['boundary_roles']=['NONE','PROVIDER']
@@ -103,86 +111,6 @@ def run_negative_suite(root):
             errors.append('negative-test-accepted-invalid:unsafe-evidence-path:'+bad_ev)
         except ValueError:
             pass
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        tmp_root = Path(tmp_dir)
-        (tmp_root / '.validation').mkdir()
-        canon_file = tmp_root / 'MANIFEST.json'
-        canon_file.write_text('{}', encoding='utf-8')
-        ext_inp = tmp_root / '.validation' / 'ext_input.json'
-        ext_inp.write_text('{}', encoding='utf-8')
-        other_file = tmp_root / '.validation' / 'other_source.txt'
-        other_file.write_text('x', encoding='utf-8')
-        # 1. Hard link inside .validation/ aliasing a canonical file (samefile vs canonical)
-        hl_canon = tmp_root / '.validation' / 'hl_canon.txt'
-        try:
-            os.link(canon_file, hl_canon)
-            hl_canon_err = None
-        except OSError as exc:
-            hl_canon_err = str(exc)
-        count += 1
-        if hl_canon_err is None:
-            try:
-                resolve_safe_evidence_path('.validation/hl_canon.txt', root=tmp_root)
-                errors.append('negative-test-accepted-invalid:hardlink-canonical-alias')
-            except ValueError as exc:
-                if 'alias canonical file' not in str(exc):
-                    errors.append('negative-test-wrong-error:hardlink-canonical-alias:' + str(exc))
-        # 2. Hard link inside .validation/ aliasing a project input file (samefile vs input)
-        hl_inp = tmp_root / '.validation' / 'hl_inp.txt'
-        try:
-            os.link(ext_inp, hl_inp)
-            hl_inp_err = None
-        except OSError as exc:
-            hl_inp_err = str(exc)
-        count += 1
-        if hl_inp_err is None:
-            try:
-                resolve_safe_evidence_path('.validation/hl_inp.txt', root=tmp_root, input_paths=(str(ext_inp),))
-                errors.append('negative-test-accepted-invalid:hardlink-input-alias')
-            except ValueError as exc:
-                if 'alias input file identity' not in str(exc):
-                    errors.append('negative-test-wrong-error:hardlink-input-alias:' + str(exc))
-        # 3. Hard link inside .validation/ to non-canonical/non-input file (st_nlink > 1)
-        hl_other = tmp_root / '.validation' / 'hl_other.txt'
-        try:
-            os.link(other_file, hl_other)
-            hl_other_err = None
-        except OSError as exc:
-            hl_other_err = str(exc)
-        count += 1
-        if hl_other_err is None:
-            try:
-                resolve_safe_evidence_path('.validation/hl_other.txt', root=tmp_root)
-                errors.append('negative-test-accepted-invalid:hardlink-nlink-gt-1')
-            except ValueError as exc:
-                if 'st_nlink > 1' not in str(exc):
-                    errors.append('negative-test-wrong-error:hardlink-nlink-gt-1:' + str(exc))
-        # 4. Symlink or NTFS junction inside .validation/
-        sym_path = tmp_root / '.validation' / 'sym_or_junc'
-        link_check_rel = None
-        is_junction = False
-        try:
-            sym_path.symlink_to(canon_file)
-            link_check_rel = '.validation/sym_or_junc'
-        except OSError:
-            if os.name == 'nt':
-                res = subprocess.run(['cmd', '/c', 'mklink', '/J', str(sym_path), str(tmp_root)], capture_output=True)
-                if res.returncode == 0:
-                    link_check_rel = '.validation/sym_or_junc/MANIFEST.json'
-                    is_junction = True
-        count += 1
-        if link_check_rel is not None:
-            try:
-                resolve_safe_evidence_path(link_check_rel, root=tmp_root)
-                errors.append('negative-test-accepted-invalid:symlink-or-junction-evidence-path')
-            except ValueError as exc:
-                if 'symlink or junction' not in str(exc):
-                    errors.append('negative-test-wrong-error:symlink-or-junction-evidence-path:' + str(exc))
-            if is_junction:
-                try:
-                    os.rmdir(sym_path)
-                except OSError:
-                    pass
     count+=1
     try:
         select_guidance(stage='UNKNOWN_STAGE')
@@ -203,7 +131,6 @@ def run_negative_suite(root):
     negative_json('unfalsifiable-technology-choice','implementation-choice.schema.json',invalid)
     invalid=copy.deepcopy(example_choice);invalid['alternatives']=[]
     negative_json('no-alternative-evaluated','implementation-choice.schema.json',invalid)
-    registry=json.loads((root/'07_CONTRACTS/examples/component-registry.example.json').read_text(encoding='utf-8'))
     invalid=copy.deepcopy(registry);invalid['components'][1]['extensions']={'no_namespace':True}
     negative_json('non-namespaced-metadata','component-registry.schema.json',invalid)
     invalid=copy.deepcopy(registry);invalid['components'][0]['state_ownership'][0].pop('name',None)
@@ -228,8 +155,7 @@ def run_negative_suite(root):
     flaws=[];check_controls(root,future_std,future_coverage,flaws);count+=1
     if flaws:errors.append('positive-control-evolution-rejected:'+repr(flaws))
     # Positive reference proof, not just negative tests.
-    flaws=[];check_trace(trace,flaws);count+=1
-    if flaws:errors.append('positive-trace-rejected:'+repr(flaws))
+    positive_trace('trace',trace)
     # R11: full lifecycle / optional knowledge negative controls.
     matrix=json.loads((root/'03_LIFECYCLE/lifecycle-matrix.json').read_text(encoding='utf-8'))
     guidance=json.loads((root/'08_KNOWLEDGE/guidance-catalog.json').read_text(encoding='utf-8'))
@@ -347,8 +273,8 @@ def run_negative_suite(root):
     bad['gates'].append(second);bad['feedback'][0]['closure_gate_ids'].append('GATE-2')
     negative_trace('feedback-mixed-gate-artifact',bad,'feedback-mixed-gate-artifact-digests')
     bad=copy.deepcopy(trace)
-    bad['feedback'][0]['history'].append({'event':'REOPEN','at':'2026-10-16T02:00:00Z','actor':'lead','reason':'regression','decision_ref':'decision:reopen-1','prior_closure_evidence_ref':'evidence:deployment-candidate-B'})
-    negative_trace('feedback-reopen-still-closed',bad,'feedback-reopen-not-open')
+    bad['feedback'][0]['history'].append({'event':'REOPEN','at':'2026-10-16T02:00:00Z','actor':'lead','reason':'regression','decision_ref':'decision:reopen-1','prior_closure_evidence_ref':'REL-3'})
+    negative_trace('feedback-reopen-still-closed',bad,'feedback-history-state-mismatch')
     bad=copy.deepcopy(trace)
     bad['feedback'][0]['status']='OPEN';bad['feedback'][0]['next_action']='fix regression'
     bad['feedback'][0]['history'].append({'event':'REOPEN','at':'2026-10-16T02:00:00Z','actor':'lead','reason':'regression'})
@@ -370,22 +296,349 @@ def run_negative_suite(root):
         errors.append('negative-test-accepted-invalid:cross-control-normative-owner')
     bad=copy.deepcopy(ledger);bad['files'].append(copy.deepcopy(bad['files'][0]));flaws=[];check_artifact_ownership(root,std,flaws,bad);count+=1
     if not any('artifact-ownership-duplicate' in x for x in flaws):errors.append('negative-test-accepted-invalid:duplicate-artifact')
-    reg=json.loads((root/'07_CONTRACTS/examples/component-registry.example.json').read_text(encoding='utf-8'))
-    bad=copy.deepcopy(reg);bad['components'][0]['id']=bad['components'][1]['id'];flaws=[];check_project_registry(bad,flaws);count+=1
+    bad=copy.deepcopy(registry);bad['components'][0]['id']=bad['components'][1]['id'];flaws=[];check_project_registry(bad,flaws);count+=1
     if not any('duplicate-component-id' in x for x in flaws):errors.append('negative-test-accepted-invalid:duplicate-component')
     # Positive project 12+10+cell override.
     good=copy.deepcopy(project)
     good['cell_overrides']=[{'stage_id':'DISCOVER','concern_id':'RISK_SECURITY','applicability':'REQUIRED','approach':'COMPLY','result':'NOT_EVALUATED','deferred':True,'owner':'review','reason':'requires threat model','revisit_trigger':'before DESIGN exit','acceptance_criteria':'threat model ratified','candidate_identity':'','evidence_refs':[]}]
     flaws=[];check_project_lifecycle(good,{x['id'] for x in matrix['stages']},{x['id'] for x in matrix['concerns']},flaws,matrix=matrix);count+=1
     if flaws: errors.append('positive-project-cell-override-rejected:'+repr(flaws))
+    from validate_package import check_vocabularies
+    for key in ('planes','component_classes','boundary_roles','state_kinds','recovery_classes','maturity','distribution','applicability','approach','assessment_results','feedback_dispositions','feedback_statuses','feedback_events','legacy_feature_strategies','exit_semantics','value_semantics'):
+        bad=copy.deepcopy(std);bad[key]=['BOGUS'];flaws=[];count+=1
+        check_vocabularies(bad,schemas,flaws)
+        if not any('vocabulary-drift' in x for x in flaws): errors.append('negative-test-accepted-invalid:vocabulary:'+key)
+    for key in ('claim_kinds','claim_results'):
+        bad=copy.deepcopy(std);bad['outcome_contract'][key]=['BOGUS'];flaws=[];count+=1
+        check_vocabularies(bad,schemas,flaws)
+        if not flaws: errors.append('negative-test-accepted-invalid:vocabulary:'+key)
+    bad=copy.deepcopy(schemas);bad['component-registry.schema.json']['properties']['components']['items']['properties']['component_class']['enum']=['BOGUS']
+    flaws=[];check_vocabularies(std,bad,flaws);count+=1
+    if not flaws: errors.append('negative-test-accepted-invalid:schema-vocabulary-drift')
+    bad=copy.deepcopy(guidance);bad['guidance'][0]['stage_ids'].append('IMPLEMENT')
+    negative_lifecycle('guidance-stage-unsupported-by-sources','guidance-stage-not-in-sources',gu=bad)
+    bad=copy.deepcopy(invariant_index);bad['invariants'][0]['standard_ref']='04_ASSURANCE/TDD_TRACEABILITY.md'
+    flaws=[];check_invariants(root,std,bad,flaws);count+=1
+    if not any('invariant-nonauthoritative-home' in x for x in flaws): errors.append('negative-test-accepted-invalid:invariant-guide-home')
+    from validate_package import check_maturity, check_choice
+    proof=registry['components'][0]['verification']
+    for field in ('candidate_identity','artifact_digest','verified_at','required_gate_ids','gates'):
+        bad=copy.deepcopy(registry);bad['components'][0]['verification'].pop(field)
+        negative_json('verified-component-missing-'+field,'component-registry.schema.json',bad)
+    for field,value in (('candidate_identity','wrong'),('artifact_digest','wrong'),('status','FAIL'),('freshness','STALE'),('evidence_refs',[])):
+        bad=copy.deepcopy(proof);bad['gates'][0][field]=value;flaws=[];check_maturity(bad,flaws);count+=1
+        if not any('maturity-invalid-gate' in x for x in flaws): errors.append('negative-test-accepted-invalid:verified-gate-'+field)
+    bad=copy.deepcopy(proof);bad['verified_at']='2026-10-15T00:00:00Z';flaws=[];check_maturity(bad,flaws);count+=1
+    if not any('maturity-verified-before-gate' in x for x in flaws): errors.append('negative-test-accepted-invalid:verified-before-gate')
+    for field in ('decision_ref','approved_by','mechanism','evidence_refs'):
+        bad=copy.deepcopy(registry);bad['components'][0]['state_ownership'][0]['recovery_alternative'].pop(field)
+        negative_json('recovery-alternative-without-'+field,'component-registry.schema.json',bad)
+    for field in ('decision_owner','rollback_plan','project_id','feedback_id','reason'):
+        bad=copy.deepcopy(example_choice);bad.pop(field,None)
+        negative_json('adopt-without-'+field,'implementation-choice.schema.json',bad)
+    bad=copy.deepcopy(example_choice);bad['decision_owner']='   ';negative_json('adopt-blank-owner','implementation-choice.schema.json',bad)
+    bad=copy.deepcopy(example_choice);bad['feedback_id']='unknown';flaws=[];check_choice(bad,trace,flaws);count+=1
+    if not flaws: errors.append('negative-test-accepted-invalid:adopt-unresolved-feedback')
+    bad=copy.deepcopy(trace);bad['objective']['success_measures'][0]['baseline_evidence_refs']=[]
+    negative_json('measured-empty-baseline','project-trace.schema.json',bad)
+    negative_trace('measured-empty-baseline-semantic',bad,'measured-baseline-without-evidence')
+    for name,field,value in (('mutation-contract','retry','BLIND_RETRY'),('mutation-contract','uncertain_execution','RETRY'),('protocol-adapter','identity_mapping','TRANSPORT_IS_DOMAIN'),('protocol-adapter','storage_access','PRIVATE_STORAGE')):
+        bad=json.loads((root/('07_CONTRACTS/examples/'+name+'.example.json')).read_text(encoding='utf-8'));bad[field]=value
+        negative_json(name+'-'+field,name+'.schema.json',bad)
+    bad=copy.deepcopy(trace);bad['standard_version']='1.8.0';negative_json('stale-contract-version','project-trace.schema.json',bad)
+    for section,field,value,expected in (
+        ('tests','candidate_identity','wrong','feedback-test-candidate-mismatch'),
+        ('tests','artifact_digest','wrong','feedback-test-candidate-mismatch'),
+        ('tests','observed_at','2026-10-16T02:00:00Z','feedback-test-after-gate'),
+        ('changes','candidate_identity','wrong','release-invalid-change'),
+        ('changes','artifact_digest','wrong','release-invalid-change'),
+        ('changes','artifact_refs',[],'release-invalid-change')):
+        bad=copy.deepcopy(trace);bad[section][0][field]=value;negative_trace(section+'-'+field,bad,expected)
+    for field in ('candidate_identity','artifact_digest'):
+        bad=copy.deepcopy(trace);bad['releases'][-1]['deployment'][field]='wrong'
+        negative_trace('deployment-'+field,bad,'release-invalid-deployment')
+    bad=copy.deepcopy(trace);bad['feedback'][0]['release_evidence_ref']='unresolved'
+    negative_trace('unresolved-release',bad,'feedback-unresolved-release')
+    bad=copy.deepcopy(trace);bad['releases'][-1]['deployment']['deployed_at']='2026-10-16T00:05:00Z'
+    negative_trace('deployment-before-gate',bad,'release-gate-order')
+    bad=copy.deepcopy(trace);bad['observations'][1]['observed_at']='2026-10-16T00:20:00Z'
+    negative_trace('outcome-before-deployment',bad,'feedback-outcome-before-deployment')
+    for target in ('NOT_PUBLISHED','CANDIDATE','PUBLISHED'):
+        bad=copy.deepcopy(trace);bad['releases'][-1]['to']=target
+        negative_trace('forbidden-distribution-'+target,bad,'distribution-invalid-transition')
+    bad=copy.deepcopy(trace);bad['releases'][-1]['from']='CANDIDATE'
+    negative_trace('distribution-history-gap',bad,'distribution-invalid-transition')
+    bad=copy.deepcopy(trace);bad['releases'][-1]['gate_ids']=[]
+    negative_trace('promotion-no-gates',bad,'distribution-promotion-without-gates')
+    bad=copy.deepcopy(trace);bad['releases'][-1]['to']='WITHDRAWN'
+    negative_trace('withdrawal-without-obligations',bad,'distribution-withdrawal-without-obligations')
+    bad=copy.deepcopy(trace);bad['releases'][-1]['artifact_digest']='wrong'
+    negative_trace('replacement-bytes-same-candidate',bad,'distribution-candidate-artifact-changed')
+    bad=copy.deepcopy(trace);bad['tests'][0].pop('candidate_identity')
+    negative_json('passed-proof-without-candidate','project-trace.schema.json',bad)
+    from validate_package import check_history
+    bad=copy.deepcopy(trace);bad['feedback'][0]['history']=[]
+    negative_trace('closed-history-deleted',bad,'feedback-history-state-mismatch')
+    bad=copy.deepcopy(trace);bad['feedback'][0]['status']='OPEN';bad['feedback'][0]['next_action']='repair'
+    negative_trace('open-trailing-close',bad,'feedback-history-state-mismatch')
+    bad=copy.deepcopy(trace);bad['feedback'][0]['history'][0]['at']='2026-10-15T00:00:00Z'
+    negative_trace('close-before-measurement',bad,'feedback-close-before-outcome')
+    bad=copy.deepcopy(trace);bad['feedback'][0]['history'].append({'event':'REOPEN','at':'2026-10-15T00:00:00Z','actor':'owner','reason':'regression','decision_ref':'reopen','prior_closure_evidence_ref':'REL-3'})
+    negative_trace('history-not-chronological',bad,'feedback-history-out-of-order')
+    bad=copy.deepcopy(trace);later=copy.deepcopy(bad['observations'][1]);later.update(id='OBS-LATER',observed_at='2026-10-16T02:00:00Z',evaluation='MISSES_TARGET');bad['observations'].append(later)
+    negative_trace('regression-closed',bad,'feedback-contradictory-outcome-not-reopened')
+    bad['feedback'][0]['decision_ref']='generic-risk-acceptance'
+    negative_trace('generic-decision-cannot-waive-regression',bad,'feedback-contradictory-outcome-not-reopened')
+    reopened=copy.deepcopy(bad);fb=reopened['feedback'][0];fb.update(status='OPEN',next_action='Investigate OBS-LATER',decision_ref='decision:regression');fb['history'].append({'event':'REOPEN','at':'2026-10-16T02:10:00Z','actor':'owner','reason':'new target miss','decision_ref':'decision:regression','prior_closure_evidence_ref':'REL-3','observation_ids':['OBS-LATER']})
+    positive_trace('reopen',reopened,trace)
+    accepted=copy.deepcopy(reopened);fb=accepted['feedback'][0];fb.update(status='CLOSED',outcome_decision='EXCEPTION_ACCEPTED',outcome_observation_id='OBS-EXCEPTION')
+    accepted['observations'].append({**accepted['observations'][1], 'id':'OBS-EXCEPTION', 'evaluation':'EXCEPTION_ACCEPTED', 'observed_at':'2026-10-16T02:15:00Z'})
+    fb['history'].append({'event':'CLOSE','at':'2026-10-16T02:20:00Z','actor':'owner','reason':'Explicitly accept measured regression risk','decision_ref':'decision:accept-regression','closure_evidence_ref':'REL-3','observation_ids':['OBS-LATER']})
+    positive_trace('specific-regression-decision',accepted,reopened)
+    bad=copy.deepcopy(trace);bad['feedback'][0]['history'][0]['reason']='rewritten';flaws=[];check_trace(bad,flaws,trace);count+=1
+    if not any('feedback-history-rewritten' in x for x in flaws): errors.append('negative-test-accepted-invalid:history-prefix')
+    bad=copy.deepcopy(trace);bad['releases'].pop();flaws=[];check_trace(bad,flaws,trace);count+=1
+    if not any('trace-prior-evidence-rewritten' in x for x in flaws): errors.append('negative-test-accepted-invalid:prior-release-deleted')
+    for section in ('stages','concerns'):
+        bad=copy.deepcopy(project);bad[section][0]['result']='PASS';bad[section][0]['revisit_trigger']=''
+        negative_lifecycle(section+'-pass-no-revisit','project-'+section+'-pass-without-revisit',pr=bad)
+    bad=copy.deepcopy(project);bad['cell_overrides']=[{**bad['stages'][0],'concern_id':'OUTCOME_VALUE'}];bad['cell_overrides'][0]['revisit_trigger']=''
+    negative_lifecycle('cell-pass-no-revisit','project-cell-pass-without-revisit',pr=bad)
+    bad=copy.deepcopy(project);bad['stages'][0]['result']='FAIL'
+    negative_lifecycle('failed-stage-no-open-action','project-trigger-without-open-feedback',pr=bad)
+    bad=copy.deepcopy(project);bad['stages'][0]['trigger_observation_ids']=['OBS-LATER']
+    negative_lifecycle('recorded-trigger-no-action','project-trigger-without-open-feedback',pr=bad)
+    for field,value,expected in (
+        ('product_gate_obligations',['missing-gate'],'scoped-unresolved-obligation'),
+        ('control_ids',['UPS-MISSING'],'scoped-unknown-control'),
+        ('owner','   ','scoped-requirement-no-owner'),
+        ('invariant_ids',['missing-invariant'],'scoped-unknown-invariant'),
+        ('stage_id','MISSING','scoped-unknown-coordinate')):
+        bad=copy.deepcopy(trace);bad['requirements'][0][field]=value
+        negative_trace('scope-'+field,bad,expected)
+    bad=copy.deepcopy(trace);r=copy.deepcopy(bad['requirements'][0]);r['id']='REQ-UNCOVERED';bad['requirements'].append(r)
+    negative_trace('accepted-scoped-requirement-untested',bad,'scoped-accepted-requirement-untested')
+    pending=copy.deepcopy(trace);pending['feedback']=[];pending['observations']=[];pending['releases']=[];pending['requirements'][0].update(result='NOT_EVALUATED',pending_decision_ref='decision:pending-proof');pending['tests'][0]['status']='NOT_RUN';pending['gates'][0]['status']='PENDING'
+    positive_trace('pending-scoped-requirement',pending)
+    bad=copy.deepcopy(pending);bad['requirements'][0].pop('pending_decision_ref');negative_trace('pending-requirement-without-decision',bad,'scoped-pending-without-decision')
+    bad=copy.deepcopy(trace);bad['requirements'][0]['invariant_ids']=['core_must_not_depend_on_optional_extensions']
+    negative_trace('catalog-obligation-unresolved',bad,'scoped-unresolved-obligation')
+    bad=copy.deepcopy(trace);bad['tests'][0]['status']='FAIL';negative_trace('scoped-proof-fails',bad,'scoped-obligation-not-passing')
+    bad=copy.deepcopy(registry);bad['project_id']='other';flaws=[];check_project_registry(bad,flaws,trace);count+=1
+    if not any('owner-association-invalid' in x for x in flaws): errors.append('negative-test-accepted-invalid:registry-project-association')
+    bad=copy.deepcopy(trace);bad['objective']['owner']='   ';flaws=[];check_project_registry(registry,flaws,bad);count+=1
+    if not any('owner-association-invalid' in x for x in flaws): errors.append('negative-test-accepted-invalid:registry-inherited-owner')
+    bad=copy.deepcopy(trace);bad['tests'][0]['candidate_identity']='wrong';flaws=[];check_project_registry(registry,flaws,bad);count+=1
+    if not any('scoped-accepted-requirement-untested' in x for x in flaws): errors.append('negative-test-accepted-invalid:registry-scoped-verification')
+    interaction=copy.deepcopy(trace);interaction['requirements'][0].update(stage_id='VERIFY',concern_id='QUALITY_ASSURANCE')
+    positive_trace('selected-interaction',interaction)
+    bad=copy.deepcopy(interaction);bad['requirements'][0]['product_gate_obligations']=[]
+    negative_trace('selected-interaction-no-proof',bad,'scoped-without-proof-obligation')
+    bad=copy.deepcopy(trace);bad['gates'][0]['artifact_digest']='other'
+    negative_trace('scoped-mixed-proof-artifact',bad,'scoped-mixed-proof-artifacts')
+    bad=copy.deepcopy(project);bad['stages'][0]['result']='FAIL'
+    negative_lifecycle('lifecycle-failure-without-observation','project-failure-without-observation',pr=bad)
+    bad=copy.deepcopy(registry);bad['components'][0].pop('verification')
+    negative_json('VERIFIED-without-verification','component-registry.schema.json',bad)
+    flaws=[];check_project_registry(bad,flaws);count+=1
+    if not any('project-registry-unverified-component' in x for x in flaws): errors.append('negative-test-accepted-invalid:verified-component-no-proof')
+    bad=copy.deepcopy(registry);bad['components'][0]['state_ownership'][0].pop('recovery_alternative')
+    negative_json('excluded-authority-without-alternative','component-registry.schema.json',bad)
+    bad=copy.deepcopy(trace);bad['objective']['success_measures'][0].pop('baseline_evidence_refs')
+    negative_json('measured-missing-baseline','project-trace.schema.json',bad)
+    bad=copy.deepcopy(example_choice);bad['rollback_plan']='   '
+    negative_json('adopt-blank-rollback','implementation-choice.schema.json',bad)
+    triggered=copy.deepcopy(project);triggered['project_id']=reopened['project_id']
+    triggered['stages'][0].update(result='FAIL',feedback_ids=['FB-1'],trigger_observation_ids=['OBS-LATER'])
+    flaws=[];check_project_lifecycle(triggered,{x['id'] for x in matrix['stages']},{x['id'] for x in matrix['concerns']},flaws,matrix=matrix,trace=reopened);count+=1
+    if flaws: errors.append('positive-triggered-reentry-rejected:'+repr(flaws))
+    bad=copy.deepcopy(triggered);bad['stages'][0]['trigger_observation_ids']=['UNADDRESSED']
+    flaws=[];check_project_lifecycle(bad,{x['id'] for x in matrix['stages']},{x['id'] for x in matrix['concerns']},flaws,matrix=matrix,trace=reopened);count+=1
+    if not any('project-trigger-observation-unaddressed' in x for x in flaws): errors.append('negative-test-accepted-invalid:unaddressed-lifecycle-trigger')
+    bad=copy.deepcopy(trace);collision=copy.deepcopy(bad['tests'][0]);collision['id']='GATE-1';bad['tests'].append(collision)
+    negative_trace('ambiguous-proof-obligation',bad,'scoped-ambiguous-obligation')
+    bad=copy.deepcopy(trace);bad['releases'][0].pop('scope')
+    negative_json('candidate-without-intended-scope','project-trace.schema.json',bad)
+    bad=copy.deepcopy(trace);bad['releases'][-1]['scope']='OTHER'
+    negative_trace('distribution-scope-changed',bad,'distribution-scope-changed')
+    bad=copy.deepcopy(trace);bad['feedback']=[];bad['observations']=[];bad['requirements'][0]['result']='NOT_EVALUATED';bad['tests'][0]['status']='NOT_RUN'
+    negative_trace('promoted-scope-without-proof',bad,'scoped-accepted-requirement-untested')
+    bad=copy.deepcopy(trace);second=copy.deepcopy(bad['gates'][0]);second['gate_id']='REQUIRED-2';bad['gates'].append(second);bad['requirements'][0]['product_gate_obligations'].append('REQUIRED-2')
+    negative_trace('promotion-omits-required-gate',bad,'scoped-release-missing-obligation')
+    selected=copy.deepcopy(project);selected['project_id']=interaction['project_id'];selected['cell_overrides']=[{**selected['stages'][0],'stage_id':'VERIFY','concern_id':'QUALITY_ASSURANCE','candidate_identity':trace['gates'][0]['candidate_identity']}]
+    flaws=[];check_project_lifecycle(selected,{x['id'] for x in matrix['stages']},{x['id'] for x in matrix['concerns']},flaws,matrix=matrix,trace=interaction);count+=1
+    if flaws: errors.append('positive-selected-cell-proof-rejected:'+repr(flaws))
+    flaws=[];check_project_lifecycle(selected,{x['id'] for x in matrix['stages']},{x['id'] for x in matrix['concerns']},flaws,matrix=matrix,trace=trace);count+=1
+    if not any('project-cell-pass-without-scoped-proof' in x for x in flaws): errors.append('negative-test-accepted-invalid:selected-cell-unbound')
+    bad=copy.deepcopy(trace)
+    for release in bad['releases']: release['scope']='UNOWNED'
+    negative_trace('promotion-unowned-scope',bad,'distribution-promotion-unowned-scope')
+    # R14 review: isolate candidate obligations and bind every executed proof at acceptance.
+    multiple=copy.deepcopy(trace)
+    replacements={'source:candidate-B':'source:candidate-C','REQ-1':'REQ-C','TEST-1':'TEST-C','GATE-1':'GATE-C',
+                  'CHANGE-1':'CHANGE-C','REL-1':'REL-C1','REL-2':'REL-C2','REL-3':'REL-C3'}
+    def renamed(value):
+        if isinstance(value, dict): return {k:renamed(v) for k,v in value.items()}
+        if isinstance(value, list): return [renamed(v) for v in value]
+        return replacements.get(value,value) if isinstance(value,str) else value
+    for section in ('requirements','tests','gates','changes','releases'):
+        multiple[section].extend(renamed(trace[section]))
+    positive_trace('two-candidates-same-scope',multiple,trace)
+    bad=copy.deepcopy(multiple);bad['requirements'][-1]['product_gate_obligations']=['TEST-1','GATE-1']
+    negative_trace('candidate-borrows-older-proof',bad,'scoped-obligation-not-passing')
+    scoped=copy.deepcopy(trace);scoped['feedback']=[];scoped['observations']=[]
+    scoped['requirements'][0]['product_gate_obligations']=['TEST-1']
+    positive_trace('test-only-scoped-proof',scoped)
+    for field,value in (('artifact_digest','sha256:'+'b'*64),('observed_at','2026-10-16T01:00:00Z')):
+        bad=copy.deepcopy(scoped);bad['tests'][0][field]=value
+        negative_trace('scoped-executed-proof-'+field,bad,'scoped-proof-artifact-or-order')
+    for template,name in ((trace,'scoped-test-after-gate'),(scoped,'scoped-test-only-after-release-gate')):
+        bad=copy.deepcopy(template);bad['feedback']=[];bad['observations']=[];bad['tests'][0]['observed_at']='2026-10-16T00:11:00Z'
+        negative_trace(name,bad,'scoped-proof-artifact-or-order')
+    flaws=[];check_project_registry(registry,flaws,multiple);count+=1
+    if flaws: errors.append('positive-registry-two-candidates-rejected:'+repr(flaws))
+    for field,value,expected in (('status','PENDING','scoped-obligation-not-passing'),
+                                 ('artifact_digest','sha256:'+'b'*64,'maturity-invalid-gate'),
+                                 ('observed_at','2026-10-16T00:11:00Z','maturity-verified-before-gate')):
+        bad=copy.deepcopy(trace);bad['gates'][0][field]=value;flaws=[];check_project_registry(registry,flaws,bad);count+=1
+        if not any(expected in x for x in flaws): errors.append('negative-test-accepted-invalid:registry-trace-gate-'+field)
+    bad=copy.deepcopy(trace);bad['requirements'][0].update(result='NOT_EVALUATED',pending_decision_ref='decision:pending');flaws=[];check_project_registry(registry,flaws,bad);count+=1
+    if not any('verified-scope-not-passing' in x for x in flaws): errors.append('negative-test-accepted-invalid:registry-pending-requirement')
+    bad=copy.deepcopy(trace);bad['feedback'][0]['requirement_ids']=['MISSING-REQ'];flaws=[];check_choice(example_choice,bad,flaws);count+=1
+    if not any('adoption-unresolved-requirement' in x for x in flaws): errors.append('negative-test-accepted-invalid:adopt-unresolved-requirement')
+    adoption=copy.deepcopy(pending);adoption['observations']=[copy.deepcopy(trace['observations'][0])]
+    adoption['feedback']=[copy.deepcopy(trace['feedback'][0])];adoption['feedback'][0].update(status='IN_PROGRESS',history=[],next_action='Implement and measure')
+    positive_trace('pending-adoption',adoption)
+    flaws=[];check_choice(example_choice,adoption,flaws);count+=1
+    if flaws: errors.append('positive-adopt-pending-requirement-rejected:'+repr(flaws))
+    withdrawn=copy.deepcopy(trace);withdrawn['releases'].append({**trace['releases'][-1], 'id':'REL-W', 'from':'PROMOTED', 'to':'WITHDRAWN',
+        'released_at':'2026-10-16T02:00:00Z','decision_ref':'decision:withdrawal', 'reason':'Invalid artifact', 'notice_ref':'notice:withdrawal','recovery_obligations':'Restore prior artifact'})
+    negative_trace('withdrawal-leaves-closed-feedback',withdrawn,'feedback-withdrawal-not-addressed')
+    decision=copy.deepcopy(withdrawn);decision['feedback'][0]['history'][0].update(at='2026-10-16T02:10:00Z',decision_ref='unrelated')
+    negative_trace('unrelated-decision-after-withdrawal',decision,'feedback-withdrawal-not-addressed')
+    reopened_withdrawal=copy.deepcopy(withdrawn);fb=reopened_withdrawal['feedback'][0];fb.update(status='IN_PROGRESS',next_action='Restore prior artifact',decision_ref='decision:withdrawal')
+    fb['history'].append({'event':'REOPEN','at':'2026-10-16T02:10:00Z','actor':'owner','reason':'Withdrawal REL-W', 'decision_ref':'decision:withdrawal','prior_closure_evidence_ref':'REL-3'})
+    positive_trace('withdrawal-reopen-in-progress',reopened_withdrawal,trace)
+    decision=copy.deepcopy(reopened_withdrawal);fb=decision['feedback'][0];fb['status']='CLOSED'
+    fb['history'].append({'event':'CLOSE','at':'2026-10-16T02:20:00Z','actor':'owner','reason':'Withdrawal decision explicitly accepts this feedback outcome despite REL-W', 'decision_ref':'decision:withdrawal','closure_evidence_ref':'REL-3'})
+    positive_trace('withdrawal-specific-decision',decision,reopened_withdrawal)
+    retained=copy.deepcopy(decision);history=retained['feedback'][0]['history']
+    history.extend([{**history[-2], 'at':'2026-10-16T02:30:00Z', 'decision_ref':'decision:followup'},
+                    {**history[-1], 'at':'2026-10-16T02:40:00Z', 'decision_ref':'decision:followup'}])
+    positive_trace('withdrawal-decision-retained',retained,decision)
+    for section in ('tests','gates'):
+        for mutation in ('rewrite','delete'):
+            bad=copy.deepcopy(trace)
+            if mutation=='rewrite': bad[section][0]['evidence_refs']=['replacement:proof']
+            else: bad[section]=[]
+            flaws=[];check_trace(bad,flaws,trace);count+=1
+            if not any('trace-prior-evidence-rewritten:'+section in x for x in flaws): errors.append('negative-test-accepted-invalid:prior-'+section+'-'+mutation)
+    positive_trace('pending-proof-can-complete',trace,pending)
+    bad=copy.deepcopy(trace);bad['changes'][0]['owner']='   '
+    negative_json('trace-shared-nonblank','project-trace.schema.json',bad)
+    bad=copy.deepcopy(trace);bad['changes'][0]['evidence_refs']=['proof','proof']
+    negative_json('trace-shared-unique-references','project-trace.schema.json',bad)
+    stats = {'executed': 0, 'skipped': 0, 'n_a': 0}
+    if include_fs:
+        stats, fs_errors = run_filesystem_fixtures()
+        errors.extend(fs_errors)
+        count += stats['executed']
+    else:
+        stats.update(skipped=5 if os.name == 'nt' else 4, n_a=0 if os.name == 'nt' else 1)
+    if fs_report is not None: fs_report.update(stats)
+    errors.extend(filesystem_gate_errors(stats, require_fs_tests))
+    for skipped,required,expected in ((1,True,True),(0,True,False),(1,False,False)):
+        count+=1
+        if bool(filesystem_gate_errors({'skipped':skipped},required)) != expected:
+            errors.append('negative-test-accepted-invalid:filesystem-required-accounting')
+    from validate_package import check_package_trace, PACKAGE_TRACE
+    actual=json.loads((root/PACKAGE_TRACE).read_text(encoding='utf-8'))
+    valid_schema_instance(schemas,'project-trace.schema.json',actual)
+    flaws=[];check_package_trace(root,actual,flaws);count+=1
+    if flaws: errors.append('positive-package-trace-rejected:'+repr(flaws))
+    for mutation,expected in (('example','package-trace-not-actual-work'),('missing-artifact','package-change-artifact-missing'),('unsafe-artifact','package-change-artifact-unsafe'),('empty-feedback','package-trace-not-actual-work')):
+        bad=copy.deepcopy(actual)
+        if mutation=='example': bad['project_id']='example-project'
+        if mutation=='missing-artifact': bad['changes'][0]['artifact_refs']=['nonexistent-package-file']
+        if mutation=='unsafe-artifact': bad['changes'][0]['artifact_refs']=['../outside']
+        if mutation=='empty-feedback': bad['feedback']=[]
+        flaws=[];check_package_trace(root,bad,flaws);count+=1
+        if not any(expected in x for x in flaws): errors.append('negative-test-accepted-invalid:actual-package-'+mutation)
+    bad=copy.deepcopy(actual);bad['feedback'][0]['status']='CLOSED'
+    negative_json('package-closure-without-deployment-and-outcome','project-trace.schema.json',bad)
     return count,errors
 
 
+def filesystem_gate_errors(stats, required):
+    return ['required-filesystem-fixtures-skipped:' + str(stats['skipped'])] if required and stats['skipped'] else []
+
+
+def run_filesystem_fixtures():
+    """Five defenses; unavailable execution never increments the executed count."""
+    from validate_package import resolve_safe_evidence_path
+    stats = {'executed': 0, 'skipped': 0, 'n_a': 0}
+    errors = []
+    try:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            root = Path(tmp_dir)
+            val = root / '.validation'
+            val.mkdir()
+            canon = root / 'MANIFEST.json'; canon.write_text('{}', encoding='utf-8')
+            inp = val / 'input.json'; inp.write_text('{}', encoding='utf-8')
+            other = val / 'other.txt'; other.write_text('x', encoding='utf-8')
+            fixtures = [
+                ('canonical-alias', canon, 'alias canonical file', ()),
+                ('input-alias', inp, 'alias input file identity', (str(inp),)),
+                ('hardlink-count', other, 'st_nlink > 1', ()),
+                ('symlink', canon, 'symlink or junction', ()),
+                ('junction', root, 'symlink or junction', ()),
+            ]
+            for name, source, expected, inputs in fixtures:
+                target = val / name
+                if name == 'junction' and os.name != 'nt':
+                    stats['n_a'] += 1
+                    continue
+                try:
+                    if name == 'symlink': target.symlink_to(source)
+                    elif name == 'junction':
+                        result = subprocess.run(['cmd', '/c', 'mklink', '/J', str(target), str(source)], capture_output=True)
+                        if result.returncode: raise OSError('junction creation failed')
+                    else: os.link(source, target)
+                except OSError as exc:
+                    # Windows without symlink privilege uses the separately required junction defense.
+                    if name == 'symlink' and os.name == 'nt' and getattr(exc, 'winerror', None) == 1314:
+                        stats['n_a'] += 1
+                    else: stats['skipped'] += 1
+                    continue
+                stats['executed'] += 1
+                rel = '.validation/' + name + ('/MANIFEST.json' if name == 'junction' else '')
+                try:
+                    resolve_safe_evidence_path(rel, root=root, input_paths=inputs)
+                    errors.append('negative-test-accepted-invalid:' + name)
+                except ValueError as exc:
+                    if expected not in str(exc): errors.append('negative-test-wrong-error:' + name + ':' + str(exc))
+                finally:
+                    if name == 'junction': os.rmdir(target)
+    except OSError as exc:
+        remaining = 5 - sum(stats.values())
+        stats['skipped'] += remaining
+        errors.append('filesystem-fixture-setup-error:' + str(exc))
+    return stats, errors
+
+
 if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser()
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument('--no-fs-tests', action='store_true', help='Local only: report filesystem fixtures as skipped')
+    mode.add_argument('--require-fs-tests', action='store_true', help='Fail on skipped applicable filesystem fixtures')
+    args = parser.parse_args()
     _root = Path(__file__).resolve().parents[1]
-    _count, _errs = run_negative_suite(_root)
+    stats = {}
+    _count, _errs = run_negative_suite(_root, include_fs=not args.no_fs_tests, require_fs_tests=args.require_fs_tests, fs_report=stats)
     print(f'contract_fixture_checks={_count}')
-    for _e in _errs:
-        print(f'ERROR={_e}')
+    for key, value in stats.items(): print('filesystem_' + key + '=' + str(value))
+    for _e in _errs: print(f'ERROR={_e}')
+    print('NEGATIVE_TESTED=' + ('FAIL' if _errs else 'NOT_EVALUATED' if stats['skipped'] else 'PASS'))
     print('RESULT=' + ('PASS' if not _errs else 'FAIL'))
     sys.exit(0 if not _errs else 1)

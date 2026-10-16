@@ -6,7 +6,7 @@ The canonical vocabularies are `feedback_dispositions`, `feedback_statuses` and 
 
 - Disposition: `PENDING`, `ACCEPT`, `REJECT`, `DEFER`, `DUPLICATE` describes the decision.
 - Status: `OPEN`, `IN_PROGRESS`, `CLOSED` describes completion separately.
-- Events: `CLOSE`, `REOPEN` preserve immutable history. `REOPEN` returns status to `OPEN`, retains prior closure evidence and requires `next_action` plus `decision_ref`.
+- Events: `CLOSE`, `REOPEN` preserve immutable history. Reopened work can be `OPEN` or `IN_PROGRESS`, retains prior closure evidence and requires `next_action` plus `decision_ref`.
 
 Feedback records link observation, accountable `owner`, priority, rationale and next action. Rejection and duplication need a decision reference; deferral needs a decision, owner and `revisit_trigger`. Review the backlog proportionately; absent telemetry supplies no evidence of zero problems.
 
