@@ -396,8 +396,7 @@
         "DESIGN",
         "IMPLEMENT",
         "VERIFY",
-        "OPERATE_SUPPORT",
-        "RETIRE"
+        "OPERATE_SUPPORT"
       ],
       "concern_ids": [
         "RISK_SECURITY"

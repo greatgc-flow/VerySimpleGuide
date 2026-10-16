@@ -378,6 +378,20 @@ def run_negative_suite(root):
     good['cell_overrides']=[{'stage_id':'DISCOVER','concern_id':'RISK_SECURITY','applicability':'REQUIRED','approach':'COMPLY','result':'NOT_EVALUATED','deferred':True,'owner':'review','reason':'requires threat model','revisit_trigger':'before DESIGN exit','acceptance_criteria':'threat model ratified','candidate_identity':'','evidence_refs':[]}]
     flaws=[];check_project_lifecycle(good,{x['id'] for x in matrix['stages']},{x['id'] for x in matrix['concerns']},flaws,matrix=matrix);count+=1
     if flaws: errors.append('positive-project-cell-override-rejected:'+repr(flaws))
+    from validate_package import check_vocabularies
+    for key in ('planes','component_classes','boundary_roles','state_kinds','recovery_classes','maturity','distribution','applicability','approach','assessment_results','feedback_dispositions','feedback_statuses','feedback_events','legacy_feature_strategies','exit_semantics','value_semantics'):
+        bad=copy.deepcopy(std);bad[key]=['BOGUS'];flaws=[];count+=1
+        check_vocabularies(bad,schemas,flaws)
+        if not any('vocabulary-drift' in x for x in flaws): errors.append('negative-test-accepted-invalid:vocabulary:'+key)
+    for key in ('claim_kinds','claim_results'):
+        bad=copy.deepcopy(std);bad['outcome_contract'][key]=['BOGUS'];flaws=[];count+=1
+        check_vocabularies(bad,schemas,flaws)
+        if not flaws: errors.append('negative-test-accepted-invalid:vocabulary:'+key)
+    bad=copy.deepcopy(schemas);bad['component-registry.schema.json']['properties']['components']['items']['properties']['component_class']['enum']=['BOGUS']
+    flaws=[];check_vocabularies(std,bad,flaws);count+=1
+    if not flaws: errors.append('negative-test-accepted-invalid:schema-vocabulary-drift')
+    bad=copy.deepcopy(guidance);bad['guidance'][0]['stage_ids'].append('IMPLEMENT')
+    negative_lifecycle('guidance-stage-unsupported-by-sources','guidance-stage-not-in-sources',gu=bad)
     return count,errors
 
 

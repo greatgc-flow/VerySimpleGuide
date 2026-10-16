@@ -298,6 +298,45 @@ def valid_schema_instance(schemas, schema_name, instance, checker=None):
     Draft202012Validator(schema, format_checker=fc).validate(instance)
 
 
+def check_vocabularies(std, schemas, errors):
+    """Canonical lists own vocabulary; check every duplicate enum, including schema lists."""
+    canonical = schemas['unified-package-standard.schema.json']['properties']
+    vocab = {k: v for k, v in std.items() if isinstance(v, list) and v and all(isinstance(x, str) for x in v) and k != 'invariants'}
+    vocab.update(std['outcome_contract'])
+    vocab['normative_levels'] = std['openness_contract']['normative_levels']
+    aliases = {'plane':'planes', 'component_class':'component_classes', 'kind':'state_kinds',
+               'recovery_class':'recovery_classes', 'status':'maturity', 'result':'assessment_results',
+               'disposition':'feedback_dispositions', 'event':'feedback_events'}
+    for key, values in vocab.items():
+        if not isinstance(values, list): continue
+        props = canonical
+        if key.startswith('claim_'): props = canonical['outcome_contract']['properties']
+        if key == 'normative_levels': props = canonical['openness_contract']['properties']
+        if set(props.get(key, {}).get('items', {}).get('enum', [])) != set(values):
+            errors.append('vocabulary-drift:canonical:' + key)
+    def walk(obj, name, path=()):
+        if not isinstance(obj, dict): return
+        for key, value in obj.get('properties', {}).items():
+            target = aliases.get(key, key)
+            if name == 'project-trace.schema.json' and key == 'status' and 'feedback' in path:
+                target = 'feedback_statuses'
+            enum = value.get('enum', value.get('items', {}).get('enum'))
+            if name == 'project-trace.schema.json' and key in ('status', 'kind') and 'feedback' not in path: continue
+            if name == 'standard-evolution.schema.json' and key in ('status', 'kind'): continue
+            # Conditional subsets express guards, not vocabulary definitions.
+            if enum is not None and target in vocab and 'allOf' not in path and 'if' not in path and 'then' not in path:
+                if set(enum) != set(vocab[target]):
+                    errors.append('vocabulary-drift:' + name + ':' + '/'.join(path + (key,)))
+        for key, value in obj.items():
+            if isinstance(value, dict): walk(value, name, path + (key,))
+            elif isinstance(value, list):
+                for item in value: walk(item, name, path + (key,))
+    for name, schema in schemas.items():
+        # Gate/test statuses and observation kinds are distinct contracts.
+        if name in ('gate-evidence.schema.json',): continue
+        walk(schema, name)
+
+
 def check_examples(root, schemas, errors):
     examples = {
         'component-registry.example.json': 'component-registry.schema.json',
@@ -700,6 +739,9 @@ def check_lifecycle_models(matrix, guidance, references, project, controls, erro
     default_rev = guidance.get('default_review_trigger','')
     for entry in guidance.get('guidance',[]):
         ident=entry.get('id','unknown')
+        source_stages = {s for rid in entry.get('reference_ids', []) for s in source_map.get(rid, {}).get('stages', [])}
+        if not set(entry.get('stage_ids', [])).issubset(source_stages):
+            errors.append('guidance-stage-not-in-sources:' + ident)
         if entry.get('applicability')!='OPTIONAL':
             errors.append('guidance-illegal-mandate:'+ident)
         alts = entry.get('alternatives') if 'alternatives' in entry else default_alts
@@ -771,6 +813,7 @@ def check_all(root):
         check_artifact_ownership(root, std, errors)
         schemas = load_schemas(root, errors)
         if schemas:
+            check_vocabularies(std, schemas, errors)
             try:
                 valid_schema_instance(schemas,'manifest.schema.json',read_json(root/'MANIFEST.json'))
             except (ValueError,KeyError,ValidationError,OSError,json.JSONDecodeError) as exc:

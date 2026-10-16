@@ -1,5 +1,9 @@
 # Design Decisions
 
+## R14 vocabulary and guidance
+
+- Check duplicated schema vocabulary against canonical lists and guidance applicability against cited source stages. Keep projection reproduction rules only in the authority standard.
+
 ## R13 simplification
 
 - Keep one lifecycle backbone and unique directory numbers; separate contracts from governance and optional knowledge. Human views link to a single normative home per rule.
