@@ -172,16 +172,16 @@
     },
     {
       "path": "02_STANDARD/EXTENSION_PROVIDER_STANDARD.md",
-      "sha256": "65263aafcda2dacb02b266c13bb91e9ce3ab81e4284142de5f40224abc734c03",
-      "size_bytes": 1514,
+      "sha256": "8685ce297d74aaa12fb4a2eb600d2192c83ad780dbaeef9876b690f60b77412e",
+      "size_bytes": 1536,
       "role": "NORMATIVE_SOURCE",
       "primary_control": "UPS-EXT",
       "related_controls": []
     },
     {
       "path": "02_STANDARD/INTEROPERABILITY_NEUTRALITY.md",
-      "sha256": "f8a99632b2b76ece581a5cdf70ae3b1ea1e35455910b731da94c591bcb3f9738",
-      "size_bytes": 2403,
+      "sha256": "01be7f1db18c109a772b8e31fc8ae4de4c60331298f5c00e44a3e28670eec903",
+      "size_bytes": 2380,
       "role": "NORMATIVE_SOURCE",
       "primary_control": "UPS-COMP",
       "related_controls": [
