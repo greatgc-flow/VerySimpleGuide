@@ -18,6 +18,7 @@ try:
     _IMPORT_ERROR = None
 except ImportError as exc:
     Draft202012Validator = None
+    FormatChecker = None
     _IMPORT_ERROR = str(exc)
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -202,6 +203,43 @@ def check_manifest(root, errors):
     return declared
 
 
+def _collect_schema_formats(obj, out=None):
+    if out is None:
+        out = set()
+    if isinstance(obj, dict):
+        fmt = obj.get('format')
+        if isinstance(fmt, str):
+            out.add(fmt)
+        for val in obj.values():
+            _collect_schema_formats(val, out)
+    elif isinstance(obj, list):
+        for item in obj:
+            _collect_schema_formats(item, out)
+    return out
+
+
+REQUIRED_FORMAT_CHECKERS = ('date-time', 'date')
+
+
+def check_format_checkers(errors, checker=None, schemas=None):
+    if Draft202012Validator is None or FormatChecker is None:
+        errors.append('missing-dependency:jsonschema>=4.18:' + str(_IMPORT_ERROR))
+        return False
+    fc = checker if checker is not None else FormatChecker()
+    required = set(REQUIRED_FORMAT_CHECKERS)
+    if schemas:
+        for schema_doc in schemas.values():
+            required.update(_collect_schema_formats(schema_doc))
+    missing = sorted(fmt for fmt in required if fmt not in fc.checkers)
+    if missing:
+        errors.append(
+            'missing-format-checker:' + ','.join(missing)
+            + ':install rfc3339-validator (python -m pip install -r tools/requirements-validation.txt)'
+        )
+        return False
+    return True
+
+
 def load_schemas(root, errors):
     parsed = {}
     if Draft202012Validator is None:
@@ -221,6 +259,8 @@ def load_schemas(root, errors):
             errors.append('invalid-json-schema:' + path.name + ':' + str(exc)[:200])
     if not parsed:
         errors.append('missing-schemas')
+    if not check_format_checkers(errors, schemas=parsed):
+        return {}
     return parsed
 
 
@@ -249,9 +289,13 @@ def local_refs(schema, schemas):
     return walk(v)
 
 
-def valid_schema_instance(schemas, schema_name, instance):
+def valid_schema_instance(schemas, schema_name, instance, checker=None):
+    fc = checker if checker is not None else FormatChecker()
+    fmt_errors = []
+    if not check_format_checkers(fmt_errors, checker=fc, schemas={schema_name: schemas[schema_name]}):
+        raise RuntimeError(fmt_errors[0])
     schema = local_refs(schemas[schema_name], schemas)
-    Draft202012Validator(schema, format_checker=FormatChecker()).validate(instance)
+    Draft202012Validator(schema, format_checker=fc).validate(instance)
 
 
 def check_examples(root, schemas, errors):
@@ -773,6 +817,13 @@ def main(argv=None):
     except ValueError as exc:
         print('ERROR=unsafe-evidence-file:' + str(exc))
         print('RESULT=FAIL')
+        return 1
+    startup_errors = []
+    if not check_format_checkers(startup_errors):
+        for e in startup_errors:
+            sink.say('ERROR=' + e)
+        sink.say('RESULT=FAIL')
+        sink.close()
         return 1
     errors = check_all(ROOT)
     user_checks = []

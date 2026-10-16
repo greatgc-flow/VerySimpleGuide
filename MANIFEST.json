@@ -551,8 +551,8 @@
     },
     {
       "path": "07_CONTRACTS/examples/project-lifecycle.example.json",
-      "sha256": "5f46e8b036de3cebafdafc09d0f4f0d11e3ef0a7d98ac35f904b6b0d84940901",
-      "size_bytes": 12766,
+      "sha256": "884853a84c0ad73986994b6e5316720a257ccb87266c8adb51256afa7505e648",
+      "size_bytes": 12808,
       "role": "EXAMPLE",
       "primary_control": "UPS-SCHEMA",
       "related_controls": []
@@ -671,8 +671,8 @@
     },
     {
       "path": "07_CONTRACTS/schemas/reference-catalog.schema.json",
-      "sha256": "fee4c303f3a7b603a27fc42c3e28a414a6ab8def8dc00d5a06bf84e469988a52",
-      "size_bytes": 2196,
+      "sha256": "515d015335d28f32d97ff12dac715065b2096b49849cc951237852bbd45729b8",
+      "size_bytes": 2172,
       "role": "MACHINE_SSOT",
       "primary_control": "UPS-SCHEMA",
       "related_controls": []
@@ -783,8 +783,8 @@
     },
     {
       "path": "tools/requirements-validation.txt",
-      "sha256": "4046ca1e3a64f4ea791fb4fb3d8566242086ff1c8e2431e2c349e1052ffc6ba0",
-      "size_bytes": 20,
+      "sha256": "94b5b7688faae59b76140b80f72729c657883f34b58499d8e4d181be6313a02f",
+      "size_bytes": 48,
       "role": "VALIDATION_TOOL",
       "primary_control": "UPS-TEST",
       "related_controls": []
@@ -807,8 +807,8 @@
     },
     {
       "path": "tools/test_validator.py",
-      "sha256": "bff020ea2864bd88107fe86708b5764c5d311dbf4e75585de4c0a34436a45aed",
-      "size_bytes": 30211,
+      "sha256": "2259d500f79e4b820f22860c4619d3c596c2660e06fd718fc8ac4b7a40ffc0f7",
+      "size_bytes": 32205,
       "role": "VALIDATION_TOOL",
       "primary_control": "UPS-TEST",
       "related_controls": []
@@ -823,8 +823,8 @@
     },
     {
       "path": "tools/validate_package.py",
-      "sha256": "77bc0af3595817e2e50306475a7cc548ebdd77e8f5080a27e95a27e0bb3462ce",
-      "size_bytes": 44813,
+      "sha256": "b2e43809bbeff01fe446cc18e41dfaf45f97447048f259858a3ee65b0eb8927d",
+      "size_bytes": 46590,
       "role": "VALIDATION_TOOL",
       "primary_control": "UPS-TEST",
       "related_controls": []

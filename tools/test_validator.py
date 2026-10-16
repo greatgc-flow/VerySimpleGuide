@@ -10,10 +10,10 @@ if _TOOLS_DIR not in sys.path:
 
 def run_negative_suite(root):
     # Imported only after main validator loads successfully; no mutation to product files.
-    from validate_package import (check_trace, check_controls, valid_schema_instance,
+    from validate_package import (check_trace, check_controls, valid_schema_instance, check_format_checkers,
                                   valid_relative_path, resolve_safe_evidence_path, check_manifest, load_schemas, check_invariants, check_lifecycle_models, check_project_lifecycle, check_artifact_ownership, check_project_registry)
     from suggest_guidance import select as select_guidance
-    from jsonschema import ValidationError
+    from jsonschema import FormatChecker, ValidationError
     errors = []
     count = 0
     schemas = load_schemas(root, errors)
@@ -44,6 +44,24 @@ def run_negative_suite(root):
     negative_json('VERIFIED-without-proof', 'maturity.schema.json', {'items':[{'id':'feature-1','status':'VERIFIED','evidence':[]}]})
     bad = copy.deepcopy(maturity_valid); bad['items'][0]['verified_at']='not-a-date'
     negative_json('VERIFIED-invalid-datetime', 'maturity.schema.json', bad)
+    # Fail-closed guard when date-time format checker is absent or schema uses an unbacked format.
+    stripped_fc = FormatChecker()
+    stripped_fc.checkers = {k: v for k, v in stripped_fc.checkers.items() if k != 'date-time'}
+    fmt_flaws = []
+    count += 1
+    if check_format_checkers(fmt_flaws, checker=stripped_fc) or not any('missing-format-checker:date-time' in x for x in fmt_flaws):
+        errors.append('negative-test-accepted-invalid:missing-datetime-format-checker-guard')
+    count += 1
+    try:
+        valid_schema_instance(schemas, 'maturity.schema.json', maturity_valid, checker=stripped_fc)
+        errors.append('negative-test-accepted-invalid:valid-schema-instance-without-datetime-checker')
+    except RuntimeError as exc:
+        if 'missing-format-checker:date-time' not in str(exc):
+            errors.append('negative-test-wrong-error:valid-schema-instance-without-datetime-checker:' + str(exc))
+    unbacked_flaws = []
+    count += 1
+    if check_format_checkers(unbacked_flaws, schemas={'unbacked.schema.json': {'type': 'string', 'format': 'unbacked-custom-format'}}) or not any('missing-format-checker:unbacked-custom-format' in x for x in unbacked_flaws):
+        errors.append('negative-test-accepted-invalid:unbacked-schema-format-guard')
     gate_valid = trace['gates'][0]
     negative_json('PASS-stale', 'gate-evidence.schema.json', {**gate_valid, 'freshness':'STALE'})
     negative_json('PASS-empty-evidence', 'gate-evidence.schema.json', {**gate_valid,'evidence_refs':[]})
@@ -262,6 +280,10 @@ def run_negative_suite(root):
     valid_schema_instance(schemas,'lifecycle-matrix.schema.json',matrix)
     valid_schema_instance(schemas,'guidance-catalog.schema.json',guidance)
     valid_schema_instance(schemas,'reference-catalog.schema.json',sources)
+    bad_ref_date=copy.deepcopy(sources);bad_ref_date['as_of']='not-a-date'
+    negative_json('reference-catalog-invalid-date','reference-catalog.schema.json',bad_ref_date)
+    bad_ref_url=copy.deepcopy(sources);bad_ref_url['sources'][0]['url']='https://bad url with spaces'
+    negative_json('reference-catalog-invalid-url','reference-catalog.schema.json',bad_ref_url)
     valid_schema_instance(schemas,'project-lifecycle.schema.json',project)
     count+=1
     good=[]
@@ -357,3 +379,13 @@ def run_negative_suite(root):
     flaws=[];check_project_lifecycle(good,{x['id'] for x in matrix['stages']},{x['id'] for x in matrix['concerns']},flaws,matrix=matrix);count+=1
     if flaws: errors.append('positive-project-cell-override-rejected:'+repr(flaws))
     return count,errors
+
+
+if __name__ == '__main__':
+    _root = Path(__file__).resolve().parents[1]
+    _count, _errs = run_negative_suite(_root)
+    print(f'contract_fixture_checks={_count}')
+    for _e in _errs:
+        print(f'ERROR={_e}')
+    print('RESULT=' + ('PASS' if not _errs else 'FAIL'))
+    sys.exit(0 if not _errs else 1)

@@ -52,8 +52,7 @@
           },
           "url": {
             "type": "string",
-            "format": "uri",
-            "pattern": "^https://"
+            "pattern": "^https://\\S+$"
           },
           "source_type": {
             "enum": [

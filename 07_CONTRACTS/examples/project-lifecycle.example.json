@@ -242,9 +242,9 @@
       "result": "PASS",
       "deferred": false,
       "owner": "architect",
-      "reason": "Validator depends only on Python stdlib and pinned jsonschema.",
+      "reason": "Validator depends only on Python stdlib and pinned jsonschema + rfc3339-validator.",
       "revisit_trigger": "Addition of any third-party package in requirements-validation.txt",
-      "acceptance_criteria": "Dependency list bounded to jsonschema>=4.18 with offline schema resolution.",
+      "acceptance_criteria": "Dependency list bounded to jsonschema>=4.18 and rfc3339-validator with offline schema resolution.",
       "candidate_identity": "git:9f4b2c1",
       "evidence_refs": [
         "evidence:dependency-audit"
