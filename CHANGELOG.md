@@ -1,5 +1,9 @@
 # Design Decisions
 
+## R14 candidate and distribution bindings
+
+- Extend existing trace records with minimal changes and ordered releases/deployment evidence. Resolve accepted closure to the same candidate/digest through executed proof, gates, change and outcome; consume the guarded distribution transitions and preserve withdrawal history.
+
 ## R14 evidence conditions (contract 1.9)
 
 - Extend existing maturity, state and adoption records with checked evidence and feedback links; require measured baseline proof. Reuse gate evidence, and test mutation/protocol rejection boundaries. The canonical standard version is the single version authority; record pins and schema IDs follow it.

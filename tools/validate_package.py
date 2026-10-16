@@ -308,7 +308,7 @@ def check_vocabularies(std, schemas, errors):
     vocab['normative_levels'] = std['openness_contract']['normative_levels']
     aliases = {'plane':'planes', 'component_class':'component_classes', 'kind':'state_kinds',
                'recovery_class':'recovery_classes', 'status':'maturity', 'result':'assessment_results',
-               'disposition':'feedback_dispositions', 'event':'feedback_events'}
+               'disposition':'feedback_dispositions', 'event':'feedback_events', 'from':'distribution', 'to':'distribution'}
     for key, values in vocab.items():
         if not isinstance(values, list): continue
         props = canonical
@@ -528,7 +528,91 @@ def duplicate_check(items, label, errors):
     return {x.get('id'):x for x in items}
 
 
+def check_candidate_records(trace, errors):
+    changes = duplicate_check(trace.get('changes', []), 'change', errors)
+    releases = duplicate_check(trace.get('releases', []), 'release', errors)
+    gates = {g['gate_id']: g for g in trace.get('gates', [])}
+    tests = {t['id']: t for t in trace.get('tests', [])}
+    observations = {o['id']: o for o in trace.get('observations', [])}
+    allowed = {('NOT_PUBLISHED','CANDIDATE'), ('CANDIDATE','PUBLISHED'), ('PUBLISHED','PROMOTED'),
+               ('CANDIDATE','WITHDRAWN'), ('PUBLISHED','WITHDRAWN'), ('PROMOTED','WITHDRAWN'), ('WITHDRAWN','CANDIDATE')}
+    state, times, identities, reinstated, scopes = {}, {}, {}, {}, {}
+    for release in trace.get('releases', []):
+        rid = release['id']
+        candidate, digest = release.get('candidate_identity'), release.get('artifact_digest')
+        identity = (candidate, digest)
+        if not str(release.get('scope', '')).strip() or (identity in scopes and scopes[identity] != release.get('scope')):
+            errors.append('distribution-scope-changed:' + rid)
+        scopes[identity] = release.get('scope')
+        at = datetime_utc(release['released_at'])
+        prior = state.get(identity, 'NOT_PUBLISHED')
+        if ((release.get('from'), release.get('to')) not in allowed or release.get('from') != prior
+            or (identity in times and at < times[identity])):
+            errors.append('distribution-invalid-transition:' + rid)
+        if candidate in identities and identities[candidate] != digest:
+            errors.append('distribution-candidate-artifact-changed:' + rid)
+        identities[candidate] = digest
+        if not release.get('owner') or not release.get('decision_ref') or not release.get('evidence_refs'):
+            errors.append('distribution-missing-authorization:' + rid)
+        if release.get('from') == 'WITHDRAWN': reinstated[identity] = at
+        if release.get('to') == 'WITHDRAWN' and not all(release.get(k) for k in ('reason','notice_ref','recovery_obligations')):
+            errors.append('distribution-withdrawal-without-obligations:' + rid)
+        if release.get('to') == 'PROMOTED' and not any(r.get('scope') == release.get('scope') for r in trace.get('requirements', [])):
+            errors.append('distribution-promotion-unowned-scope:' + rid)
+        if release.get('to') in ('PUBLISHED', 'PROMOTED'):
+            if release['to'] == 'PUBLISHED' and not release.get('limitations'):
+                errors.append('distribution-publication-without-limitations:' + rid)
+            if not release.get('change_ids'):
+                errors.append('release-without-change:' + rid)
+            for cid in release.get('change_ids', []):
+                change = changes.get(cid, {})
+                if ((change.get('candidate_identity'), change.get('artifact_digest')) != identity
+                    or not change.get('artifact_refs') or not change.get('owner') or not change.get('evidence_refs')):
+                    errors.append('release-invalid-change:' + rid + ':' + cid)
+            deployment = release.get('deployment', {})
+            if ((deployment.get('candidate_identity'), deployment.get('artifact_digest')) != identity
+                or not deployment.get('deployed_at') or not deployment.get('evidence_refs')):
+                errors.append('release-invalid-deployment:' + rid)
+            elif datetime_utc(deployment['deployed_at']) > at:
+                errors.append('release-before-deployment:' + rid)
+            required = release.get('gate_ids', [])
+            if (release['to'] == 'PROMOTED' or identity in reinstated) and not required:
+                errors.append('distribution-promotion-without-gates:' + rid)
+            for gid in required:
+                gate = gates.get(gid, {})
+                if (gate.get('status') != 'PASS' or gate.get('freshness') != 'FRESH'
+                    or (gate.get('candidate_identity'), gate.get('artifact_digest')) != identity or not gate.get('evidence_refs')):
+                    errors.append('release-invalid-gate:' + rid + ':' + gid)
+                elif (datetime_utc(gate['observed_at']) > at
+                      or (deployment.get('deployed_at') and datetime_utc(gate['observed_at']) > datetime_utc(deployment['deployed_at']))
+                      or (identity in reinstated and datetime_utc(gate['observed_at']) < reinstated[identity])):
+                    errors.append('release-gate-order:' + rid)
+        state[identity], times[identity] = release.get('to'), at
+    for fb in trace.get('feedback', []):
+        if fb.get('status') != 'CLOSED' or fb.get('disposition') != 'ACCEPT': continue
+        release = releases.get(fb.get('release_evidence_ref'), {})
+        candidate = fb.get('closure_candidate_identity')
+        proof_gates = [gates[g] for g in fb.get('closure_gate_ids', []) if g in gates]
+        identity = (candidate, proof_gates[0].get('artifact_digest') if proof_gates else None)
+        if ((release.get('candidate_identity'), release.get('artifact_digest')) != identity
+            or release.get('to') not in ('PUBLISHED', 'PROMOTED')):
+            errors.append('feedback-unresolved-release:' + fb['id'])
+        for tid in fb.get('test_ids', []):
+            test = tests.get(tid, {})
+            if (test.get('candidate_identity'), test.get('artifact_digest')) != identity:
+                errors.append('feedback-test-candidate-mismatch:' + tid)
+            elif not test.get('observed_at') or any(datetime_utc(test['observed_at']) > datetime_utc(g['observed_at']) for g in proof_gates):
+                errors.append('feedback-test-after-gate:' + tid)
+        if not set(fb.get('closure_gate_ids', [])).issubset(set(release.get('gate_ids', []))):
+            errors.append('feedback-release-missing-closure-gate:' + fb['id'])
+        outcome = observations.get(fb.get('outcome_observation_id'))
+        if outcome and release.get('deployment'):
+            if datetime_utc(outcome['observed_at']) < max(datetime_utc(release['deployment']['deployed_at']), datetime_utc(release['released_at'])):
+                errors.append('feedback-outcome-before-deployment:' + fb['id'])
+
+
 def check_trace(trace, errors):
+    check_candidate_records(trace, errors)
     req = duplicate_check(trace.get('requirements',[]),'requirement',errors)
     tests = duplicate_check(trace.get('tests',[]),'test',errors)
     gates = duplicate_check([{**x, 'id':x.get('gate_id')} for x in trace.get('gates',[])],'gate',errors)

@@ -38,7 +38,10 @@
       "evidence_refs": [
         "evidence:test-lf-normalization-pass"
       ],
-      "red_evidence_ref": "evidence:RED-windows-ps1-crlf-size-mismatch"
+      "red_evidence_ref": "evidence:RED-windows-ps1-crlf-size-mismatch",
+      "candidate_identity": "source:candidate-B",
+      "artifact_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "observed_at": "2026-10-16T00:09:00Z"
     }
   ],
   "gates": [
@@ -102,7 +105,7 @@
       "closure_candidate_identity": "source:candidate-B",
       "outcome_observation_id": "OBS-2",
       "outcome_decision": "MEETS_TARGET",
-      "release_evidence_ref": "evidence:deployment-candidate-B",
+      "release_evidence_ref": "REL-3",
       "history": [
         {
           "event": "CLOSE",
@@ -111,6 +114,95 @@
           "reason": "Verified post-release outcome OBS-2 on candidate-B."
         }
       ]
+    }
+  ],
+  "changes": [
+    {
+      "id": "CHANGE-1",
+      "owner": "release-engineering",
+      "candidate_identity": "source:candidate-B",
+      "artifact_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "artifact_refs": [
+        ".gitattributes",
+        ".editorconfig",
+        "MANIFEST.json"
+      ],
+      "evidence_refs": [
+        "example:lf-change-review"
+      ]
+    }
+  ],
+  "releases": [
+    {
+      "owner": "release-engineering",
+      "candidate_identity": "source:candidate-B",
+      "artifact_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "decision_ref": "example:distribution-approval",
+      "evidence_refs": [
+        "example:release-ledger"
+      ],
+      "id": "REL-1",
+      "from": "NOT_PUBLISHED",
+      "to": "CANDIDATE",
+      "released_at": "2026-10-16T00:00:00Z",
+      "scope": "BASE"
+    },
+    {
+      "owner": "release-engineering",
+      "candidate_identity": "source:candidate-B",
+      "artifact_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "decision_ref": "example:distribution-approval",
+      "evidence_refs": [
+        "example:release-ledger"
+      ],
+      "id": "REL-2",
+      "from": "CANDIDATE",
+      "to": "PUBLISHED",
+      "released_at": "2026-10-16T00:30:00Z",
+      "limitations": "Illustrative single artifact; product runtime not certified.",
+      "change_ids": [
+        "CHANGE-1"
+      ],
+      "gate_ids": [
+        "GATE-1"
+      ],
+      "deployment": {
+        "candidate_identity": "source:candidate-B",
+        "artifact_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "deployed_at": "2026-10-16T00:30:00Z",
+        "evidence_refs": [
+          "example:deployment-run"
+        ]
+      },
+      "scope": "BASE"
+    },
+    {
+      "owner": "release-engineering",
+      "candidate_identity": "source:candidate-B",
+      "artifact_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "decision_ref": "example:distribution-approval",
+      "evidence_refs": [
+        "example:release-ledger"
+      ],
+      "id": "REL-3",
+      "from": "PUBLISHED",
+      "to": "PROMOTED",
+      "released_at": "2026-10-16T00:40:00Z",
+      "change_ids": [
+        "CHANGE-1"
+      ],
+      "gate_ids": [
+        "GATE-1"
+      ],
+      "deployment": {
+        "candidate_identity": "source:candidate-B",
+        "artifact_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "deployed_at": "2026-10-16T00:30:00Z",
+        "evidence_refs": [
+          "example:deployment-run"
+        ]
+      },
+      "scope": "BASE"
     }
   ]
 }

@@ -347,7 +347,7 @@ def run_negative_suite(root):
     bad['gates'].append(second);bad['feedback'][0]['closure_gate_ids'].append('GATE-2')
     negative_trace('feedback-mixed-gate-artifact',bad,'feedback-mixed-gate-artifact-digests')
     bad=copy.deepcopy(trace)
-    bad['feedback'][0]['history'].append({'event':'REOPEN','at':'2026-10-16T02:00:00Z','actor':'lead','reason':'regression','decision_ref':'decision:reopen-1','prior_closure_evidence_ref':'evidence:deployment-candidate-B'})
+    bad['feedback'][0]['history'].append({'event':'REOPEN','at':'2026-10-16T02:00:00Z','actor':'lead','reason':'regression','decision_ref':'decision:reopen-1','prior_closure_evidence_ref':'REL-3'})
     negative_trace('feedback-reopen-still-closed',bad,'feedback-reopen-not-open')
     bad=copy.deepcopy(trace)
     bad['feedback'][0]['status']='OPEN';bad['feedback'][0]['next_action']='fix regression'
@@ -421,6 +421,36 @@ def run_negative_suite(root):
         bad=json.loads((root/('07_CONTRACTS/examples/'+name+'.example.json')).read_text(encoding='utf-8'));bad[field]=value
         negative_json(name+'-'+field,name+'.schema.json',bad)
     bad=copy.deepcopy(trace);bad['standard_version']='1.8.0';negative_json('stale-contract-version','project-trace.schema.json',bad)
+    for section,field,value,expected in (
+        ('tests','candidate_identity','wrong','feedback-test-candidate-mismatch'),
+        ('tests','artifact_digest','wrong','feedback-test-candidate-mismatch'),
+        ('tests','observed_at','2026-10-16T02:00:00Z','feedback-test-after-gate'),
+        ('changes','candidate_identity','wrong','release-invalid-change'),
+        ('changes','artifact_digest','wrong','release-invalid-change'),
+        ('changes','artifact_refs',[],'release-invalid-change')):
+        bad=copy.deepcopy(trace);bad[section][0][field]=value;negative_trace(section+'-'+field,bad,expected)
+    for field in ('candidate_identity','artifact_digest'):
+        bad=copy.deepcopy(trace);bad['releases'][-1]['deployment'][field]='wrong'
+        negative_trace('deployment-'+field,bad,'release-invalid-deployment')
+    bad=copy.deepcopy(trace);bad['feedback'][0]['release_evidence_ref']='unresolved'
+    negative_trace('unresolved-release',bad,'feedback-unresolved-release')
+    bad=copy.deepcopy(trace);bad['releases'][-1]['deployment']['deployed_at']='2026-10-16T00:05:00Z'
+    negative_trace('deployment-before-gate',bad,'release-gate-order')
+    bad=copy.deepcopy(trace);bad['observations'][1]['observed_at']='2026-10-16T00:20:00Z'
+    negative_trace('outcome-before-deployment',bad,'feedback-outcome-before-deployment')
+    for target in ('NOT_PUBLISHED','CANDIDATE','PUBLISHED'):
+        bad=copy.deepcopy(trace);bad['releases'][-1]['to']=target
+        negative_trace('forbidden-distribution-'+target,bad,'distribution-invalid-transition')
+    bad=copy.deepcopy(trace);bad['releases'][-1]['from']='CANDIDATE'
+    negative_trace('distribution-history-gap',bad,'distribution-invalid-transition')
+    bad=copy.deepcopy(trace);bad['releases'][-1]['gate_ids']=[]
+    negative_trace('promotion-no-gates',bad,'distribution-promotion-without-gates')
+    bad=copy.deepcopy(trace);bad['releases'][-1]['to']='WITHDRAWN'
+    negative_trace('withdrawal-without-obligations',bad,'distribution-withdrawal-without-obligations')
+    bad=copy.deepcopy(trace);bad['releases'][-1]['artifact_digest']='wrong'
+    negative_trace('replacement-bytes-same-candidate',bad,'distribution-candidate-artifact-changed')
+    bad=copy.deepcopy(trace);bad['tests'][0].pop('candidate_identity')
+    negative_json('passed-proof-without-candidate','project-trace.schema.json',bad)
     bad=copy.deepcopy(registry);bad['components'][0].pop('verification')
     negative_json('VERIFIED-without-verification','component-registry.schema.json',bad)
     flaws=[];check_project_registry(bad,flaws);count+=1
@@ -431,6 +461,13 @@ def run_negative_suite(root):
     negative_json('measured-missing-baseline','project-trace.schema.json',bad)
     bad=copy.deepcopy(example_choice);bad['rollback_plan']='   '
     negative_json('adopt-blank-rollback','implementation-choice.schema.json',bad)
+    bad=copy.deepcopy(trace);bad['releases'][0].pop('scope')
+    negative_json('candidate-without-intended-scope','project-trace.schema.json',bad)
+    bad=copy.deepcopy(trace);bad['releases'][-1]['scope']='OTHER'
+    negative_trace('distribution-scope-changed',bad,'distribution-scope-changed')
+    bad=copy.deepcopy(trace)
+    for release in bad['releases']: release['scope']='UNOWNED'
+    negative_trace('promotion-unowned-scope',bad,'distribution-promotion-unowned-scope')
     return count,errors
 
 
