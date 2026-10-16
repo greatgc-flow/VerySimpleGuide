@@ -6,7 +6,7 @@ This is a **logical role map**, not an imposed folder standard:
 project/
   kernel/          # essential CORE
   modules/         # required scope modules
-  extensions/      # optional or milestone capabilities
+  extensions/      # removable boundary; milestone need recorded separately
   adapters/        # external boundary roles, optionally under extensions
   schemas/
   config/

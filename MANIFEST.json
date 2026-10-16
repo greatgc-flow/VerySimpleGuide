@@ -338,8 +338,8 @@
     },
     {
       "path": "04_ASSURANCE/ASSURANCE_CASE_AND_NEGATIVE_TEST.md",
-      "sha256": "277aae5556490dba6b15551d6073eb65bc947f554660d45f25f8ae9bd1ad612e",
-      "size_bytes": 1340,
+      "sha256": "eda45c7bdc86fedb6b7cab826be42df04e8c458eaca03ceb3d52b976493cefa5",
+      "size_bytes": 1615,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": [
@@ -357,16 +357,16 @@
     },
     {
       "path": "04_ASSURANCE/DRIFT_CONTROL.md",
-      "sha256": "de3f237c80e546c876dd3c3dc47c0c61e86f7d09fb98d8857efc8359fa8fe7d9",
-      "size_bytes": 623,
+      "sha256": "ae2cece65b903d88613ae1b87038ac853ae268ef84a1e18104ce55efb6a1b054",
+      "size_bytes": 682,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []
     },
     {
       "path": "04_ASSURANCE/INTERACTION_MATRIX.md",
-      "sha256": "b2d07477b57ee3f3b50ddc8b784bc11ffbdc08750c9e585e39f5c76199559bf8",
-      "size_bytes": 932,
+      "sha256": "247c79c34c77aa6801881685fbe80c298cef9ea2241b740cd7dcb191a2397c6f",
+      "size_bytes": 1022,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []
@@ -381,8 +381,8 @@
     },
     {
       "path": "04_ASSURANCE/TDD_TRACEABILITY.md",
-      "sha256": "87b37f91b812d919c1ce6146e21ba356cb83fff09a7b5f6bd66709826faa1987",
-      "size_bytes": 698,
+      "sha256": "d29774050beeca933d2a87485fba575879646bf47307ccee87fb375173d3f201",
+      "size_bytes": 781,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": [
@@ -415,16 +415,16 @@
     },
     {
       "path": "05_ARCHITECTURE/PROJECT_SKELETON.md",
-      "sha256": "6909614c190dc374d347fa6d85b49a25dbf9a9c319573776fa9d6bcfac310ba7",
-      "size_bytes": 622,
+      "sha256": "c1e0c4921faccdb9cc633faa0498f135a0b87e6b8b9c72fed9c3f2ed2b90de41",
+      "size_bytes": 642,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []
     },
     {
       "path": "05_ARCHITECTURE/SEARCH_MEMORY_CONTEXT.md",
-      "sha256": "fbec15ff57f7ac1ee707c02340c03a326aefc34eba9b6eae12a48c9e5a109c1b",
-      "size_bytes": 907,
+      "sha256": "f9cb60ee536b6998ebd70af62f70a117459d2ef5a7dbde85923d2394065e9a32",
+      "size_bytes": 1154,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []

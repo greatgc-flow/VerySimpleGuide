@@ -1,6 +1,6 @@
 # Search, Memory and Context
 
-- A search index is a `REBUILDABLE` projection, not authoritative source content.
+- A search index qualifies as `REBUILDABLE` only with retained inputs and demonstrated regeneration under [declared equivalence](../02_STANDARD/AUTHORITY_PROJECTION_STANDARD.md). Unavailable external sources require another recovery class and preservation policy; an index containing unique records must preserve that authority.
 - Search scores represent relevance, not truth confidence.
 - Accepted durable memories are `DURABLE_DERIVED` and must retain source references.
 - Derived memory never overwrites original source evidence; supersede/revoke events preserve history.

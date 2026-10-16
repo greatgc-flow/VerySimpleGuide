@@ -1,6 +1,6 @@
 # Required Interaction Matrix
 
-Individually passing features can fail when combined. Review at least these interactions, with a terminal test/gate or justified `N_A`/`DEFERRED` status:
+Individually passing features can fail when combined. Select these interactions by risk, record applicability separately from evidence result, and track postponement under the [coverage standard](../02_STANDARD/LIFECYCLE_COVERAGE_STANDARD.md):
 
 - Authority × projection loss/rebuild; mutation × concurrency; mutation × crash/restart.
 - Retry × uncertain `MAY_HAVE_STARTED`; extension × broken/disabled extension.
