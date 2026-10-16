@@ -1,14 +1,12 @@
 # Compatibility and Migration Standard
 
-`UPS-SCHEMA` owns the current valid shape; `UPS-MIG` owns the state transition from version A to version B.
+UPS-SCHEMA owns the current valid shape; UPS-MIG owns the A→B transition. Public-default cutover is a scoped migration, separate from implementing the replacement:
 
-A public default cutover is **not** synonymous with implementing a replacement. Treat it as its own lifecycle:
-1. Inventory current public behavior and consumers.
-2. Record parity and intentionally different behavior.
-3. Add a side-effect-free selector or rollback route where practical.
-4. Flip the default explicitly.
-5. Run a full public and legacy integration sweep.
-6. Prove rapid recovery or rollback.
-7. Gate deprecation and retirement separately.
+1. Inventory public behavior, consumers, parity and intentional differences.
+2. Prepare a side-effect-free candidate selector and tested rollback/recovery route.
+3. Run the full public and legacy compatibility sweep against the exact proposed candidate, including help/version, machine output, diagnostics, authorization and automation where applicable.
+4. Approve and flip the public default only after required checks pass.
+5. Observe post-cutover outcomes and recover if acceptance fails.
+6. Gate deprecation and [retirement](../03_LIFECYCLE/DEPRECATION_RETIREMENT.md) separately.
 
-Changing the default selector can break many existing public CLI tests even if all new CLI unit tests pass. Always include a compatibility regression gate tied to the exact cutover candidate.
+Candidate-selector tests precede the flip; post-cutover observation does not replace them. Selectors must not silently migrate shared data. See [cutover scope](../03_LIFECYCLE/CUTOVER_ROLLBACK.md) and [release identity](../03_LIFECYCLE/RELEASE_PROMOTION.md).

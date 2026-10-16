@@ -126,8 +126,8 @@
     },
     {
       "path": "02_STANDARD/CLI_STANDARD.md",
-      "sha256": "df541858eb5064260653f9574c83900f6ebc6fe50b378c9a09afb48f2cb10603",
-      "size_bytes": 1632,
+      "sha256": "0b295ef21be084573f39fc98f5e5cee2b0073ab419644fc286baa3fed0ca94ff",
+      "size_bytes": 2117,
       "role": "NORMATIVE_SOURCE",
       "primary_control": "UPS-CLI",
       "related_controls": [
@@ -137,24 +137,24 @@
     },
     {
       "path": "02_STANDARD/COMPATIBILITY_MIGRATION_STANDARD.md",
-      "sha256": "59c2f959e877a5709b681ff5e1ae4932020583e0f1968e509975a16c0c692362",
-      "size_bytes": 797,
+      "sha256": "8f62688cbe871b9e81a7afc4d7a7f4630a9a833702d23c6f272bbc42a1b5968d",
+      "size_bytes": 1051,
       "role": "NORMATIVE_SOURCE",
       "primary_control": "UPS-MIG",
       "related_controls": []
     },
     {
       "path": "02_STANDARD/COMPONENT_BOUNDARY.md",
-      "sha256": "46c309b7108a0e47f3346cdf2cdc4e04adcb455a8eda8439317ca8d123e3b2df",
-      "size_bytes": 1490,
+      "sha256": "29689352c2fd425023f502da9c1825b708e900052c3ceb782c60e7710aee41e5",
+      "size_bytes": 1762,
       "role": "NORMATIVE_SOURCE",
       "primary_control": "UPS-COMP",
       "related_controls": []
     },
     {
       "path": "02_STANDARD/CONFIG_STATE_SCHEMA.md",
-      "sha256": "f6f42b087ff65769da230dd3549e6e7950a1d9f485f7bf6ca835aa1d817673d5",
-      "size_bytes": 1209,
+      "sha256": "f3c5216b0457f7d099cf96d080214a5d13c540744259592fab131d1979b626bc",
+      "size_bytes": 1428,
       "role": "NORMATIVE_SOURCE",
       "primary_control": "UPS-CONFIG",
       "related_controls": [
@@ -164,16 +164,16 @@
     },
     {
       "path": "02_STANDARD/DATA_SAFETY_STANDARD.md",
-      "sha256": "1006ce125550b75c51fe489e7ec746f8f27e1765b043b49fcf593092213c668a",
-      "size_bytes": 1086,
+      "sha256": "17fe3efaf350e423248f86efd1e35b0bfb840c0fda889941bcce5a13718a1a72",
+      "size_bytes": 1683,
       "role": "NORMATIVE_SOURCE",
       "primary_control": "UPS-LAYOUT",
       "related_controls": []
     },
     {
       "path": "02_STANDARD/EXTENSION_PROVIDER_STANDARD.md",
-      "sha256": "dc5a7f2d8754c54efadf205135abac67ec635ff94c63372b7b2e31d5f0fb6f8f",
-      "size_bytes": 1442,
+      "sha256": "65263aafcda2dacb02b266c13bb91e9ce3ab81e4284142de5f40224abc734c03",
+      "size_bytes": 1514,
       "role": "NORMATIVE_SOURCE",
       "primary_control": "UPS-EXT",
       "related_controls": []
@@ -198,8 +198,8 @@
     },
     {
       "path": "02_STANDARD/LIFECYCLE_COVERAGE_STANDARD.md",
-      "sha256": "4cd042bafb3c1366827befec62912ff8d8826f79e60320c77956ba87bfa52eba",
-      "size_bytes": 1552,
+      "sha256": "be9f668486006c650a3136d47fa9474aa23a7cdb244642f43dc03da0bf610779",
+      "size_bytes": 2612,
       "role": "NORMATIVE_SOURCE",
       "primary_control": "UPS-MIG",
       "related_controls": [
@@ -252,8 +252,8 @@
     },
     {
       "path": "02_STANDARD/UNIFIED_STANDARD.md",
-      "sha256": "3f1386ae0b7afddbc351b7290fdac1846b9ffb1e274e8c763ad3b2e0a8536ce2",
-      "size_bytes": 1785,
+      "sha256": "08deff397ec8d7fa09baea9cebe3b87cb70827d12781dc8779885e2a9b69eecc",
+      "size_bytes": 2126,
       "role": "NORMATIVE_SOURCE",
       "primary_control": "UPS-COMP",
       "related_controls": []

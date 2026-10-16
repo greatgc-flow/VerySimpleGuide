@@ -14,4 +14,6 @@ By default scalar, object and array values all use **REPLACE**. `MERGE`, `APPEND
 
 **Recovery class:** `AUTHORITATIVE`, `DURABLE_DERIVED`, `REBUILDABLE`, `EPHEMERAL`, `EXTERNAL`.
 
-Examples: an immutable original record is `DOMAIN_DATA + AUTHORITATIVE`; accepted derived knowledge is `DOMAIN_DATA + DURABLE_DERIVED`; a work/search index is `DOMAIN_DATA + REBUILDABLE`; a context pack is `CACHE + EPHEMERAL`; a remote task handle is `EXTERNAL_REF + EXTERNAL`.
+Every state record has a `name`. `secret` is a separate sensitivity flag; SECRET kind also requires secret handling. [Data safety](DATA_SAFETY_STANDARD.md) defines precedence and preservation.
+
+Examples: an immutable original record is `DOMAIN_DATA + AUTHORITATIVE`; accepted derived knowledge is `DOMAIN_DATA + DURABLE_DERIVED`; a demonstrably regenerable work/search index is `DOMAIN_DATA + REBUILDABLE`; a context pack is `CACHE + EPHEMERAL`; a remote task handle is `EXTERNAL_REF + EXTERNAL`.

@@ -1,6 +1,6 @@
 # Extension, Provider, Adapter and Exporter Standard
 
-Component class and boundary role are **orthogonal**:
+Component class and boundary role are separate dimensions; [component rules](COMPONENT_BOUNDARY.md) constrain classification:
 - `NONE`: no external boundary role.
 - `ADAPTER`: maps an external protocol or model to an internal contract.
 - `PROVIDER`: supplies execution environment or capabilities.

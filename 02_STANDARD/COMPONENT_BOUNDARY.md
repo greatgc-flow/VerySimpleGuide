@@ -8,8 +8,8 @@ The same technology can appear in distinct planes, such as a product runtime pro
 
 ## Component class
 - `CORE`: minimal product identity, essential contracts and authoritative kernel.
-- `MODULE`: first-party capability required by a declared product scope.
-- `EXTENSION`: independently removable/disableable capability which does not break baseline behavior.
+- `MODULE`: first-party capability required by a declared scope, unless it satisfies the EXTENSION boundary contract below.
+- `EXTENSION`: removable/disableable through a published optional boundary, with BASE surviving removal and no Core implementation dependency. This classification takes precedence over MODULE even when a milestone requires the capability; record that requirement in `required_scopes`. BASE must never require an EXTENSION.
 - `GENERATED_VIEW`: derived documentation, index or other view from machine SSOT.
 - `EXTERNAL`: provider, service or runtime outside the product owner boundary.
 
