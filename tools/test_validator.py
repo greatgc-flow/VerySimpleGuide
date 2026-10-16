@@ -392,6 +392,9 @@ def run_negative_suite(root):
     if not flaws: errors.append('negative-test-accepted-invalid:schema-vocabulary-drift')
     bad=copy.deepcopy(guidance);bad['guidance'][0]['stage_ids'].append('IMPLEMENT')
     negative_lifecycle('guidance-stage-unsupported-by-sources','guidance-stage-not-in-sources',gu=bad)
+    bad=copy.deepcopy(invariant_index);bad['invariants'][0]['standard_ref']='04_ASSURANCE/TDD_TRACEABILITY.md'
+    flaws=[];check_invariants(root,std,bad,flaws);count+=1
+    if not any('invariant-nonauthoritative-home' in x for x in flaws): errors.append('negative-test-accepted-invalid:invariant-guide-home')
     return count,errors
 
 

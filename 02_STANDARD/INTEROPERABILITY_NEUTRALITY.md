@@ -15,3 +15,5 @@ Products declare chosen capabilities in an `implementation-choice` record (langu
 
 ## Reference-only technology families
 OpenAPI/AsyncAPI/Protobuf/gRPC; OpenTelemetry; OpenFeature; SLSA/in-toto; CycloneDX/SPDX; WebAssembly/WASI; policy engines; CUE/JSON Schema; containers/VMs/edge/serverless; agent-to-agent and tool-facing protocols are **candidate technologies** only. Product fit must be proven. Do not imply OpenTelemetry, OpenFeature, OpenAPI, Kubernetes, Python, GitHub or any vendor is required.
+
+Normative invariants, default heuristics and examples are separate authority levels. Applicable invariants need versioned governance to change; ordinary alternatives need proportionate rationale. Materially uncertain or risky technology choices need a falsifiable hypothesis, baseline, bounded budget/stop rule and exit plan before an evidence-backed adoption. Technology selection is product-local, never mandated by a general reference tool.

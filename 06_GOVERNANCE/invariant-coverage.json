@@ -32,7 +32,7 @@
     {
       "invariant_id": "maturity_is_orthogonal_to_distribution",
       "primary_control": "UPS-REL",
-      "standard_ref": "03_LIFECYCLE/RELEASE_PROMOTION.md",
+      "standard_ref": "02_STANDARD/OBSERVABILITY_EVIDENCE_STANDARD.md",
       "product_gate_obligation": "maturity-distribution",
       "assurance_level": "DESIGN_COVERED"
     },
@@ -74,14 +74,14 @@
     {
       "invariant_id": "orchestration_must_be_bounded",
       "primary_control": "UPS-TEST",
-      "standard_ref": "04_ASSURANCE/TDD_TRACEABILITY.md",
+      "standard_ref": "02_STANDARD/LIFECYCLE_COVERAGE_STANDARD.md",
       "product_gate_obligation": "bounded-execution",
       "assurance_level": "DESIGN_COVERED"
     },
     {
       "invariant_id": "uncertain_execution_must_not_be_blindly_retried",
       "primary_control": "UPS-TEST",
-      "standard_ref": "04_ASSURANCE/TDD_TRACEABILITY.md",
+      "standard_ref": "02_STANDARD/LIFECYCLE_COVERAGE_STANDARD.md",
       "product_gate_obligation": "uncertain-retry",
       "assurance_level": "DESIGN_COVERED"
     },
@@ -95,14 +95,14 @@
     {
       "invariant_id": "build_once_and_promote_same_artifact",
       "primary_control": "UPS-REL",
-      "standard_ref": "03_LIFECYCLE/RELEASE_PROMOTION.md",
+      "standard_ref": "02_STANDARD/OBSERVABILITY_EVIDENCE_STANDARD.md",
       "product_gate_obligation": "build-once",
       "assurance_level": "DESIGN_COVERED"
     },
     {
       "invariant_id": "blocking_gate_requires_fresh_exact_candidate_pass",
       "primary_control": "UPS-REL",
-      "standard_ref": "03_LIFECYCLE/RELEASE_PROMOTION.md",
+      "standard_ref": "02_STANDARD/OBSERVABILITY_EVIDENCE_STANDARD.md",
       "product_gate_obligation": "candidate-gate-freshness",
       "assurance_level": "DESIGN_COVERED"
     },
@@ -116,7 +116,7 @@
     {
       "invariant_id": "human_views_must_not_drift_from_machine_ssot",
       "primary_control": "UPS-DOC",
-      "standard_ref": "04_ASSURANCE/DRIFT_CONTROL.md",
+      "standard_ref": "02_STANDARD/UNIFIED_STANDARD.md",
       "product_gate_obligation": "view-drift",
       "assurance_level": "DESIGN_COVERED"
     },
@@ -158,14 +158,14 @@
     {
       "invariant_id": "feedback_must_link_observation_to_disposition_and_revisit_or_outcome",
       "primary_control": "UPS-TEST",
-      "standard_ref": "04_ASSURANCE/TDD_TRACEABILITY.md",
+      "standard_ref": "02_STANDARD/LIFECYCLE_COVERAGE_STANDARD.md",
       "product_gate_obligation": "feedback-intake",
       "assurance_level": "DESIGN_COVERED"
     },
     {
       "invariant_id": "accepted_feedback_requires_requirement_test_and_gate_trace",
       "primary_control": "UPS-TEST",
-      "standard_ref": "04_ASSURANCE/TDD_TRACEABILITY.md",
+      "standard_ref": "02_STANDARD/LIFECYCLE_COVERAGE_STANDARD.md",
       "product_gate_obligation": "feedback-req-test-gate",
       "assurance_level": "DESIGN_COVERED"
     },
@@ -179,35 +179,35 @@
     {
       "invariant_id": "general_package_validation_does_not_imply_product_runtime_verified",
       "primary_control": "UPS-TEST",
-      "standard_ref": "04_ASSURANCE/TDD_TRACEABILITY.md",
+      "standard_ref": "02_STANDARD/LIFECYCLE_COVERAGE_STANDARD.md",
       "product_gate_obligation": "assurance-claim-boundary",
       "assurance_level": "DESIGN_COVERED"
     },
     {
       "invariant_id": "technology_choice_is_product_local_not_general_mandated",
       "primary_control": "UPS-COMP",
-      "standard_ref": "01_METHOD/OPEN_TECHNOLOGY_PRINCIPLES.md",
+      "standard_ref": "02_STANDARD/INTEROPERABILITY_NEUTRALITY.md",
       "product_gate_obligation": "technology-neutrality-check",
       "assurance_level": "DESIGN_COVERED"
     },
     {
       "invariant_id": "normative_invariant_and_design_heuristic_are_separate",
       "primary_control": "UPS-DOC",
-      "standard_ref": "01_METHOD/OPEN_TECHNOLOGY_PRINCIPLES.md",
+      "standard_ref": "02_STANDARD/INTEROPERABILITY_NEUTRALITY.md",
       "product_gate_obligation": "invariant-heuristic-separation",
       "assurance_level": "DESIGN_COVERED"
     },
     {
       "invariant_id": "innovative_alternative_has_bounded_falsifiable_evidence_path",
       "primary_control": "UPS-TEST",
-      "standard_ref": "01_METHOD/TECHNOLOGY_EXPLORATION_LOOP.md",
+      "standard_ref": "02_STANDARD/INTEROPERABILITY_NEUTRALITY.md",
       "product_gate_obligation": "innovation-experiment-gate",
       "assurance_level": "DESIGN_COVERED"
     },
     {
       "invariant_id": "control_and_taxonomy_evolution_is_versioned_not_forbidden",
       "primary_control": "UPS-SCHEMA",
-      "standard_ref": "06_GOVERNANCE/EVOLUTION_POLICY.md",
+      "standard_ref": "02_STANDARD/UNIFIED_STANDARD.md",
       "product_gate_obligation": "standard-evolution-review",
       "assurance_level": "DESIGN_COVERED"
     },

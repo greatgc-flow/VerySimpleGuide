@@ -387,7 +387,10 @@ def check_invariants(root, std, index, errors):
     controls = {x['id'] for x in std.get('controls', [])}
     if index.get('standard_version') != VERSION or len(expected) != len(actual) or set(actual)!=set(expected) or len(actual)!=len(set(actual)):
         errors.append('invariant-coverage-incomplete')
+    roles = {x['path']: x.get('role') for x in read_json(root / 'MANIFEST.json')['files']}
     for row in rows:
+        if roles.get(row.get('standard_ref')) not in ('NORMATIVE_SOURCE', 'MACHINE_SSOT'):
+            errors.append('invariant-nonauthoritative-home:' + str(row.get('invariant_id')))
         if row.get('primary_control') not in controls:
             errors.append('invariant-orphan-control:' + str(row.get('invariant_id')))
         gate_ob = row.get('product_gate_obligation')

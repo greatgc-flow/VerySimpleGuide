@@ -21,3 +21,5 @@ Applicable semantic responsibilities are binding; organizing them as fifteen con
 | UPS-DOC | Documentation / SSOT | Machine-to-human views and drift controls |
 
 Reuse an existing Control before adding a new one, but do not force an uncovered responsibility into an unsuitable Control. A demonstrated ownership gap may justify a versioned extension, split or merge using [`EVOLUTION_POLICY.md`](../06_GOVERNANCE/EVOLUTION_POLICY.md).
+
+Human views must be generated from machine SSOT or covered by explicit drift checks before PASS. Contract/control/taxonomy evolution is permitted through an owned, versioned decision with an observed gap, alternatives, migration, conformance fixtures, evidence/security impact and revisit condition; preserve prior records. Invariant rule homes must be MANIFEST NORMATIVE_SOURCE or MACHINE_SSOT artifacts, never explanatory guides.

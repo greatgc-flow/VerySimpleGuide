@@ -1,5 +1,9 @@
 # Design Decisions
 
+## R14 authority consolidation
+
+- Repoint all thirteen explanatory invariant homes into existing standards; guides link to them. Reject nonauthoritative invariant homes rather than making whole guides normative.
+
 ## R14 vocabulary and guidance
 
 - Check duplicated schema vocabulary against canonical lists and guidance applicability against cited source stages. Keep projection reproduction rules only in the authority standard.
