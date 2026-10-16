@@ -14,7 +14,7 @@ Security, quality, reliability, data, finance and user value are cross-cutting c
 - New technology is a hypothesis to evaluate, not a trend to obey.
 
 ## Stage transitions
-The machine authority is [`09_LIFECYCLE/lifecycle-matrix.json`](../09_LIFECYCLE/lifecycle-matrix.json), which specifies twelve stages, ten concerns, normal `next_stages` and uncertainty/failure `revisit_stages`. Learning from retirement may inform a new discovery without falsifying the historical closure record. `N_A` requires applicability rationale; `DEFERRED` requires an owner and trigger; `PASS` requires exact evidence for the declared scope and candidate.
+The machine authority is [`03_LIFECYCLE/lifecycle-matrix.json`](../03_LIFECYCLE/lifecycle-matrix.json), which specifies twelve stages, ten concerns, normal `next_stages` and uncertainty/failure `revisit_stages`. Learning from retirement may inform a new discovery without falsifying the historical closure record. `N_A` requires applicability rationale; `DEFERRED` requires an owner and trigger; `PASS` requires exact evidence for the declared scope and candidate.
 
 **Design closure** means lifecycle coverage, ownership, transitions, schemas and negative tests are defined. **Operational closure** additionally requires field evidence, post-release outcomes, and retirement/data/access obligations as applicable. The General package can assert only the former for its examples.
 

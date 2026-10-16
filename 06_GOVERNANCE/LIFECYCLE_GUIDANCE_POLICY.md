@@ -9,4 +9,4 @@ Fifteen baseline Controls are not a hard cap; use versioned evolution if a real 
 ## Lightweight 120-cell review
 Decide applicability once for twelve stages and ten concerns (22 items). Combine them only as prompts, then specify exceptions in `cell_overrides` with owner, reason, evidence and revisit. If intersection `PASS` cannot be justified precisely, retain `REQUIRED` or `DEFERRED`. Neither stage PASS nor concern PASS automatically certifies a specific intersection.
 
-See [artifact authority](ARTIFACT_AUTHORITY.md), [ownership ledger](artifact-ownership.json), and [applicability example](../09_LIFECYCLE/APPLICABILITY_EXAMPLE.md).
+See [artifact authority](ARTIFACT_AUTHORITY.md), [ownership ledger](artifact-ownership.json), and [applicability example](../03_LIFECYCLE/APPLICABILITY_EXAMPLE.md).

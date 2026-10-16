@@ -8,4 +8,4 @@
 6. Retirement checks external dependencies, user migration and notice, backup retention, lawful deletion, access revocation, decommissioning, residual risks and lessons—according to applicability.
 7. Maintain `next_stages` and `revisit_stages` and never silently turn a failure into success or assert VERIFIED/PROMOTED without candidate-specific evidence.
 
-The 12 stages × 10 concerns form 120 **review questions**, not 120 required test cases. Their SSOT is [`lifecycle-matrix.json`](../09_LIFECYCLE/lifecycle-matrix.json). The validator can prove coverage references and structure; field outcomes require the project's real evidence.
+The 12 stages × 10 concerns form 120 **review questions**, not 120 required test cases. Their SSOT is [`lifecycle-matrix.json`](../03_LIFECYCLE/lifecycle-matrix.json). The validator can prove coverage references and structure; field outcomes require the project's real evidence.

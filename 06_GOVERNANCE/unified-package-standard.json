@@ -215,8 +215,8 @@
   },
   "lifecycle_contract": {
     "model": "12 logical stages x 10 crosscut concerns",
-    "stage_matrix": "09_LIFECYCLE/lifecycle-matrix.json",
-    "product_checklist": "05_TEMPLATES/project-lifecycle.example.json",
+    "stage_matrix": "03_LIFECYCLE/lifecycle-matrix.json",
+    "product_checklist": "07_CONTRACTS/examples/project-lifecycle.example.json",
     "not_a_waterfall": true,
     "stage_applicability_product_local": true,
     "stage_owners_and_exit_required_when_applicable": true,

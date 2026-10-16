@@ -183,6 +183,18 @@
       "related_controls": []
     },
     {
+      "path": "03_LIFECYCLE/12x10_OVERVIEW.md",
+      "role": "GENERATED_VIEW",
+      "primary_control": "UPS-DOC",
+      "related_controls": []
+    },
+    {
+      "path": "03_LIFECYCLE/APPLICABILITY_EXAMPLE.md",
+      "role": "HUMAN_GUIDE",
+      "primary_control": "UPS-DOC",
+      "related_controls": []
+    },
+    {
       "path": "03_LIFECYCLE/CUTOVER_ROLLBACK.md",
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
@@ -207,8 +219,20 @@
       "related_controls": []
     },
     {
+      "path": "03_LIFECYCLE/README.md",
+      "role": "HUMAN_GUIDE",
+      "primary_control": "UPS-DOC",
+      "related_controls": []
+    },
+    {
       "path": "03_LIFECYCLE/RELEASE_PROMOTION.md",
       "role": "HUMAN_GUIDE",
+      "primary_control": "UPS-DOC",
+      "related_controls": []
+    },
+    {
+      "path": "03_LIFECYCLE/lifecycle-matrix.json",
+      "role": "MACHINE_SSOT",
       "primary_control": "UPS-DOC",
       "related_controls": []
     },
@@ -249,126 +273,6 @@
       "related_controls": []
     },
     {
-      "path": "04_SCHEMAS/applicability.schema.json",
-      "role": "MACHINE_SSOT",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "04_SCHEMAS/artifact-ownership.schema.json",
-      "role": "MACHINE_SSOT",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "04_SCHEMAS/catalog-contract.schema.json",
-      "role": "MACHINE_SSOT",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "04_SCHEMAS/component-registry.schema.json",
-      "role": "MACHINE_SSOT",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "04_SCHEMAS/distribution.schema.json",
-      "role": "MACHINE_SSOT",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "04_SCHEMAS/extension-manifest.schema.json",
-      "role": "MACHINE_SSOT",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "04_SCHEMAS/gate-evidence.schema.json",
-      "role": "MACHINE_SSOT",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "04_SCHEMAS/guidance-catalog.schema.json",
-      "role": "MACHINE_SSOT",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "04_SCHEMAS/implementation-choice.schema.json",
-      "role": "MACHINE_SSOT",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "04_SCHEMAS/lifecycle-matrix.schema.json",
-      "role": "MACHINE_SSOT",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "04_SCHEMAS/maturity.schema.json",
-      "role": "MACHINE_SSOT",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "04_SCHEMAS/mutation-contract.schema.json",
-      "role": "MACHINE_SSOT",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "04_SCHEMAS/project-lifecycle.schema.json",
-      "role": "MACHINE_SSOT",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "04_SCHEMAS/project-trace.schema.json",
-      "role": "MACHINE_SSOT",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "04_SCHEMAS/projection-contract.schema.json",
-      "role": "MACHINE_SSOT",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "04_SCHEMAS/protocol-adapter.schema.json",
-      "role": "MACHINE_SSOT",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "04_SCHEMAS/provider-capability.schema.json",
-      "role": "MACHINE_SSOT",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "04_SCHEMAS/reference-catalog.schema.json",
-      "role": "MACHINE_SSOT",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "04_SCHEMAS/standard-evolution.schema.json",
-      "role": "MACHINE_SSOT",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "04_SCHEMAS/state-contract.schema.json",
-      "role": "MACHINE_SSOT",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
       "path": "05_ARCHITECTURE/ANTI_PATTERNS.md",
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
@@ -396,60 +300,6 @@
       "path": "05_ARCHITECTURE/SEARCH_MEMORY_CONTEXT.md",
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
-      "related_controls": []
-    },
-    {
-      "path": "05_TEMPLATES/component-registry.example.json",
-      "role": "EXAMPLE",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "05_TEMPLATES/gate-evidence.example.json",
-      "role": "EXAMPLE",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "05_TEMPLATES/implementation-choice.example.json",
-      "role": "EXAMPLE",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "05_TEMPLATES/interaction-matrix.example.csv",
-      "role": "EXAMPLE",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "05_TEMPLATES/mutation-contract.example.json",
-      "role": "EXAMPLE",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "05_TEMPLATES/project-lifecycle.example.json",
-      "role": "EXAMPLE",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "05_TEMPLATES/project-trace.example.json",
-      "role": "EXAMPLE",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "05_TEMPLATES/protocol-adapter.example.json",
-      "role": "EXAMPLE",
-      "primary_control": "UPS-SCHEMA",
-      "related_controls": []
-    },
-    {
-      "path": "05_TEMPLATES/standard-evolution.example.json",
-      "role": "EXAMPLE",
-      "primary_control": "UPS-SCHEMA",
       "related_controls": []
     },
     {
@@ -567,6 +417,180 @@
       "related_controls": []
     },
     {
+      "path": "07_CONTRACTS/examples/component-registry.example.json",
+      "role": "EXAMPLE",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/examples/gate-evidence.example.json",
+      "role": "EXAMPLE",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/examples/implementation-choice.example.json",
+      "role": "EXAMPLE",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/examples/interaction-matrix.example.csv",
+      "role": "EXAMPLE",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/examples/mutation-contract.example.json",
+      "role": "EXAMPLE",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/examples/project-lifecycle.example.json",
+      "role": "EXAMPLE",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/examples/project-trace.example.json",
+      "role": "EXAMPLE",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/examples/protocol-adapter.example.json",
+      "role": "EXAMPLE",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/examples/standard-evolution.example.json",
+      "role": "EXAMPLE",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/schemas/applicability.schema.json",
+      "role": "MACHINE_SSOT",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/schemas/artifact-ownership.schema.json",
+      "role": "MACHINE_SSOT",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/schemas/catalog-contract.schema.json",
+      "role": "MACHINE_SSOT",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/schemas/component-registry.schema.json",
+      "role": "MACHINE_SSOT",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/schemas/distribution.schema.json",
+      "role": "MACHINE_SSOT",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/schemas/extension-manifest.schema.json",
+      "role": "MACHINE_SSOT",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/schemas/gate-evidence.schema.json",
+      "role": "MACHINE_SSOT",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/schemas/guidance-catalog.schema.json",
+      "role": "MACHINE_SSOT",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/schemas/implementation-choice.schema.json",
+      "role": "MACHINE_SSOT",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/schemas/lifecycle-matrix.schema.json",
+      "role": "MACHINE_SSOT",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/schemas/maturity.schema.json",
+      "role": "MACHINE_SSOT",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/schemas/mutation-contract.schema.json",
+      "role": "MACHINE_SSOT",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/schemas/project-lifecycle.schema.json",
+      "role": "MACHINE_SSOT",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/schemas/project-trace.schema.json",
+      "role": "MACHINE_SSOT",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/schemas/projection-contract.schema.json",
+      "role": "MACHINE_SSOT",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/schemas/protocol-adapter.schema.json",
+      "role": "MACHINE_SSOT",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/schemas/provider-capability.schema.json",
+      "role": "MACHINE_SSOT",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/schemas/reference-catalog.schema.json",
+      "role": "MACHINE_SSOT",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/schemas/standard-evolution.schema.json",
+      "role": "MACHINE_SSOT",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
+      "path": "07_CONTRACTS/schemas/state-contract.schema.json",
+      "role": "MACHINE_SSOT",
+      "primary_control": "UPS-SCHEMA",
+      "related_controls": []
+    },
+    {
       "path": "08_KNOWLEDGE/README.md",
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
@@ -593,30 +617,6 @@
     {
       "path": "08_KNOWLEDGE/references/catalog.json",
       "role": "REFERENCE_CATALOG",
-      "primary_control": "UPS-DOC",
-      "related_controls": []
-    },
-    {
-      "path": "09_LIFECYCLE/12x10_OVERVIEW.md",
-      "role": "GENERATED_VIEW",
-      "primary_control": "UPS-DOC",
-      "related_controls": []
-    },
-    {
-      "path": "09_LIFECYCLE/APPLICABILITY_EXAMPLE.md",
-      "role": "HUMAN_GUIDE",
-      "primary_control": "UPS-DOC",
-      "related_controls": []
-    },
-    {
-      "path": "09_LIFECYCLE/README.md",
-      "role": "HUMAN_GUIDE",
-      "primary_control": "UPS-DOC",
-      "related_controls": []
-    },
-    {
-      "path": "09_LIFECYCLE/lifecycle-matrix.json",
-      "role": "MACHINE_SSOT",
       "primary_control": "UPS-DOC",
       "related_controls": []
     },

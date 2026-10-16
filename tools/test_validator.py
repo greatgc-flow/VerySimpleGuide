@@ -11,7 +11,7 @@ def run_negative_suite(root):
     errors = []
     count = 0
     schemas = load_schemas(root, errors)
-    trace = json.loads((root / '05_TEMPLATES/project-trace.example.json').read_text(encoding='utf-8'))
+    trace = json.loads((root / '07_CONTRACTS/examples/project-trace.example.json').read_text(encoding='utf-8'))
 
     def negative_json(name, schema_name, instance):
         nonlocal count
@@ -42,7 +42,7 @@ def run_negative_suite(root):
     negative_json('PASS-stale', 'gate-evidence.schema.json', {**gate_valid, 'freshness':'STALE'})
     negative_json('PASS-empty-evidence', 'gate-evidence.schema.json', {**gate_valid,'evidence_refs':[]})
     negative_json('PASS-no-digest', 'gate-evidence.schema.json', {k:v for k,v in gate_valid.items() if k!='artifact_digest'})
-    registry=json.loads((root/'05_TEMPLATES/component-registry.example.json').read_text(encoding='utf-8'))
+    registry=json.loads((root/'07_CONTRACTS/examples/component-registry.example.json').read_text(encoding='utf-8'))
     bad=copy.deepcopy(registry);bad['components'][1]['required_scopes']=['BASE']
     negative_json('optional-extension-cannot-be-required-for-base','component-registry.schema.json',bad)
     bad=copy.deepcopy(registry);bad['components'][1]['boundary_roles']=['NONE','PROVIDER']
@@ -71,19 +71,19 @@ def run_negative_suite(root):
         count+=1
         if valid_relative_path(path):errors.append('negative-test-accepted-invalid:unsafe-path:'+path)
     # R10: openness and namespace regression. Strict common fields, permissive namespaced extensions.
-    example_choice=json.loads((root/'05_TEMPLATES/implementation-choice.example.json').read_text(encoding='utf-8'))
+    example_choice=json.loads((root/'07_CONTRACTS/examples/implementation-choice.example.json').read_text(encoding='utf-8'))
     invalid=copy.deepcopy(example_choice);invalid['decision']='INSTANT_ADOPT'
     negative_json('invalid-innovation-decision','implementation-choice.schema.json',invalid)
     invalid=copy.deepcopy(example_choice);invalid['evidence_plan']=''
     negative_json('unfalsifiable-technology-choice','implementation-choice.schema.json',invalid)
     invalid=copy.deepcopy(example_choice);invalid['alternatives']=[]
     negative_json('no-alternative-evaluated','implementation-choice.schema.json',invalid)
-    registry=json.loads((root/'05_TEMPLATES/component-registry.example.json').read_text(encoding='utf-8'))
+    registry=json.loads((root/'07_CONTRACTS/examples/component-registry.example.json').read_text(encoding='utf-8'))
     invalid=copy.deepcopy(registry);invalid['components'][1]['extensions']={'no_namespace':True}
     negative_json('non-namespaced-metadata','component-registry.schema.json',invalid)
     valid_schema_instance(schemas,'component-registry.schema.json',registry)
     valid_schema_instance(schemas,'implementation-choice.schema.json',example_choice)
-    evolution=json.loads((root/'05_TEMPLATES/standard-evolution.example.json').read_text(encoding='utf-8'))
+    evolution=json.loads((root/'07_CONTRACTS/examples/standard-evolution.example.json').read_text(encoding='utf-8'))
     invalid=copy.deepcopy(evolution);invalid['coverage_gap']=''
     negative_json('no-coverage-gap','standard-evolution.schema.json',invalid)
     valid_schema_instance(schemas,'standard-evolution.schema.json',evolution)
@@ -99,10 +99,10 @@ def run_negative_suite(root):
     flaws=[];check_trace(trace,flaws);count+=1
     if flaws:errors.append('positive-trace-rejected:'+repr(flaws))
     # R11: full lifecycle / optional knowledge negative controls.
-    matrix=json.loads((root/'09_LIFECYCLE/lifecycle-matrix.json').read_text(encoding='utf-8'))
+    matrix=json.loads((root/'03_LIFECYCLE/lifecycle-matrix.json').read_text(encoding='utf-8'))
     guidance=json.loads((root/'08_KNOWLEDGE/guidance-catalog.json').read_text(encoding='utf-8'))
     sources=json.loads((root/'08_KNOWLEDGE/references/catalog.json').read_text(encoding='utf-8'))
-    project=json.loads((root/'05_TEMPLATES/project-lifecycle.example.json').read_text(encoding='utf-8'))
+    project=json.loads((root/'07_CONTRACTS/examples/project-lifecycle.example.json').read_text(encoding='utf-8'))
     def negative_lifecycle(name,ma=matrix,gu=guidance,rs=sources,pr=project):
         nonlocal count
         count+=1
@@ -180,7 +180,7 @@ def run_negative_suite(root):
         errors.append('negative-test-accepted-invalid:cross-control-normative-owner')
     bad=copy.deepcopy(ledger);bad['artifacts'].append(copy.deepcopy(bad['artifacts'][0]));flaws=[];check_artifact_ownership(root,std,flaws,bad);count+=1
     if not any('artifact-ownership-duplicate' in x for x in flaws):errors.append('negative-test-accepted-invalid:duplicate-artifact')
-    reg=json.loads((root/'05_TEMPLATES/component-registry.example.json').read_text(encoding='utf-8'))
+    reg=json.loads((root/'07_CONTRACTS/examples/component-registry.example.json').read_text(encoding='utf-8'))
     bad=copy.deepcopy(reg);bad['components'][0]['id']=bad['components'][1]['id'];flaws=[];check_project_registry(bad,flaws);count+=1
     if not any('duplicate-component-id' in x for x in flaws):errors.append('negative-test-accepted-invalid:duplicate-component')
     # Positive project 12+10+cell override.

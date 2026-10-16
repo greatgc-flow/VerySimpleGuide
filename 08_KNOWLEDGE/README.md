@@ -11,4 +11,4 @@ The tool is read-only and does not fetch external web pages. It mirrors displaye
 
 - [`references/catalog.json`](references/catalog.json): authoritative URLs, owner/status and archive/review metadata.
 - [`guidance-catalog.json`](guidance-catalog.json): problem, use/avoid conditions, alternatives, evidence and references.
-- [`lifecycle-matrix.json`](../09_LIFECYCLE/lifecycle-matrix.json): twelve stages and ten concerns; `FOCUS` indicates attention, not mandatory tooling.
+- [`lifecycle-matrix.json`](../03_LIFECYCLE/lifecycle-matrix.json): twelve stages and ten concerns; `FOCUS` indicates attention, not mandatory tooling.

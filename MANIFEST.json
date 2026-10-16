@@ -34,7 +34,7 @@
     },
     {
       "path": "01_METHOD/LIFECYCLE_VALUE_STREAM.md",
-      "sha256": "579610c2ee4202bd9d332c0b362a33afbbaedcc176d8e78bb7bad34af520ccbb",
+      "sha256": "8c2aecda0661bd42b63f52b33503166d1ea769406f01c29c2ea1e2d7a31f1cd6",
       "size_bytes": 2760
     },
     {
@@ -59,7 +59,7 @@
     },
     {
       "path": "01_METHOD/RECURSIVE_MECE.md",
-      "sha256": "3a179951514e9e687deba975b779fdcafc49eee6aa211befdaab493b6df5d724",
+      "sha256": "b52535c449d4660ab1269907f7b176631140e993671e5b17fb840d6c3e901a47",
       "size_bytes": 1812
     },
     {
@@ -119,7 +119,7 @@
     },
     {
       "path": "02_STANDARD/LIFECYCLE_COVERAGE_STANDARD.md",
-      "sha256": "4d1e1f9be5fc6be45df5f050466cfe92d991af99a340e579982b369d0bbed60c",
+      "sha256": "4cd042bafb3c1366827befec62912ff8d8826f79e60320c77956ba87bfa52eba",
       "size_bytes": 1552
     },
     {
@@ -153,6 +153,16 @@
       "size_bytes": 1785
     },
     {
+      "path": "03_LIFECYCLE/12x10_OVERVIEW.md",
+      "sha256": "f1c354c2f13945b272a775a74a3ccce4ba190ef006fb44ce4c9070616577427d",
+      "size_bytes": 3997
+    },
+    {
+      "path": "03_LIFECYCLE/APPLICABILITY_EXAMPLE.md",
+      "sha256": "9a6c38cc062f80f77cc1a72bd966c1d5c84f717564eec02877731469259305e2",
+      "size_bytes": 952
+    },
+    {
       "path": "03_LIFECYCLE/CUTOVER_ROLLBACK.md",
       "sha256": "589395ad8bd40de8e20b65d66cbfaf8322d4eb8e940551bdcfe045c9203c222f",
       "size_bytes": 712
@@ -173,9 +183,19 @@
       "size_bytes": 770
     },
     {
+      "path": "03_LIFECYCLE/README.md",
+      "sha256": "a4173cefa2055f9696c2303a381a4613c34b7804da660cd9bfb8d0bda23da5c2",
+      "size_bytes": 1287
+    },
+    {
       "path": "03_LIFECYCLE/RELEASE_PROMOTION.md",
       "sha256": "ec904c64b7681ce13f2e0bef25ee52364792ee997a892922fd7e1652dba80ef3",
       "size_bytes": 797
+    },
+    {
+      "path": "03_LIFECYCLE/lifecycle-matrix.json",
+      "sha256": "a392fec97a37fa9017d31d873f30f7fd816e38493a89dd6e1345c4a0f764b365",
+      "size_bytes": 14021
     },
     {
       "path": "04_ASSURANCE/ASSURANCE_CASE_AND_NEGATIVE_TEST.md",
@@ -208,106 +228,6 @@
       "size_bytes": 698
     },
     {
-      "path": "04_SCHEMAS/applicability.schema.json",
-      "sha256": "91d6edbe0180b095c406d6aebf3124c95a6ec0d925f8e567b9c4458bd9981f7b",
-      "size_bytes": 836
-    },
-    {
-      "path": "04_SCHEMAS/artifact-ownership.schema.json",
-      "sha256": "993fd642bb8170ee89572735b5064e53fcba6c7d1e77e0d8c4d4dfa4cc803a49",
-      "size_bytes": 1512
-    },
-    {
-      "path": "04_SCHEMAS/catalog-contract.schema.json",
-      "sha256": "9351df343bb4af65d62c89e99a0b93d1294fbd342df83a490e93f54c64cfd693",
-      "size_bytes": 707
-    },
-    {
-      "path": "04_SCHEMAS/component-registry.schema.json",
-      "sha256": "21c533a445785f4f760ece26e102916bf612dfa98b93d8ba6fdaf65ed00d9231",
-      "size_bytes": 3551
-    },
-    {
-      "path": "04_SCHEMAS/distribution.schema.json",
-      "sha256": "a0d8ead39d826176934a832a226bfdbc1bfc2e9c211677aa96bb42df7fa28e8c",
-      "size_bytes": 1685
-    },
-    {
-      "path": "04_SCHEMAS/extension-manifest.schema.json",
-      "sha256": "434d3db34c5b7fcb3ad286b55b712fb6e1bbb255680b35f11f86dbf1d07397a7",
-      "size_bytes": 2138
-    },
-    {
-      "path": "04_SCHEMAS/gate-evidence.schema.json",
-      "sha256": "0cbb020df8dfbe052723e1ad72ebb8283687fcddc9b859c117b3019a63fb30b5",
-      "size_bytes": 1598
-    },
-    {
-      "path": "04_SCHEMAS/guidance-catalog.schema.json",
-      "sha256": "5f09ab00ebf554fc0d4d83e62a40024c0759e9318ff8715a532c388f5d51d757",
-      "size_bytes": 2787
-    },
-    {
-      "path": "04_SCHEMAS/implementation-choice.schema.json",
-      "sha256": "8797cadd89351133582faa3829baab994a40640a79acc826432ef44f4870915b",
-      "size_bytes": 1751
-    },
-    {
-      "path": "04_SCHEMAS/lifecycle-matrix.schema.json",
-      "sha256": "4c4ed08a40046ff476adf5bfbfc60d44223d7cbf424b6211b1966d19b34d2d85",
-      "size_bytes": 2954
-    },
-    {
-      "path": "04_SCHEMAS/maturity.schema.json",
-      "sha256": "260d2398b3c1b31cefd7174c4a1f33519cd3fc4212c0dd56d8d2ccfbc9651634",
-      "size_bytes": 2045
-    },
-    {
-      "path": "04_SCHEMAS/mutation-contract.schema.json",
-      "sha256": "aa9fc3d38a02054c3cfe072534118b44d680c9f76aa66e15b2dae0c92da3a212",
-      "size_bytes": 1005
-    },
-    {
-      "path": "04_SCHEMAS/project-lifecycle.schema.json",
-      "sha256": "68871999e204d0efdfe3061092dfc1cbe5ee6c56ba0cd469d99f7feb08b04ea0",
-      "size_bytes": 6288
-    },
-    {
-      "path": "04_SCHEMAS/project-trace.schema.json",
-      "sha256": "06e091118a4bf6b9c67d565c160e8915225d4355f94566b28342c82e1eb3beae",
-      "size_bytes": 12744
-    },
-    {
-      "path": "04_SCHEMAS/projection-contract.schema.json",
-      "sha256": "99dec66b5d5391ef0fd3291e5c62d281f0ef9d0cffb325fe9f72a563de628a38",
-      "size_bytes": 797
-    },
-    {
-      "path": "04_SCHEMAS/protocol-adapter.schema.json",
-      "sha256": "9043f9979df891bcc24cfc405e6de699c207f165c51489ed3edd19b4c8e799da",
-      "size_bytes": 671
-    },
-    {
-      "path": "04_SCHEMAS/provider-capability.schema.json",
-      "sha256": "2044978efea4900d7a13b2ec6803eb43cec5b39ca229cba9b27f1f2e1af75d93",
-      "size_bytes": 470
-    },
-    {
-      "path": "04_SCHEMAS/reference-catalog.schema.json",
-      "sha256": "70a5c828cf0420155802d0544d7653495814e74471f056e947fe3f5520f369b6",
-      "size_bytes": 2127
-    },
-    {
-      "path": "04_SCHEMAS/standard-evolution.schema.json",
-      "sha256": "ae31cb2e07948f585f44647628395bc9b873f93151fc54eca2f3c5bc5915ebe9",
-      "size_bytes": 1449
-    },
-    {
-      "path": "04_SCHEMAS/state-contract.schema.json",
-      "sha256": "c67213fecb0e0169f8cbdf7ff4349e3457df91fc82d64a48d5587d7c1841f93a",
-      "size_bytes": 1263
-    },
-    {
       "path": "05_ARCHITECTURE/ANTI_PATTERNS.md",
       "sha256": "e71d85937942539f5f63e27586cae4d3e6b969bfc7aab9c79fcbc1ab06725d15",
       "size_bytes": 1091
@@ -331,51 +251,6 @@
       "path": "05_ARCHITECTURE/SEARCH_MEMORY_CONTEXT.md",
       "sha256": "fbec15ff57f7ac1ee707c02340c03a326aefc34eba9b6eae12a48c9e5a109c1b",
       "size_bytes": 907
-    },
-    {
-      "path": "05_TEMPLATES/component-registry.example.json",
-      "sha256": "f85e011f7062dd11a591d6648a6176b82d6335baacf978d779962d281b538942",
-      "size_bytes": 1575
-    },
-    {
-      "path": "05_TEMPLATES/gate-evidence.example.json",
-      "sha256": "8cc87dc3c923136474e80d55cf1366d1f5432ea3cb9649feb7832682ba8d07d6",
-      "size_bytes": 248
-    },
-    {
-      "path": "05_TEMPLATES/implementation-choice.example.json",
-      "sha256": "9687c1af8f806870236fb7fcd8b70576ffa8437bb98b0c77e8d3cfd05b87c72a",
-      "size_bytes": 987
-    },
-    {
-      "path": "05_TEMPLATES/interaction-matrix.example.csv",
-      "sha256": "a8556dbac174deb87cd58fc0f69b303865f2ecc6707f84fdc311daf98df2aa41",
-      "size_bytes": 336
-    },
-    {
-      "path": "05_TEMPLATES/mutation-contract.example.json",
-      "sha256": "5ef5702248f23c071f8125c1e9b8ee9b9438e6ba6fcd9a077d1569af87573c32",
-      "size_bytes": 213
-    },
-    {
-      "path": "05_TEMPLATES/project-lifecycle.example.json",
-      "sha256": "39dab08f32623d1fe561d8ee1fa08254d9793f676b796e0d035b5870a56d7f13",
-      "size_bytes": 5316
-    },
-    {
-      "path": "05_TEMPLATES/project-trace.example.json",
-      "sha256": "3c3efb28422dbf1d8a021c22b9c35704b69a081eaf6249d9406ff8fadcacaccb",
-      "size_bytes": 3146
-    },
-    {
-      "path": "05_TEMPLATES/protocol-adapter.example.json",
-      "sha256": "a8f93c733bdc9d16359ad8c0054e05636c00bb659e4d86ffa19c67ee09643273",
-      "size_bytes": 247
-    },
-    {
-      "path": "05_TEMPLATES/standard-evolution.example.json",
-      "sha256": "5082243588107a3be33fdc951a2f79c846cfd7ccc89870210db3e5d46a465881",
-      "size_bytes": 607
     },
     {
       "path": "06_GOVERNANCE/APPLICABILITY_POLICY.md",
@@ -409,13 +284,13 @@
     },
     {
       "path": "06_GOVERNANCE/LIFECYCLE_GUIDANCE_POLICY.md",
-      "sha256": "4d275fe3156c489717c1ee9a6e60717ade86b68fbabb410374f3f531346f5660",
+      "sha256": "f425c8326ddf6841d5c5573fbbfae844806aaad73727b53b171c0387778c68d1",
       "size_bytes": 1360
     },
     {
       "path": "06_GOVERNANCE/artifact-ownership.json",
-      "sha256": "a0c8fb7e69f964c91acd64cd70bca27122f05ddd32cd7fa796d36cc05484ed8b",
-      "size_bytes": 18725
+      "sha256": "f9f2bdd9ea624cd8e7c4fa9c0e2cf8e5b6fa336e8ee71679c5dc341afe508976",
+      "size_bytes": 19006
     },
     {
       "path": "06_GOVERNANCE/control-coverage.json",
@@ -429,8 +304,8 @@
     },
     {
       "path": "06_GOVERNANCE/unified-package-standard.json",
-      "sha256": "5a717aa6031f42ae5765a9fbf1cfca50af1dc4cf50a190f080ef9dfafdc841aa",
-      "size_bytes": 6346
+      "sha256": "612cbb2d5cc457a03f9d203e40f9790c86e80d5ff9d78bc3c69577209fa8ee7b",
+      "size_bytes": 6355
     },
     {
       "path": "07_AUDIT/BASELINE_VALIDATION_EVIDENCE.txt",
@@ -473,8 +348,153 @@
       "size_bytes": 1992
     },
     {
+      "path": "07_CONTRACTS/examples/component-registry.example.json",
+      "sha256": "f85e011f7062dd11a591d6648a6176b82d6335baacf978d779962d281b538942",
+      "size_bytes": 1575
+    },
+    {
+      "path": "07_CONTRACTS/examples/gate-evidence.example.json",
+      "sha256": "8cc87dc3c923136474e80d55cf1366d1f5432ea3cb9649feb7832682ba8d07d6",
+      "size_bytes": 248
+    },
+    {
+      "path": "07_CONTRACTS/examples/implementation-choice.example.json",
+      "sha256": "9687c1af8f806870236fb7fcd8b70576ffa8437bb98b0c77e8d3cfd05b87c72a",
+      "size_bytes": 987
+    },
+    {
+      "path": "07_CONTRACTS/examples/interaction-matrix.example.csv",
+      "sha256": "a8556dbac174deb87cd58fc0f69b303865f2ecc6707f84fdc311daf98df2aa41",
+      "size_bytes": 336
+    },
+    {
+      "path": "07_CONTRACTS/examples/mutation-contract.example.json",
+      "sha256": "5ef5702248f23c071f8125c1e9b8ee9b9438e6ba6fcd9a077d1569af87573c32",
+      "size_bytes": 213
+    },
+    {
+      "path": "07_CONTRACTS/examples/project-lifecycle.example.json",
+      "sha256": "39dab08f32623d1fe561d8ee1fa08254d9793f676b796e0d035b5870a56d7f13",
+      "size_bytes": 5316
+    },
+    {
+      "path": "07_CONTRACTS/examples/project-trace.example.json",
+      "sha256": "3c3efb28422dbf1d8a021c22b9c35704b69a081eaf6249d9406ff8fadcacaccb",
+      "size_bytes": 3146
+    },
+    {
+      "path": "07_CONTRACTS/examples/protocol-adapter.example.json",
+      "sha256": "a8f93c733bdc9d16359ad8c0054e05636c00bb659e4d86ffa19c67ee09643273",
+      "size_bytes": 247
+    },
+    {
+      "path": "07_CONTRACTS/examples/standard-evolution.example.json",
+      "sha256": "5082243588107a3be33fdc951a2f79c846cfd7ccc89870210db3e5d46a465881",
+      "size_bytes": 607
+    },
+    {
+      "path": "07_CONTRACTS/schemas/applicability.schema.json",
+      "sha256": "91d6edbe0180b095c406d6aebf3124c95a6ec0d925f8e567b9c4458bd9981f7b",
+      "size_bytes": 836
+    },
+    {
+      "path": "07_CONTRACTS/schemas/artifact-ownership.schema.json",
+      "sha256": "993fd642bb8170ee89572735b5064e53fcba6c7d1e77e0d8c4d4dfa4cc803a49",
+      "size_bytes": 1512
+    },
+    {
+      "path": "07_CONTRACTS/schemas/catalog-contract.schema.json",
+      "sha256": "9351df343bb4af65d62c89e99a0b93d1294fbd342df83a490e93f54c64cfd693",
+      "size_bytes": 707
+    },
+    {
+      "path": "07_CONTRACTS/schemas/component-registry.schema.json",
+      "sha256": "21c533a445785f4f760ece26e102916bf612dfa98b93d8ba6fdaf65ed00d9231",
+      "size_bytes": 3551
+    },
+    {
+      "path": "07_CONTRACTS/schemas/distribution.schema.json",
+      "sha256": "a0d8ead39d826176934a832a226bfdbc1bfc2e9c211677aa96bb42df7fa28e8c",
+      "size_bytes": 1685
+    },
+    {
+      "path": "07_CONTRACTS/schemas/extension-manifest.schema.json",
+      "sha256": "434d3db34c5b7fcb3ad286b55b712fb6e1bbb255680b35f11f86dbf1d07397a7",
+      "size_bytes": 2138
+    },
+    {
+      "path": "07_CONTRACTS/schemas/gate-evidence.schema.json",
+      "sha256": "0cbb020df8dfbe052723e1ad72ebb8283687fcddc9b859c117b3019a63fb30b5",
+      "size_bytes": 1598
+    },
+    {
+      "path": "07_CONTRACTS/schemas/guidance-catalog.schema.json",
+      "sha256": "5f09ab00ebf554fc0d4d83e62a40024c0759e9318ff8715a532c388f5d51d757",
+      "size_bytes": 2787
+    },
+    {
+      "path": "07_CONTRACTS/schemas/implementation-choice.schema.json",
+      "sha256": "8797cadd89351133582faa3829baab994a40640a79acc826432ef44f4870915b",
+      "size_bytes": 1751
+    },
+    {
+      "path": "07_CONTRACTS/schemas/lifecycle-matrix.schema.json",
+      "sha256": "4c4ed08a40046ff476adf5bfbfc60d44223d7cbf424b6211b1966d19b34d2d85",
+      "size_bytes": 2954
+    },
+    {
+      "path": "07_CONTRACTS/schemas/maturity.schema.json",
+      "sha256": "260d2398b3c1b31cefd7174c4a1f33519cd3fc4212c0dd56d8d2ccfbc9651634",
+      "size_bytes": 2045
+    },
+    {
+      "path": "07_CONTRACTS/schemas/mutation-contract.schema.json",
+      "sha256": "aa9fc3d38a02054c3cfe072534118b44d680c9f76aa66e15b2dae0c92da3a212",
+      "size_bytes": 1005
+    },
+    {
+      "path": "07_CONTRACTS/schemas/project-lifecycle.schema.json",
+      "sha256": "68871999e204d0efdfe3061092dfc1cbe5ee6c56ba0cd469d99f7feb08b04ea0",
+      "size_bytes": 6288
+    },
+    {
+      "path": "07_CONTRACTS/schemas/project-trace.schema.json",
+      "sha256": "06e091118a4bf6b9c67d565c160e8915225d4355f94566b28342c82e1eb3beae",
+      "size_bytes": 12744
+    },
+    {
+      "path": "07_CONTRACTS/schemas/projection-contract.schema.json",
+      "sha256": "99dec66b5d5391ef0fd3291e5c62d281f0ef9d0cffb325fe9f72a563de628a38",
+      "size_bytes": 797
+    },
+    {
+      "path": "07_CONTRACTS/schemas/protocol-adapter.schema.json",
+      "sha256": "9043f9979df891bcc24cfc405e6de699c207f165c51489ed3edd19b4c8e799da",
+      "size_bytes": 671
+    },
+    {
+      "path": "07_CONTRACTS/schemas/provider-capability.schema.json",
+      "sha256": "2044978efea4900d7a13b2ec6803eb43cec5b39ca229cba9b27f1f2e1af75d93",
+      "size_bytes": 470
+    },
+    {
+      "path": "07_CONTRACTS/schemas/reference-catalog.schema.json",
+      "sha256": "70a5c828cf0420155802d0544d7653495814e74471f056e947fe3f5520f369b6",
+      "size_bytes": 2127
+    },
+    {
+      "path": "07_CONTRACTS/schemas/standard-evolution.schema.json",
+      "sha256": "ae31cb2e07948f585f44647628395bc9b873f93151fc54eca2f3c5bc5915ebe9",
+      "size_bytes": 1449
+    },
+    {
+      "path": "07_CONTRACTS/schemas/state-contract.schema.json",
+      "sha256": "c67213fecb0e0169f8cbdf7ff4349e3457df91fc82d64a48d5587d7c1841f93a",
+      "size_bytes": 1263
+    },
+    {
       "path": "08_KNOWLEDGE/README.md",
-      "sha256": "b3fd6dc93e5e12688835a0a254f2c899aa6aff8b574d9c8a1cd429961d9c8c4a",
+      "sha256": "7f90283d4eaf23913b99e815965043872c443998109c714e1078ac3b1455c653",
       "size_bytes": 951
     },
     {
@@ -498,26 +518,6 @@
       "size_bytes": 7931
     },
     {
-      "path": "09_LIFECYCLE/12x10_OVERVIEW.md",
-      "sha256": "f1c354c2f13945b272a775a74a3ccce4ba190ef006fb44ce4c9070616577427d",
-      "size_bytes": 3997
-    },
-    {
-      "path": "09_LIFECYCLE/APPLICABILITY_EXAMPLE.md",
-      "sha256": "36e3d538f561d419c4d1d48c7e1d3c8c2b5ff73595e9e51c41ef6e4ccc2c8857",
-      "size_bytes": 943
-    },
-    {
-      "path": "09_LIFECYCLE/README.md",
-      "sha256": "a4173cefa2055f9696c2303a381a4613c34b7804da660cd9bfb8d0bda23da5c2",
-      "size_bytes": 1287
-    },
-    {
-      "path": "09_LIFECYCLE/lifecycle-matrix.json",
-      "sha256": "a392fec97a37fa9017d31d873f30f7fd816e38493a89dd6e1345c4a0f764b365",
-      "size_bytes": 14021
-    },
-    {
       "path": "CONTRIBUTING.md",
       "sha256": "ca45ee461b1f1b1c0e004750d5dcd94745fc02aa00dfcf89a1101b9ce1ebe694",
       "size_bytes": 1085
@@ -534,8 +534,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "1efe5c1a971d42d894e870ec30b59c390c54c1bb903554eb324fb9c036c341dc",
-      "size_bytes": 3992
+      "sha256": "3c0b47fc18126c78d281d4ab281c02c61786ef248b9f5e49c1c9eab6a864f5a7",
+      "size_bytes": 4011
     },
     {
       "path": "SECURITY.md",
@@ -544,7 +544,7 @@
     },
     {
       "path": "START_HERE.md",
-      "sha256": "d2dc47ebd2b4364c499ee04e0df02301076b99c9c7eb6afc8c0f40d76b9400b9",
+      "sha256": "8d898898924c61faefcd3a6f8af84a47fd0b45860176fa481d7a31c5454f4ff2",
       "size_bytes": 3375
     },
     {
@@ -559,8 +559,8 @@
     },
     {
       "path": "tools/test_validator.py",
-      "sha256": "cb972376441a57bade915916ac493b699caddd5c3ce6a2ed65a437a106605f9c",
-      "size_bytes": 16244
+      "sha256": "e5481e765b21971946926aa8c8e6dbb3a8010b147d3d4ed32ae3dee65ce187a1",
+      "size_bytes": 16307
     },
     {
       "path": "tools/validate_package.ps1",
@@ -569,8 +569,8 @@
     },
     {
       "path": "tools/validate_package.py",
-      "sha256": "1021014571c84fa79a7fcfec2bf5cbe5a341b6b5878bd9ca20653c06a57ca474",
-      "size_bytes": 35051
+      "sha256": "261c0b4aae731f4444936ecfbd716477858fa715b93bc34a47e5116f5f4f9b38",
+      "size_bytes": 35107
     }
   ]
 }

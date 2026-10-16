@@ -33,4 +33,4 @@ Link **objective and acceptance metric → measured observation → disposition 
 
 Run `python -m pip install -r tools/requirements-validation.txt` and `python tools/validate_package.py --evidence-file .validation/validation_evidence.txt`.
 
-The 12 stages × 10 concerns form an **applicability review space**, not 120 mandatory implementations. Projects normally record 12 stage decisions and 10 concern decisions plus specific cell overrides as necessary. Inspect [artifact ownership](06_GOVERNANCE/ARTIFACT_AUTHORITY.md) and [applicability guidance](09_LIFECYCLE/APPLICABILITY_EXAMPLE.md).
+The 12 stages × 10 concerns form an **applicability review space**, not 120 mandatory implementations. Projects normally record 12 stage decisions and 10 concern decisions plus specific cell overrides as necessary. Inspect [artifact ownership](06_GOVERNANCE/ARTIFACT_AUTHORITY.md) and [applicability guidance](03_LIFECYCLE/APPLICABILITY_EXAMPLE.md).

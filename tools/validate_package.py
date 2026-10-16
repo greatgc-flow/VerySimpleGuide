@@ -141,7 +141,7 @@ def load_schemas(root, errors):
     if Draft202012Validator is None:
         errors.append('missing-dependency:jsonschema>=4.18:' + str(_IMPORT_ERROR))
         return parsed
-    for path in sorted((root / '04_SCHEMAS').glob('*.schema.json')):
+    for path in sorted((root / '07_CONTRACTS/schemas').glob('*.schema.json')):
         try:
             schema = read_json(path)
             Draft202012Validator.check_schema(schema)
@@ -192,7 +192,7 @@ def check_examples(root, schemas, errors):
     }
     for name, schema_name in examples.items():
         try:
-            valid_schema_instance(schemas, schema_name, read_json(root / '05_TEMPLATES'/name))
+            valid_schema_instance(schemas, schema_name, read_json(root / '07_CONTRACTS/examples'/name))
         except (ValueError, KeyError, ValidationError, OSError, json.JSONDecodeError) as exc:
             errors.append('invalid-example:' + name + ':' + str(exc)[:180])
 
@@ -304,9 +304,9 @@ def check_artifact_ownership(root, std, errors, ledger_override=None):
         if rpath not in actual:
             errors.append('artifact-unknown-path:'+str(rpath))
     for must,role in [('06_GOVERNANCE/unified-package-standard.json','MACHINE_SSOT'),
-                      ('09_LIFECYCLE/lifecycle-matrix.json','MACHINE_SSOT'),
-                      ('09_LIFECYCLE/12x10_OVERVIEW.md','GENERATED_VIEW'),
-                      ('04_SCHEMAS/project-lifecycle.schema.json','MACHINE_SSOT')]:
+                      ('03_LIFECYCLE/lifecycle-matrix.json','MACHINE_SSOT'),
+                      ('03_LIFECYCLE/12x10_OVERVIEW.md','GENERATED_VIEW'),
+                      ('07_CONTRACTS/schemas/project-lifecycle.schema.json','MACHINE_SSOT')]:
         match=[x for x in records if x.get('path')==must]
         if not match or match[0].get('role')!=role:
             errors.append('artifact-authority-role-mismatch:'+must)
@@ -548,7 +548,7 @@ def check_all(root):
         std = read_json(root / '06_GOVERNANCE/unified-package-standard.json')
         coverage = read_json(root / '06_GOVERNANCE/control-coverage.json')
         invariants = read_json(root / '06_GOVERNANCE/invariant-coverage.json')
-        trace = read_json(root / '05_TEMPLATES/project-trace.example.json')
+        trace = read_json(root / '07_CONTRACTS/examples/project-trace.example.json')
         semantic_lint(root, std, errors)
         check_controls(root, std, coverage, errors)
         check_invariants(root, std, invariants, errors)
@@ -560,13 +560,13 @@ def check_all(root):
             except (ValueError,KeyError,ValidationError,OSError,json.JSONDecodeError) as exc:
                 errors.append('invalid-artifact-ownership-schema:'+str(exc)[:180])
             check_examples(root, schemas, errors)
-            check_project_registry(read_json(root / '05_TEMPLATES/component-registry.example.json'),errors)
+            check_project_registry(read_json(root / '07_CONTRACTS/examples/component-registry.example.json'),errors)
             if not errors or all(not x.startswith('invalid-example') for x in errors):
                 check_trace(trace, errors)
-            models=[('09_LIFECYCLE/lifecycle-matrix.json','lifecycle-matrix.schema.json'),
+            models=[('03_LIFECYCLE/lifecycle-matrix.json','lifecycle-matrix.schema.json'),
                     ('08_KNOWLEDGE/guidance-catalog.json','guidance-catalog.schema.json'),
                     ('08_KNOWLEDGE/references/catalog.json','reference-catalog.schema.json'),
-                    ('05_TEMPLATES/project-lifecycle.example.json','project-lifecycle.schema.json')]
+                    ('07_CONTRACTS/examples/project-lifecycle.example.json','project-lifecycle.schema.json')]
             instances=[]
             for rel, schema in models:
                 data=read_json(root / rel)
@@ -574,7 +574,7 @@ def check_all(root):
                 except (ValueError,KeyError,ValidationError) as exc: errors.append('invalid-lifecycle-model:'+rel+':'+str(exc)[:180])
                 instances.append(data)
             check_lifecycle_models(*instances,std.get('controls',[]),errors)
-            if (root/'09_LIFECYCLE/12x10_OVERVIEW.md').read_text(encoding='utf-8') != generated_lifecycle_overview(instances[0]): errors.append('lifecycle-human-view-drift')
+            if (root/'03_LIFECYCLE/12x10_OVERVIEW.md').read_text(encoding='utf-8') != generated_lifecycle_overview(instances[0]): errors.append('lifecycle-human-view-drift')
     except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
         errors.append('validation-runtime:'+str(exc)[:250])
     return errors
@@ -604,7 +604,7 @@ def main(argv=None):
                 if typ == 'project_trace': check_trace(data,local_errors)
                 if typ == 'project_registry': check_project_registry(data,local_errors)
                 if typ == 'project_lifecycle':
-                    mat=read_json(ROOT/'09_LIFECYCLE/lifecycle-matrix.json')
+                    mat=read_json(ROOT/'03_LIFECYCLE/lifecycle-matrix.json')
                     check_project_lifecycle(data,{x['id'] for x in mat['stages']},{x['id'] for x in mat['concerns']},local_errors)
             except (OSError, ValueError, KeyError, ValidationError, json.JSONDecodeError) as exc:
                 local_errors.append(typ + '-invalid:' + str(exc)[:200])

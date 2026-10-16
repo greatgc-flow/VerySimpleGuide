@@ -17,7 +17,7 @@ This repository generalizes proven design, testing, delivery and operating lesso
 The eight orthogonal classification axes, 15 baseline controls, component and state ownership, authority versus projections, optional extensions and provider contracts, defensive mutations, public-interface compatibility, bounded orchestration, release identity, evidence, field reality gates and retirement. The lifecycle guide spans 12 logical stages and 10 independent cross-cutting concerns. Optional engineering guidance and authoritative references are pulled on demand rather than loaded wholesale.
 
 ## Quick start
-Read [START_HERE.md](START_HERE.md), [Unified Standard](02_STANDARD/UNIFIED_STANDARD.md), [Lifecycle Value Stream](01_METHOD/LIFECYCLE_VALUE_STREAM.md) and the [Optional Knowledge Catalog](08_KNOWLEDGE/README.md). Example JSON payloads in `05_TEMPLATES` are illustrative: do not treat their invented IDs or sample PASS labels as real evidence.
+Read [START_HERE.md](START_HERE.md), [Unified Standard](02_STANDARD/UNIFIED_STANDARD.md), [Lifecycle Value Stream](01_METHOD/LIFECYCLE_VALUE_STREAM.md) and the [Optional Knowledge Catalog](08_KNOWLEDGE/README.md). Example JSON payloads in `07_CONTRACTS/examples` are illustrative: do not treat their invented IDs or sample PASS labels as real evidence.
 
 ### Validate this repository
 ```bash
@@ -42,7 +42,7 @@ python tools/validate_package.py \
 **Important:** a passing structural/semantic validation is not proof that external CI runs, operating conditions, security controls, data recovery or user outcomes were independently validated. Projects must supply their own real evidence and blocking gates.
 
 ## Repository navigation
-`01_METHOD` contains objectives and loops; `02_STANDARD` defines contracts; `03_LIFECYCLE` defines transitions and release; `04_ASSURANCE` defines evidence and negative verification; `04_SCHEMAS` defines JSON contracts; `05_ARCHITECTURE` and `05_TEMPLATES` contain decisions and examples; `06_GOVERNANCE` contains single ownership and evolution; `07_AUDIT` contains dated design audits; `08_KNOWLEDGE` holds optional guidance and source links; `09_LIFECYCLE` contains the 12×10 review space; `tools` holds the reference validator.
+`01_METHOD` contains objectives and loops; `02_STANDARD` defines contracts; `03_LIFECYCLE` defines transitions, release, and the 12×10 review space; `04_ASSURANCE` defines evidence and negative verification; `05_ARCHITECTURE` contains decisions; `06_GOVERNANCE` contains single ownership and evolution; `07_AUDIT` contains dated design audits; `07_CONTRACTS` defines JSON schemas (`07_CONTRACTS/schemas`) and examples (`07_CONTRACTS/examples`); `08_KNOWLEDGE` holds optional guidance and source links; `tools` holds the reference validator.
 
 ## Licensing and external materials
 Original content and reference tooling in this repository are distributed under [Apache License 2.0](LICENSE). Linked external guides retain their own terms and are *not* relicensed or reproduced here. The guide does not prescribe a programming language, cloud, toolchain or development methodology.
