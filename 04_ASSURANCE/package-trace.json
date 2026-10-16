@@ -29,11 +29,11 @@
         "UPS-DOC"
       ],
       "product_gate_obligations": [
-        "R14-LOCAL",
+        "R14-PREMERGE",
         "R14-CI"
       ],
-      "result": "NOT_EVALUATED",
-      "pending_decision_ref": "decision:r14-await-required-ci-and-deployed-outcome"
+      "result": "PASS",
+      "candidate_identity": "git:a21c98862c1dd1f9b265366db67dcbcdf4eb06ce"
     }
   ],
   "tests": [
@@ -51,17 +51,37 @@
         "file:.validation/mece-series/07-validation.txt",
         "snapshot:sha256(sorted(path + NUL + file_sha256 + LF)); excludes MANIFEST and this trace to avoid self-reference"
       ]
+    },
+    {
+      "id": "R14-PREMERGE",
+      "requirement_ids": [
+        "R14-COVERAGE"
+      ],
+      "status": "PASS",
+      "candidate_identity": "git:a21c98862c1dd1f9b265366db67dcbcdf4eb06ce",
+      "artifact_digest": "git-tree-sha1:e1c5245bc209d461cec7470f001694a36d5475c3",
+      "observed_at": "2026-10-16T13:16:17Z",
+      "evidence_refs": [
+        "https://github.com/greatgc-flow/VerySimpleGuide/actions/runs/38906499743",
+        "https://github.com/greatgc-flow/VerySimpleGuide/actions/runs/38906509043",
+        "binding:pre-merge deb6cda58ece15bc6cb4af29011300db2d8de974 and released a21c98862c1dd1f9b265366db67dcbcdf4eb06ce have identical Git tree e1c5245bc209d461cec7470f001694a36d5475c3; candidate_identity names the release target, not the commit checked out by pre-merge CI",
+        "execution:Validate guide; ubuntu-latest and windows-latest; --require-fs-tests; successful completion at 13:16:09Z (branch push) and 13:16:17Z (PR), 2026-10-16"
+      ],
+      "accepted_red_exception_ref": "decision:r14-red-exception-greatgc-flow-2026-10-16"
     }
   ],
   "gates": [
     {
       "gate_id": "R14-CI",
-      "candidate_identity": "workspace:refactor/r14-mece",
-      "artifact_digest": "sha256:5abef632135a0861bdadfbe818139b14a3c653651a0e0f66f5d96565951ced40",
-      "status": "PENDING",
-      "observed_at": "2026-10-16T12:07:34Z",
+      "candidate_identity": "git:a21c98862c1dd1f9b265366db67dcbcdf4eb06ce",
+      "artifact_digest": "git-tree-sha1:e1c5245bc209d461cec7470f001694a36d5475c3",
+      "status": "PASS",
+      "observed_at": "2026-10-16T13:17:56Z",
       "freshness": "FRESH",
-      "evidence_refs": []
+      "evidence_refs": [
+        "https://github.com/greatgc-flow/VerySimpleGuide/actions/runs/38906716830",
+        "execution:Validate guide main push; ubuntu-latest and windows-latest; --require-fs-tests; completed success"
+      ]
     }
   ],
   "observations": [
@@ -78,6 +98,22 @@
       "finding": "Vertical/horizontal audits accepted missing proof bindings and incomplete feedback; R13 simplification left the package validating example work rather than its own improvement.",
       "metric_id": "R14-FITNESS",
       "evaluation": "MISSES_TARGET"
+    },
+    {
+      "id": "R14-DEPLOYED-OUTCOME",
+      "kind": "POST_RELEASE_OUTCOME",
+      "candidate_identity": "git:a21c98862c1dd1f9b265366db67dcbcdf4eb06ce",
+      "observed_at": "2026-10-16T13:21:12Z",
+      "evidence_refs": [
+        "https://github.com/greatgc-flow/VerySimpleGuide/releases/tag/v1.9.0",
+        "https://github.com/greatgc-flow/VerySimpleGuide/actions/runs/38906499743",
+        "https://github.com/greatgc-flow/VerySimpleGuide/actions/runs/38906509043",
+        "https://github.com/greatgc-flow/VerySimpleGuide/actions/runs/38906716830",
+        "user-supplied:2026-10-16 post-deployment local live test, cx mutation probes and fresh-session independent review"
+      ],
+      "finding": "Evidence received at observed_at; local measurements are dated 2026-10-16 after deployment, with no exact measurement time supplied. PR #1 merged 0ac4eff (R13) and PR #2 merged a21c988 (R14) on main without squash. Validate guide passed on ubuntu-latest and windows-latest for branch push 38906499743, PR 38906509043 and main push 38906716830 (completed success, 2026-10-16T13:17Z; minute precision). Tag v1.9.0 identifies a21c988; GitHub Release published/deployed 2026-10-16T13:19:07Z. Post-deployment full validation: 261 checks PASS; five runs 2.20-2.30 s, average 2.25 s, identical stdout and evidence-file hashes. Fresh Windows clone: PASS in 2.63 s, 0 dirty files; reseal idempotent (101 files, 0 changed); manifest byte-identical between clone and repo. cx mutation probes: 33/33 detected (zero accepted bypass probes). Independent fresh-session review: PROBES_FIXED=9/9, NEW_HM=0, MECE_VERDICT=COMPLETE_WITH_DOCUMENTED_RESIDUALS. These results and required CI satisfy the existing R14-FITNESS target; timing and determinism are supplemental observations, not new targets. Same-candidate reinstatement remains the documented limitation. This observation does not supply pre-gate RED evidence or an approved RED exception.",
+      "metric_id": "R14-FITNESS",
+      "evaluation": "MEETS_TARGET"
     }
   ],
   "feedback": [
@@ -86,19 +122,37 @@
       "observation_id": "R13-R14-AUDIT",
       "owner": "repository-maintainer",
       "priority": "P1",
-      "status": "IN_PROGRESS",
+      "status": "CLOSED",
       "disposition": "ACCEPT",
-      "rationale": "Apply the agreed amendments in seven independently checked themes; preserve fifteen controls and reuse existing records.",
-      "decision_ref": "decision:r14-agreed-triage",
+      "rationale": "Apply the agreed amendments in seven independently checked themes; preserve fifteen controls and reuse existing records. Owner-approved RED exception: approver greatgc-flow; approval date 2026-10-16; explicit project-owner decision in this session. R14 added validator rules, so pre-change RED runs were not captured. Substitute evidence: mutation probes disabling each rule make its rejection fixture fail, 33/33 detected and independently re-run in cx review sessions, plus 9/9 independently reproduced review probes. Exception scope is missing pre-change RED captures; retain the documented same-candidate reinstatement risk and revisit conditions.",
+      "decision_ref": "decision:r14-red-exception-greatgc-flow-2026-10-16",
       "requirement_ids": [
         "R14-COVERAGE"
       ],
       "test_ids": [
-        "R14-LOCAL"
+        "R14-PREMERGE"
       ],
-      "next_action": "Review/apply .validation/mece-series/07-package-self-review.cumulative.patch; record actual commit/PR and required CI run refs, deployment, then measured outcome before CLOSE.",
-      "revisit_trigger": "Any rejected regression fixture, skipped applicable CI filesystem defense, invalidated evidence or later target miss returns work to the affected theme.",
-      "history": []
+      "revisit_trigger": "Any rejected regression fixture, skipped applicable CI filesystem defense, invalidated evidence or later target miss returns work to the affected theme. Revisit at the next version/release, ag lens review, or any work involving the documented same-candidate reinstatement limitation.",
+      "history": [
+        {
+          "event": "CLOSE",
+          "at": "2026-10-16T13:26:34Z",
+          "actor": "greatgc-flow",
+          "reason": "Close on v1.9.0 (a21c988): pre-merge tests prove the identical released tree, main CI passed before deployment, and R14-DEPLOYED-OUTCOME meets the unchanged R14-FITNESS target. RED exception approved by the project owner on 2026-10-16 in this session.",
+          "decision_ref": "decision:r14-red-exception-greatgc-flow-2026-10-16",
+          "closure_evidence_ref": "R14-V1.9.0",
+          "observation_ids": [
+            "R14-DEPLOYED-OUTCOME"
+          ]
+        }
+      ],
+      "closure_gate_ids": [
+        "R14-CI"
+      ],
+      "closure_candidate_identity": "git:a21c98862c1dd1f9b265366db67dcbcdf4eb06ce",
+      "outcome_observation_id": "R14-DEPLOYED-OUTCOME",
+      "outcome_decision": "MEETS_TARGET",
+      "release_evidence_ref": "R14-V1.9.0"
     }
   ],
   "changes": [
@@ -118,7 +172,75 @@
         "CHANGELOG.md",
         "file:.validation/mece-series/07-package-self-review.cumulative.patch"
       ]
+    },
+    {
+      "id": "R14-MERGED",
+      "owner": "repository-maintainer",
+      "candidate_identity": "git:a21c98862c1dd1f9b265366db67dcbcdf4eb06ce",
+      "artifact_digest": "git-tree-sha1:e1c5245bc209d461cec7470f001694a36d5475c3",
+      "artifact_refs": [
+        "tools/validate_package.py",
+        "tools/test_validator.py",
+        ".github/workflows/validate.yml",
+        "07_CONTRACTS/schemas/project-trace.schema.json",
+        "CHANGELOG.md"
+      ],
+      "evidence_refs": [
+        "https://github.com/greatgc-flow/VerySimpleGuide/pull/1",
+        "https://github.com/greatgc-flow/VerySimpleGuide/commit/0ac4eff",
+        "https://github.com/greatgc-flow/VerySimpleGuide/pull/2",
+        "https://github.com/greatgc-flow/VerySimpleGuide/commit/a21c98862c1dd1f9b265366db67dcbcdf4eb06ce",
+        "https://github.com/greatgc-flow/VerySimpleGuide/releases/tag/v1.9.0",
+        "https://github.com/greatgc-flow/VerySimpleGuide/actions/runs/38906499743",
+        "https://github.com/greatgc-flow/VerySimpleGuide/actions/runs/38906509043",
+        "https://github.com/greatgc-flow/VerySimpleGuide/actions/runs/38906716830"
+      ]
     }
   ],
-  "releases": []
+  "releases": [
+    {
+      "owner": "greatgc-flow",
+      "candidate_identity": "git:a21c98862c1dd1f9b265366db67dcbcdf4eb06ce",
+      "artifact_digest": "git-tree-sha1:e1c5245bc209d461cec7470f001694a36d5475c3",
+      "scope": "PACKAGE",
+      "id": "R14-MERGE-CANDIDATE",
+      "from": "NOT_PUBLISHED",
+      "to": "CANDIDATE",
+      "released_at": "2026-10-16T13:17:24Z",
+      "decision_ref": "https://github.com/greatgc-flow/VerySimpleGuide/pull/2",
+      "evidence_refs": [
+        "https://github.com/greatgc-flow/VerySimpleGuide/pull/2",
+        "https://github.com/greatgc-flow/VerySimpleGuide/commit/a21c98862c1dd1f9b265366db67dcbcdf4eb06ce"
+      ]
+    },
+    {
+      "owner": "greatgc-flow",
+      "candidate_identity": "git:a21c98862c1dd1f9b265366db67dcbcdf4eb06ce",
+      "artifact_digest": "git-tree-sha1:e1c5245bc209d461cec7470f001694a36d5475c3",
+      "scope": "PACKAGE",
+      "id": "R14-V1.9.0",
+      "from": "CANDIDATE",
+      "to": "PUBLISHED",
+      "released_at": "2026-10-16T13:19:07Z",
+      "decision_ref": "https://github.com/greatgc-flow/VerySimpleGuide/releases/tag/v1.9.0",
+      "evidence_refs": [
+        "https://github.com/greatgc-flow/VerySimpleGuide/releases/tag/v1.9.0"
+      ],
+      "change_ids": [
+        "R14-MERGED"
+      ],
+      "gate_ids": [
+        "R14-CI"
+      ],
+      "limitations": "Same-candidate reinstatement remains limited as documented in CHANGELOG.md; RED exception is owner-approved under decision:r14-red-exception-greatgc-flow-2026-10-16.",
+      "deployment": {
+        "candidate_identity": "git:a21c98862c1dd1f9b265366db67dcbcdf4eb06ce",
+        "artifact_digest": "git-tree-sha1:e1c5245bc209d461cec7470f001694a36d5475c3",
+        "deployed_at": "2026-10-16T13:19:07Z",
+        "evidence_refs": [
+          "https://github.com/greatgc-flow/VerySimpleGuide/releases/tag/v1.9.0"
+        ]
+      }
+    }
+  ]
 }

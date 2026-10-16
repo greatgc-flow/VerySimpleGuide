@@ -565,6 +565,8 @@ def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=
         flaws=[];check_package_trace(root,bad,flaws);count+=1
         if not any(expected in x for x in flaws): errors.append('negative-test-accepted-invalid:actual-package-'+mutation)
     bad=copy.deepcopy(actual);bad['feedback'][0]['status']='CLOSED'
+    bad['feedback'][0].pop('outcome_observation_id', None)
+    for release in bad['releases']: release.pop('deployment', None)
     negative_json('package-closure-without-deployment-and-outcome','project-trace.schema.json',bad)
     return count,errors
 

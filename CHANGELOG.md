@@ -2,6 +2,7 @@
 
 ## R14 MECE and loop closure
 
+- Close the v1.9.0 package trace with CI, deployment, measured outcome and an owner-approved RED exception.
 - Bind evidence to the candidate; retain all controls without merging them or adding a blanket rule-ID registry. Enforce B2 selected-interaction obligations and report test skips honestly.
 - Known limitation (M): Same-candidate reinstatement with fresh gate IDs conflicts with historical promotion obligations; rebinding requirements invalidates earlier promotions. Until historical assessment binding is supported, preserve prior records and use a new candidate identity with fresh requirements, tests and gates, even for unchanged bytes. Never rewrite executed evidence.
 
