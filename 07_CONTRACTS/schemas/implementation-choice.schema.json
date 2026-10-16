@@ -1,5 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/verysimple/implementation-choice/1.7",
   "type": "object",
   "additionalProperties": false,
   "required": [

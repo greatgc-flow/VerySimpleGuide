@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "vs://schema/component-registry/1.4",
+  "$id": "https://example.invalid/verysimple/component-registry/1.7",
   "type": "object",
   "required": [
     "standard_version",

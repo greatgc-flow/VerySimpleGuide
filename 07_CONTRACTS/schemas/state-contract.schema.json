@@ -1,17 +1,33 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "vs://schema/state-contract/1.4",
+  "$id": "https://example.invalid/verysimple/state-contract/1.7",
+  "title": "State Ownership and Sensitivity Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "states"
+  ],
+  "properties": {
+    "states": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/state"
+      }
+    }
+  },
   "$defs": {
     "state": {
       "type": "object",
       "required": [
+        "name",
         "kind",
         "recovery_class"
       ],
       "additionalProperties": false,
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "kind": {
           "enum": [
@@ -45,21 +61,31 @@
           ]
         },
         "secret": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Orthogonal sensitivity flag across all state kinds. Precedence: secret=true (or kind=SECRET) enforces encryption, redaction, and backup exclusion/protection over permissive defaults of any kind or recovery_class."
         }
-      }
-    }
-  },
-  "type": "object",
-  "required": [
-    "states"
-  ],
-  "properties": {
-    "states": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/state"
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "SECRET"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "secret": {
+                "const": true
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }

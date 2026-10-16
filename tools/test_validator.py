@@ -86,6 +86,13 @@ def run_negative_suite(root):
     registry=json.loads((root/'07_CONTRACTS/examples/component-registry.example.json').read_text(encoding='utf-8'))
     invalid=copy.deepcopy(registry);invalid['components'][1]['extensions']={'no_namespace':True}
     negative_json('non-namespaced-metadata','component-registry.schema.json',invalid)
+    invalid=copy.deepcopy(registry);invalid['components'][0]['state_ownership'][0].pop('name',None)
+    negative_json('state-without-name','component-registry.schema.json',invalid)
+    invalid=copy.deepcopy(registry);invalid['components'][0]['state_ownership'][0]['kind']='SECRET';invalid['components'][0]['state_ownership'][0]['secret']=False
+    negative_json('secret-kind-with-false-flag','component-registry.schema.json',invalid)
+    invalid_std=copy.deepcopy(std);invalid_std['rogue_root_key']=True
+    negative_json('unified-standard-reject-unknown-field','unified-package-standard.schema.json',invalid_std)
+    valid_schema_instance(schemas,'unified-package-standard.schema.json',std)
     valid_schema_instance(schemas,'component-registry.schema.json',registry)
     valid_schema_instance(schemas,'implementation-choice.schema.json',example_choice)
     evolution=json.loads((root/'07_CONTRACTS/examples/standard-evolution.example.json').read_text(encoding='utf-8'))

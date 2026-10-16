@@ -132,6 +132,11 @@ def load_schemas(root, errors):
         try:
             schema = read_json(path)
             Draft202012Validator.check_schema(schema)
+            expected_id = f"https://example.invalid/verysimple/{path.name[:-len('.schema.json')]}/{VERSION[:3]}"
+            if schema.get('$id') != expected_id:
+                errors.append('schema-id-mismatch:' + path.name)
+            if schema.get('additionalProperties') is not False:
+                errors.append('schema-missing-additional-properties-false:' + path.name)
             parsed[path.name] = schema
         except (SchemaError, json.JSONDecodeError, OSError) as exc:
             errors.append('invalid-json-schema:' + path.name + ':' + str(exc)[:200])
@@ -157,6 +162,9 @@ def local_refs(schema, schemas):
             if fragment:
                 for part in fragment.strip('/').split('/'):
                     target = target[part]
+            else:
+                target.pop('$schema', None)
+                target.pop('$id', None)
             return walk(target)
         return {k: walk(value) for k,value in obj.items()}
     return walk(v)
@@ -220,7 +228,8 @@ def check_invariants(root, std, index, errors):
     for row in rows:
         if row.get('primary_control') not in controls:
             errors.append('invariant-orphan-control:' + str(row.get('invariant_id')))
-        if not row.get('product_gate_obligation'):
+        gate_ob = row.get('product_gate_obligation')
+        if not isinstance(gate_ob, str) or not gate_ob or ' ' in gate_ob or gate_ob != gate_ob.lower():
             errors.append('invariant-without-gate-obligation:' + str(row.get('invariant_id')))
         try:
             if not safe_target(root,row.get('standard_ref','')).is_file():
@@ -285,8 +294,13 @@ def check_artifact_ownership(root, std, errors, ledger_override=None):
             standard_claims.setdefault(referenced_path,set()).add(owner.get('control_id'))
     for row in records:
         name=row.get('path','')
-        if name.startswith('02_STANDARD/') and row.get('primary_control') not in standard_claims.get(name,set()):
-            errors.append('artifact-primary-standard-control-mismatch:'+name)
+        if name.startswith('02_STANDARD/'):
+            claimed = standard_claims.get(name, set())
+            if row.get('primary_control') not in claimed:
+                errors.append('artifact-primary-standard-control-mismatch:'+name)
+            expected_related = sorted(claimed - {row.get('primary_control')})
+            if sorted(row.get('related_controls', [])) != expected_related:
+                errors.append('artifact-related-standard-control-mismatch:'+name)
     if set(paths)!=actual:
         errors.append('artifact-ownership-inventory-diff:missing='+repr(sorted(actual-set(paths)))+';extra='+repr(sorted(set(paths)-actual)))
     for row in records:
@@ -551,6 +565,10 @@ def check_all(root):
                 valid_schema_instance(schemas,'manifest.schema.json',read_json(root/'MANIFEST.json'))
             except (ValueError,KeyError,ValidationError,OSError,json.JSONDecodeError) as exc:
                 errors.append('invalid-manifest-schema:'+str(exc)[:180])
+            try:
+                valid_schema_instance(schemas,'unified-package-standard.schema.json',std)
+            except (ValueError,KeyError,ValidationError,OSError,json.JSONDecodeError) as exc:
+                errors.append('invalid-unified-package-standard-schema:'+str(exc)[:180])
             check_examples(root, schemas, errors)
             check_project_registry(read_json(root / '07_CONTRACTS/examples/component-registry.example.json'),errors)
             if not errors or all(not x.startswith('invalid-example') for x in errors):

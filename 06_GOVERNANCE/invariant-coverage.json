@@ -187,35 +187,35 @@
       "invariant_id": "technology_choice_is_product_local_not_general_mandated",
       "primary_control": "UPS-COMP",
       "standard_ref": "01_METHOD/OPEN_TECHNOLOGY_PRINCIPLES.md",
-      "product_gate_obligation": "Scope-local technology neutrality, innovation proposal or conformance-equivalence evidence",
+      "product_gate_obligation": "technology-neutrality-check",
       "assurance_level": "DESIGN_COVERED"
     },
     {
       "invariant_id": "normative_invariant_and_design_heuristic_are_separate",
       "primary_control": "UPS-DOC",
       "standard_ref": "01_METHOD/OPEN_TECHNOLOGY_PRINCIPLES.md",
-      "product_gate_obligation": "Scope-local technology neutrality, innovation proposal or conformance-equivalence evidence",
+      "product_gate_obligation": "invariant-heuristic-separation",
       "assurance_level": "DESIGN_COVERED"
     },
     {
       "invariant_id": "innovative_alternative_has_bounded_falsifiable_evidence_path",
       "primary_control": "UPS-TEST",
       "standard_ref": "01_METHOD/TECHNOLOGY_EXPLORATION_LOOP.md",
-      "product_gate_obligation": "Scope-local technology neutrality, innovation proposal or conformance-equivalence evidence",
+      "product_gate_obligation": "innovation-experiment-gate",
       "assurance_level": "DESIGN_COVERED"
     },
     {
       "invariant_id": "control_and_taxonomy_evolution_is_versioned_not_forbidden",
       "primary_control": "UPS-SCHEMA",
       "standard_ref": "06_GOVERNANCE/EVOLUTION_POLICY.md",
-      "product_gate_obligation": "Scope-local technology neutrality, innovation proposal or conformance-equivalence evidence",
+      "product_gate_obligation": "standard-evolution-review",
       "assurance_level": "DESIGN_COVERED"
     },
     {
       "invariant_id": "conformance_may_be_proved_by_equivalent_non_reference_tool",
       "primary_control": "UPS-TEST",
       "standard_ref": "02_STANDARD/INTEROPERABILITY_NEUTRALITY.md",
-      "product_gate_obligation": "Scope-local technology neutrality, innovation proposal or conformance-equivalence evidence",
+      "product_gate_obligation": "conformance-equivalence-proof",
       "assurance_level": "DESIGN_COVERED"
     },
     {
