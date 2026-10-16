@@ -471,8 +471,8 @@
     },
     {
       "path": "06_GOVERNANCE/EXCEPTION_DISPOSITION.md",
-      "sha256": "1ffed85b07ffdf054c55e660f2815e8f6073d08bbbaf282067573ae0d5d8b445",
-      "size_bytes": 1078,
+      "sha256": "906221bdba3e87e2f30e4b15e617ba3a8d421dbed21930745d6fe45d5481f91c",
+      "size_bytes": 1059,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []
