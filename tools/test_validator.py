@@ -39,6 +39,14 @@ def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=
         if not any(expected_error in f for f in flaws):
             errors.append('negative-test-accepted-invalid:' + name + ':expected=' + expected_error + ':got=' + repr(flaws))
 
+    def positive_trace(name, instance, prior=None):
+        nonlocal count
+        count += 1
+        valid_schema_instance(schemas, 'project-trace.schema.json', instance)
+        flaws = []
+        check_trace(instance, flaws, prior)
+        if flaws: errors.append('positive-' + name + '-rejected:' + repr(flaws))
+
     maturity_valid = {'items':[json.loads((root/'07_CONTRACTS/examples/component-registry.example.json').read_text(encoding='utf-8'))['components'][0]['verification']]}
     valid_schema_instance(schemas, 'maturity.schema.json', maturity_valid)
     negative_json('VERIFIED-without-proof', 'maturity.schema.json', {'items':[{'id':'feature-1','status':'VERIFIED','evidence':[]}]})
@@ -268,7 +276,7 @@ def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=
     negative_trace('feedback-mixed-gate-artifact',bad,'feedback-mixed-gate-artifact-digests')
     bad=copy.deepcopy(trace)
     bad['feedback'][0]['history'].append({'event':'REOPEN','at':'2026-10-16T02:00:00Z','actor':'lead','reason':'regression','decision_ref':'decision:reopen-1','prior_closure_evidence_ref':'REL-3'})
-    negative_trace('feedback-reopen-still-closed',bad,'feedback-reopen-not-open')
+    negative_trace('feedback-reopen-still-closed',bad,'feedback-history-state-mismatch')
     bad=copy.deepcopy(trace)
     bad['feedback'][0]['status']='OPEN';bad['feedback'][0]['next_action']='fix regression'
     bad['feedback'][0]['history'].append({'event':'REOPEN','at':'2026-10-16T02:00:00Z','actor':'lead','reason':'regression'})
@@ -387,9 +395,10 @@ def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=
     reopened=copy.deepcopy(bad);fb=reopened['feedback'][0];fb.update(status='OPEN',next_action='Investigate OBS-LATER',decision_ref='decision:regression');fb['history'].append({'event':'REOPEN','at':'2026-10-16T02:10:00Z','actor':'owner','reason':'new target miss','decision_ref':'decision:regression','prior_closure_evidence_ref':'REL-3','observation_ids':['OBS-LATER']})
     flaws=[];check_trace(reopened,flaws,trace);count+=1
     if flaws: errors.append('positive-reopen-rejected:'+repr(flaws))
-    accepted=copy.deepcopy(reopened);fb=accepted['feedback'][0];fb.update(status='CLOSED',outcome_decision='EXCEPTION_ACCEPTED');accepted['observations'][1]['evaluation']='EXCEPTION_ACCEPTED'
+    accepted=copy.deepcopy(reopened);fb=accepted['feedback'][0];fb.update(status='CLOSED',outcome_decision='EXCEPTION_ACCEPTED',outcome_observation_id='OBS-EXCEPTION')
+    accepted['observations'].append({**accepted['observations'][1], 'id':'OBS-EXCEPTION', 'evaluation':'EXCEPTION_ACCEPTED', 'observed_at':'2026-10-16T02:15:00Z'})
     fb['history'].append({'event':'CLOSE','at':'2026-10-16T02:20:00Z','actor':'owner','reason':'Explicitly accept measured regression risk','decision_ref':'decision:accept-regression','closure_evidence_ref':'REL-3','observation_ids':['OBS-LATER']})
-    flaws=[];check_trace(accepted,flaws);count+=1
+    flaws=[];check_trace(accepted,flaws,reopened);count+=1
     if flaws: errors.append('positive-specific-regression-decision-rejected:'+repr(flaws))
     bad=copy.deepcopy(trace);bad['feedback'][0]['history'][0]['reason']='rewritten';flaws=[];check_trace(bad,flaws,trace);count+=1
     if not any('feedback-history-rewritten' in x for x in flaws): errors.append('negative-test-accepted-invalid:history-prefix')
@@ -426,7 +435,7 @@ def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=
     bad=copy.deepcopy(trace);bad['objective']['owner']='   ';flaws=[];check_project_registry(registry,flaws,bad);count+=1
     if not any('owner-association-invalid' in x for x in flaws): errors.append('negative-test-accepted-invalid:registry-inherited-owner')
     bad=copy.deepcopy(trace);bad['tests'][0]['candidate_identity']='wrong';flaws=[];check_project_registry(registry,flaws,bad);count+=1
-    if not any('verified-scope-untested' in x for x in flaws): errors.append('negative-test-accepted-invalid:registry-scoped-verification')
+    if not any('scoped-accepted-requirement-untested' in x for x in flaws): errors.append('negative-test-accepted-invalid:registry-scoped-verification')
     interaction=copy.deepcopy(trace);interaction['requirements'][0].update(stage_id='VERIFY',concern_id='QUALITY_ASSURANCE')
     flaws=[];check_trace(interaction,flaws);count+=1
     if flaws: errors.append('positive-selected-interaction-rejected:'+repr(flaws))
@@ -471,6 +480,68 @@ def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=
     bad=copy.deepcopy(trace)
     for release in bad['releases']: release['scope']='UNOWNED'
     negative_trace('promotion-unowned-scope',bad,'distribution-promotion-unowned-scope')
+    # R14 review: isolate candidate obligations and bind every executed proof at acceptance.
+    multiple=copy.deepcopy(trace)
+    replacements={'source:candidate-B':'source:candidate-C','REQ-1':'REQ-C','TEST-1':'TEST-C','GATE-1':'GATE-C',
+                  'CHANGE-1':'CHANGE-C','REL-1':'REL-C1','REL-2':'REL-C2','REL-3':'REL-C3'}
+    def renamed(value):
+        if isinstance(value, dict): return {k:renamed(v) for k,v in value.items()}
+        if isinstance(value, list): return [renamed(v) for v in value]
+        return replacements.get(value,value) if isinstance(value,str) else value
+    for section in ('requirements','tests','gates','changes','releases'):
+        multiple[section].extend(renamed(trace[section]))
+    positive_trace('two-candidates-same-scope',multiple,trace)
+    bad=copy.deepcopy(multiple);bad['requirements'][-1]['product_gate_obligations']=['TEST-1','GATE-1']
+    negative_trace('candidate-borrows-older-proof',bad,'scoped-obligation-not-passing')
+    scoped=copy.deepcopy(trace);scoped['feedback']=[];scoped['observations']=[]
+    scoped['requirements'][0]['product_gate_obligations']=['TEST-1']
+    positive_trace('test-only-scoped-proof',scoped)
+    for field,value in (('artifact_digest','sha256:'+'b'*64),('observed_at','2026-10-16T01:00:00Z')):
+        bad=copy.deepcopy(scoped);bad['tests'][0][field]=value
+        negative_trace('scoped-executed-proof-'+field,bad,'scoped-proof-artifact-or-order')
+    bad=copy.deepcopy(trace);bad['feedback']=[];bad['observations']=[];bad['tests'][0]['observed_at']='2026-10-16T00:11:00Z'
+    negative_trace('scoped-test-after-gate',bad,'scoped-proof-artifact-or-order')
+    bad=copy.deepcopy(scoped);bad['tests'][0]['observed_at']='2026-10-16T00:11:00Z'
+    negative_trace('scoped-test-only-after-release-gate',bad,'scoped-proof-artifact-or-order')
+    flaws=[];check_project_registry(registry,flaws,multiple);count+=1
+    if flaws: errors.append('positive-registry-two-candidates-rejected:'+repr(flaws))
+    for field,value,expected in (('status','PENDING','scoped-obligation-not-passing'),
+                                 ('artifact_digest','sha256:'+'b'*64,'maturity-invalid-gate'),
+                                 ('observed_at','2026-10-16T00:11:00Z','maturity-verified-before-gate')):
+        bad=copy.deepcopy(trace);bad['gates'][0][field]=value;flaws=[];check_project_registry(registry,flaws,bad);count+=1
+        if not any(expected in x for x in flaws): errors.append('negative-test-accepted-invalid:registry-trace-gate-'+field)
+    bad=copy.deepcopy(trace);bad['requirements'][0].update(result='NOT_EVALUATED',pending_decision_ref='decision:pending');flaws=[];check_project_registry(registry,flaws,bad);count+=1
+    if not any('verified-scope-not-passing' in x for x in flaws): errors.append('negative-test-accepted-invalid:registry-pending-requirement')
+    bad=copy.deepcopy(trace);bad['feedback'][0]['requirement_ids']=['MISSING-REQ'];flaws=[];check_choice(example_choice,bad,flaws);count+=1
+    if not any('adoption-unresolved-requirement' in x for x in flaws): errors.append('negative-test-accepted-invalid:adopt-unresolved-requirement')
+    adoption=copy.deepcopy(pending);adoption['observations']=[copy.deepcopy(trace['observations'][0])]
+    adoption['feedback']=[copy.deepcopy(trace['feedback'][0])];adoption['feedback'][0].update(status='IN_PROGRESS',history=[],next_action='Implement and measure')
+    positive_trace('pending-adoption',adoption)
+    flaws=[];check_choice(example_choice,adoption,flaws);count+=1
+    if flaws: errors.append('positive-adopt-pending-requirement-rejected:'+repr(flaws))
+    withdrawn=copy.deepcopy(trace);withdrawn['releases'].append({**trace['releases'][-1], 'id':'REL-W', 'from':'PROMOTED', 'to':'WITHDRAWN',
+        'released_at':'2026-10-16T02:00:00Z','decision_ref':'decision:withdrawal', 'reason':'Invalid artifact', 'notice_ref':'notice:withdrawal','recovery_obligations':'Restore prior artifact'})
+    negative_trace('withdrawal-leaves-closed-feedback',withdrawn,'feedback-withdrawal-not-addressed')
+    decision=copy.deepcopy(withdrawn);decision['feedback'][0]['history'][0].update(at='2026-10-16T02:10:00Z',decision_ref='unrelated')
+    negative_trace('unrelated-decision-after-withdrawal',decision,'feedback-withdrawal-not-addressed')
+    reopened_withdrawal=copy.deepcopy(withdrawn);fb=reopened_withdrawal['feedback'][0];fb.update(status='IN_PROGRESS',next_action='Restore prior artifact',decision_ref='decision:withdrawal')
+    fb['history'].append({'event':'REOPEN','at':'2026-10-16T02:10:00Z','actor':'owner','reason':'Withdrawal REL-W', 'decision_ref':'decision:withdrawal','prior_closure_evidence_ref':'REL-3'})
+    positive_trace('withdrawal-reopen-in-progress',reopened_withdrawal,trace)
+    decision=copy.deepcopy(reopened_withdrawal);fb=decision['feedback'][0];fb['status']='CLOSED'
+    fb['history'].append({'event':'CLOSE','at':'2026-10-16T02:20:00Z','actor':'owner','reason':'Withdrawal decision explicitly accepts this feedback outcome despite REL-W', 'decision_ref':'decision:withdrawal','closure_evidence_ref':'REL-3'})
+    positive_trace('withdrawal-specific-decision',decision,reopened_withdrawal)
+    retained=copy.deepcopy(decision);history=retained['feedback'][0]['history']
+    history.extend([{**history[-2], 'at':'2026-10-16T02:30:00Z', 'decision_ref':'decision:followup'},
+                    {**history[-1], 'at':'2026-10-16T02:40:00Z', 'decision_ref':'decision:followup'}])
+    positive_trace('withdrawal-decision-retained',retained,decision)
+    for section in ('tests','gates'):
+        for mutation in ('rewrite','delete'):
+            bad=copy.deepcopy(trace)
+            if mutation=='rewrite': bad[section][0]['evidence_refs']=['replacement:proof']
+            else: bad[section]=[]
+            flaws=[];check_trace(bad,flaws,trace);count+=1
+            if not any('trace-prior-evidence-rewritten:'+section in x for x in flaws): errors.append('negative-test-accepted-invalid:prior-'+section+'-'+mutation)
+    positive_trace('pending-proof-can-complete',trace,pending)
     stats = {'executed': 0, 'skipped': 0, 'n_a': 0}
     if include_fs:
         stats, fs_errors = run_filesystem_fixtures()

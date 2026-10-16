@@ -1,5 +1,9 @@
 # Design Decisions
 
+## R14 review associations
+
+- Isolate candidate obligations within a shared scope and bind executed proof to the assessed artifact and time. Resolve VERIFIED and ADOPT against the associated trace, retain executed evidence across ledgers, and address withdrawal before leaving feedback closed. Reopened work may progress; exception observations append rather than rewrite evidence. The LF example claims evidence integrity coverage only.
+
 ## R14 actual package self-review
 
 - Validate the package-owned R13/R14 trace in CI through the same project contract. Record executed local proof and the minimal change; retain IN_PROGRESS while commit/PR, required CI, deployment and measured outcome are pending. Examples never substitute for this work record.

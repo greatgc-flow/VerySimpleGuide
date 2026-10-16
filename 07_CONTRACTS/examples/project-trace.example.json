@@ -27,9 +27,7 @@
       "owner": "release-engineering",
       "acceptance": "All tracked text files normalize to LF in .gitattributes and .editorconfig and pass SHA256/size checks on Windows and Linux.",
       "control_ids": [
-        "UPS-CLI",
-        "UPS-HELP",
-        "UPS-EXIT"
+        "UPS-EVID"
       ],
       "product_gate_obligations": [
         "TEST-1",

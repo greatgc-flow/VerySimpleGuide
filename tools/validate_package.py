@@ -432,6 +432,8 @@ def check_choice(choice, trace, errors):
         or fb.get('decision_ref') != choice.get('decision_id') or fb.get('disposition') != 'ACCEPT'
         or not fb.get('requirement_ids') or (fb.get('status') != 'CLOSED' and not fb.get('next_action'))):
         errors.append('adoption-without-owned-feedback')
+    elif not set(fb['requirement_ids']).issubset({r['id'] for r in trace.get('requirements', [])}):
+        errors.append('adoption-unresolved-requirement')
 
 
 def check_project_registry(registry, errors, trace=None):
@@ -452,13 +454,14 @@ def check_project_registry(registry, errors, trace=None):
                 errors.append('project-registry-unverified-component:' + ident)
             check_maturity(verification, errors)
             if trace is not None:
-                scoped = [r for r in trace.get('requirements', []) if r.get('scope') in row.get('required_scopes', [])]
+                scoped = [r for r in trace.get('requirements', []) if r.get('scope') in row.get('required_scopes', [])
+                          and r.get('candidate_identity') in (None, verification.get('candidate_identity'))]
                 if not scoped: errors.append('project-registry-verified-without-scoped-requirements:' + ident)
+                check_maturity({**verification, 'gates': trace.get('gates', [])}, errors)
+                check_scoped_coverage({**trace, 'requirements': scoped}, errors, verification)
                 for req in scoped:
-                    if not any(t.get('status') == 'PASS' and req['id'] in t.get('requirement_ids', [])
-                               and t.get('candidate_identity') == verification.get('candidate_identity')
-                               and t.get('artifact_digest') == verification.get('artifact_digest') for t in trace.get('tests', [])):
-                        errors.append('project-registry-verified-scope-untested:' + ident + ':' + req['id'])
+                    if req.get('result') != 'PASS':
+                        errors.append('project-registry-verified-scope-not-passing:' + ident + ':' + req['id'])
         ownership=row.get('state_ownership',[])
         names=[x.get('name') for x in ownership]
         if len(names)!=len(set(names)):
@@ -611,6 +614,14 @@ def check_candidate_records(trace, errors):
         if ((release.get('candidate_identity'), release.get('artifact_digest')) != identity
             or release.get('to') not in ('PUBLISHED', 'PROMOTED')):
             errors.append('feedback-unresolved-release:' + fb['id'])
+        for withdrawal in trace.get('releases', []):
+            if (withdrawal.get('to') == 'WITHDRAWN'
+                and (withdrawal.get('candidate_identity'), withdrawal.get('artifact_digest')) == identity
+                and release.get('released_at')
+                and datetime_utc(withdrawal['released_at']) >= datetime_utc(release['released_at'])):
+                if not any(decision.get('event') == 'CLOSE' and decision.get('decision_ref') == withdrawal.get('decision_ref')
+                           and datetime_utc(decision['at']) >= datetime_utc(withdrawal['released_at']) for decision in fb.get('history', [])):
+                    errors.append('feedback-withdrawal-not-addressed:' + fb['id'] + ':' + withdrawal['id'])
         for tid in fb.get('test_ids', []):
             test = tests.get(tid, {})
             if (test.get('candidate_identity'), test.get('artifact_digest')) != identity:
@@ -678,13 +689,15 @@ def check_history(trace, errors, prior=None):
             history = old.get('history', [])
             if not current or current.get('history', [])[:len(history)] != history:
                 errors.append('feedback-history-rewritten:' + old['id'])
-        for section in ('observations', 'releases', 'changes'):
-            current = {x['id']: x for x in trace.get(section, [])}
+        for section in ('observations', 'releases', 'changes', 'tests', 'gates'):
+            key = 'gate_id' if section == 'gates' else 'id'
+            current = {x[key]: x for x in trace.get(section, [])}
             for old in prior.get(section, []):
-                if current.get(old['id']) != old: errors.append('trace-prior-evidence-rewritten:' + section + ':' + old['id'])
+                if section in ('tests', 'gates') and old.get('status') in ('NOT_RUN', 'PENDING'): continue
+                if current.get(old[key]) != old: errors.append('trace-prior-evidence-rewritten:' + section + ':' + old[key])
 
 
-def check_scoped_coverage(trace, errors):
+def check_scoped_coverage(trace, errors, verification=None):
     std = read_json(ROOT / '06_GOVERNANCE/unified-package-standard.json')
     index = read_json(ROOT / '06_GOVERNANCE/invariant-coverage.json')
     matrix = read_json(ROOT / '03_LIFECYCLE/lifecycle-matrix.json')
@@ -694,8 +707,9 @@ def check_scoped_coverage(trace, errors):
     gates = {x['gate_id']: x for x in trace.get('gates', [])}
     for req in trace.get('requirements', []):
         rid = req['id']
-        promotions = [r for r in trace.get('releases', []) if r.get('to') == 'PROMOTED' and r.get('scope') == req.get('scope')]
-        scoped = bool(promotions) or req.get('result') == 'PASS' or any(req.get(k) for k in ('control_ids', 'invariant_ids', 'product_gate_obligations', 'stage_id', 'concern_id'))
+        promotions = [r for r in trace.get('releases', []) if r.get('to') == 'PROMOTED' and r.get('scope') == req.get('scope')
+                      and req.get('candidate_identity') in (None, r.get('candidate_identity'))]
+        scoped = verification is not None or bool(promotions) or req.get('result') == 'PASS' or any(req.get(k) for k in ('control_ids', 'invariant_ids', 'product_gate_obligations', 'stage_id', 'concern_id'))
         if not scoped: continue
         if not str(req.get('owner', '')).strip(): errors.append('scoped-requirement-no-owner:' + rid)
         if not set(req.get('control_ids', [])).issubset(controls): errors.append('scoped-unknown-control:' + rid)
@@ -712,15 +726,20 @@ def check_scoped_coverage(trace, errors):
             if obligation not in tests and obligation not in gates:
                 errors.append('scoped-unresolved-obligation:' + rid + ':' + obligation)
         closures = [fb for fb in trace.get('feedback', []) if fb.get('status') == 'CLOSED' and fb.get('disposition') == 'ACCEPT' and rid in fb.get('requirement_ids', [])]
-        accepted = req.get('result') == 'PASS' or bool(closures) or bool(promotions)
+        accepted = req.get('result') == 'PASS' or bool(closures) or bool(promotions) or verification is not None
         candidates = {fb.get('closure_candidate_identity') for fb in closures}
         candidates.update(r.get('candidate_identity') for r in promotions)
         for release in promotions:
             for oid in obligations & gates.keys():
                 if oid not in release.get('gate_ids', []): errors.append('scoped-release-missing-obligation:' + rid + ':' + oid)
         if req.get('result') == 'PASS': candidates.add(req.get('candidate_identity'))
+        if verification is not None: candidates.add(verification.get('candidate_identity'))
         if accepted:
             for candidate in candidates:
+                boundaries = [(r.get('artifact_digest'), min(datetime_utc(r['released_at']), datetime_utc(r['deployment']['deployed_at'])), r.get('gate_ids', []))
+                              for r in promotions if r.get('candidate_identity') == candidate and r.get('deployment', {}).get('deployed_at')]
+                if verification is not None and verification.get('candidate_identity') == candidate:
+                    boundaries.append((verification.get('artifact_digest'), datetime_utc(verification['verified_at']), verification.get('required_gate_ids', [])))
                 proof_digests = {p.get('artifact_digest') for oid in obligations for p in [tests.get(oid, gates.get(oid, {}))] if p.get('candidate_identity') == candidate and p.get('status') == 'PASS'}
                 if None in proof_digests or len(proof_digests) > 1:
                     errors.append('scoped-mixed-proof-artifacts:' + rid)
@@ -732,6 +751,19 @@ def check_scoped_coverage(trace, errors):
                         or (oid in gates and proof.get('freshness') != 'FRESH')
                         or (oid in tests and rid not in proof.get('requirement_ids', []))):
                         errors.append('scoped-obligation-not-passing:' + rid + ':' + oid)
+                for digest, before, gate_ids in boundaries:
+                    required_gates = [gates[oid] for oid in (obligations | set(gate_ids)) & gates.keys()]
+                    test_before = min([before] + [datetime_utc(g['observed_at']) for g in required_gates])
+                    if not any(t.get('status') == 'PASS' and rid in t.get('requirement_ids', [])
+                               and (t.get('candidate_identity'), t.get('artifact_digest')) == (candidate, digest)
+                               and t.get('evidence_refs') and t.get('observed_at')
+                               and datetime_utc(t['observed_at']) <= test_before for t in tests.values()):
+                        errors.append('scoped-accepted-requirement-untested:' + rid)
+                    for oid in obligations:
+                        proof = tests.get(oid, gates.get(oid, {}))
+                        if (proof.get('artifact_digest') != digest or not proof.get('observed_at')
+                            or datetime_utc(proof['observed_at']) > (test_before if oid in tests else before)):
+                            errors.append('scoped-proof-artifact-or-order:' + rid + ':' + oid)
         elif not str(req.get('pending_decision_ref', '')).strip():
             errors.append('scoped-pending-without-decision:' + rid)
 
@@ -809,8 +841,6 @@ def check_trace(trace, errors, prior=None):
                 if not ev.get('decision_ref') or not ev.get('prior_closure_evidence_ref'):
                     errors.append('feedback-reopen-missing-decision-or-prior-evidence:' + fb['id'])
         if history and history[-1].get('event') == 'REOPEN':
-            if fb.get('status') != 'OPEN':
-                errors.append('feedback-reopen-not-open:' + fb['id'])
             if not fb.get('next_action') or not fb.get('decision_ref'):
                 errors.append('feedback-reopen-missing-next-action-or-decision:' + fb['id'])
     for obs_id, ob in obs.items():
