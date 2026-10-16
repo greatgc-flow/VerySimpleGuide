@@ -150,8 +150,94 @@
           "owner": {
             "type": "string",
             "minLength": 1
+          },
+          "control_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "uniqueItems": true,
+            "minItems": 1
+          },
+          "invariant_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "uniqueItems": true,
+            "minItems": 1
+          },
+          "product_gate_obligations": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "uniqueItems": true,
+            "minItems": 1
+          },
+          "stage_id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          },
+          "concern_id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          },
+          "pending_decision_ref": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          },
+          "candidate_identity": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          },
+          "result": {
+            "enum": [
+              "NOT_EVALUATED",
+              "PASS",
+              "FAIL"
+            ]
           }
-        }
+        },
+        "dependentRequired": {
+          "stage_id": [
+            "concern_id",
+            "control_ids"
+          ],
+          "concern_id": [
+            "stage_id",
+            "control_ids"
+          ]
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "result": {
+                  "const": "PASS"
+                }
+              },
+              "required": [
+                "result"
+              ]
+            },
+            "then": {
+              "required": [
+                "candidate_identity"
+              ]
+            }
+          }
+        ]
       }
     },
     "tests": {

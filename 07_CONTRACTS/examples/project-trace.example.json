@@ -25,7 +25,18 @@
       "id": "REQ-1",
       "scope": "BASE",
       "owner": "release-engineering",
-      "acceptance": "All tracked text files normalize to LF in .gitattributes and .editorconfig and pass SHA256/size checks on Windows and Linux."
+      "acceptance": "All tracked text files normalize to LF in .gitattributes and .editorconfig and pass SHA256/size checks on Windows and Linux.",
+      "control_ids": [
+        "UPS-CLI",
+        "UPS-HELP",
+        "UPS-EXIT"
+      ],
+      "product_gate_obligations": [
+        "TEST-1",
+        "GATE-1"
+      ],
+      "result": "PASS",
+      "candidate_identity": "source:candidate-B"
     }
   ],
   "tests": [

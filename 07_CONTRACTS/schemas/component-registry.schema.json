@@ -4,7 +4,8 @@
   "type": "object",
   "required": [
     "standard_version",
-    "components"
+    "components",
+    "project_id"
   ],
   "additionalProperties": false,
   "properties": {
@@ -171,6 +172,11 @@
           }
         ]
       }
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
     }
   }
 }

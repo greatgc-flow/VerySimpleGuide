@@ -8,7 +8,7 @@ if _TOOLS_DIR not in sys.path:
     sys.path.insert(0, _TOOLS_DIR)
 
 
-def run_negative_suite(root):
+def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=None):
     # Imported only after main validator loads successfully; no mutation to product files.
     from validate_package import (check_trace, check_controls, valid_schema_instance, check_format_checkers,
                                   valid_relative_path, resolve_safe_evidence_path, check_manifest, load_schemas, check_invariants, check_lifecycle_models, check_project_lifecycle, check_artifact_ownership, check_project_registry)
@@ -103,86 +103,6 @@ def run_negative_suite(root):
             errors.append('negative-test-accepted-invalid:unsafe-evidence-path:'+bad_ev)
         except ValueError:
             pass
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        tmp_root = Path(tmp_dir)
-        (tmp_root / '.validation').mkdir()
-        canon_file = tmp_root / 'MANIFEST.json'
-        canon_file.write_text('{}', encoding='utf-8')
-        ext_inp = tmp_root / '.validation' / 'ext_input.json'
-        ext_inp.write_text('{}', encoding='utf-8')
-        other_file = tmp_root / '.validation' / 'other_source.txt'
-        other_file.write_text('x', encoding='utf-8')
-        # 1. Hard link inside .validation/ aliasing a canonical file (samefile vs canonical)
-        hl_canon = tmp_root / '.validation' / 'hl_canon.txt'
-        try:
-            os.link(canon_file, hl_canon)
-            hl_canon_err = None
-        except OSError as exc:
-            hl_canon_err = str(exc)
-        count += 1
-        if hl_canon_err is None:
-            try:
-                resolve_safe_evidence_path('.validation/hl_canon.txt', root=tmp_root)
-                errors.append('negative-test-accepted-invalid:hardlink-canonical-alias')
-            except ValueError as exc:
-                if 'alias canonical file' not in str(exc):
-                    errors.append('negative-test-wrong-error:hardlink-canonical-alias:' + str(exc))
-        # 2. Hard link inside .validation/ aliasing a project input file (samefile vs input)
-        hl_inp = tmp_root / '.validation' / 'hl_inp.txt'
-        try:
-            os.link(ext_inp, hl_inp)
-            hl_inp_err = None
-        except OSError as exc:
-            hl_inp_err = str(exc)
-        count += 1
-        if hl_inp_err is None:
-            try:
-                resolve_safe_evidence_path('.validation/hl_inp.txt', root=tmp_root, input_paths=(str(ext_inp),))
-                errors.append('negative-test-accepted-invalid:hardlink-input-alias')
-            except ValueError as exc:
-                if 'alias input file identity' not in str(exc):
-                    errors.append('negative-test-wrong-error:hardlink-input-alias:' + str(exc))
-        # 3. Hard link inside .validation/ to non-canonical/non-input file (st_nlink > 1)
-        hl_other = tmp_root / '.validation' / 'hl_other.txt'
-        try:
-            os.link(other_file, hl_other)
-            hl_other_err = None
-        except OSError as exc:
-            hl_other_err = str(exc)
-        count += 1
-        if hl_other_err is None:
-            try:
-                resolve_safe_evidence_path('.validation/hl_other.txt', root=tmp_root)
-                errors.append('negative-test-accepted-invalid:hardlink-nlink-gt-1')
-            except ValueError as exc:
-                if 'st_nlink > 1' not in str(exc):
-                    errors.append('negative-test-wrong-error:hardlink-nlink-gt-1:' + str(exc))
-        # 4. Symlink or NTFS junction inside .validation/
-        sym_path = tmp_root / '.validation' / 'sym_or_junc'
-        link_check_rel = None
-        is_junction = False
-        try:
-            sym_path.symlink_to(canon_file)
-            link_check_rel = '.validation/sym_or_junc'
-        except OSError:
-            if os.name == 'nt':
-                res = subprocess.run(['cmd', '/c', 'mklink', '/J', str(sym_path), str(tmp_root)], capture_output=True)
-                if res.returncode == 0:
-                    link_check_rel = '.validation/sym_or_junc/MANIFEST.json'
-                    is_junction = True
-        count += 1
-        if link_check_rel is not None:
-            try:
-                resolve_safe_evidence_path(link_check_rel, root=tmp_root)
-                errors.append('negative-test-accepted-invalid:symlink-or-junction-evidence-path')
-            except ValueError as exc:
-                if 'symlink or junction' not in str(exc):
-                    errors.append('negative-test-wrong-error:symlink-or-junction-evidence-path:' + str(exc))
-            if is_junction:
-                try:
-                    os.rmdir(sym_path)
-                except OSError:
-                    pass
     count+=1
     try:
         select_guidance(stage='UNKNOWN_STAGE')
@@ -484,6 +404,38 @@ def run_negative_suite(root):
     negative_lifecycle('failed-stage-no-open-action','project-trigger-without-open-feedback',pr=bad)
     bad=copy.deepcopy(project);bad['stages'][0]['trigger_observation_ids']=['OBS-LATER']
     negative_lifecycle('recorded-trigger-no-action','project-trigger-without-open-feedback',pr=bad)
+    for field,value,expected in (
+        ('product_gate_obligations',['missing-gate'],'scoped-unresolved-obligation'),
+        ('control_ids',['UPS-MISSING'],'scoped-unknown-control'),
+        ('owner','   ','scoped-requirement-no-owner'),
+        ('invariant_ids',['missing-invariant'],'scoped-unknown-invariant'),
+        ('stage_id','MISSING','scoped-unknown-coordinate')):
+        bad=copy.deepcopy(trace);bad['requirements'][0][field]=value
+        negative_trace('scope-'+field,bad,expected)
+    bad=copy.deepcopy(trace);r=copy.deepcopy(bad['requirements'][0]);r['id']='REQ-UNCOVERED';bad['requirements'].append(r)
+    negative_trace('accepted-scoped-requirement-untested',bad,'scoped-accepted-requirement-untested')
+    pending=copy.deepcopy(trace);pending['feedback']=[];pending['observations']=[];pending['releases']=[];pending['requirements'][0].update(result='NOT_EVALUATED',pending_decision_ref='decision:pending-proof');pending['tests'][0]['status']='NOT_RUN';pending['gates'][0]['status']='PENDING'
+    flaws=[];check_trace(pending,flaws);count+=1
+    if flaws: errors.append('positive-pending-scoped-requirement-rejected:'+repr(flaws))
+    bad=copy.deepcopy(pending);bad['requirements'][0].pop('pending_decision_ref');negative_trace('pending-requirement-without-decision',bad,'scoped-pending-without-decision')
+    bad=copy.deepcopy(trace);bad['requirements'][0]['invariant_ids']=['core_must_not_depend_on_optional_extensions']
+    negative_trace('catalog-obligation-unresolved',bad,'scoped-unresolved-obligation')
+    bad=copy.deepcopy(trace);bad['tests'][0]['status']='FAIL';negative_trace('scoped-proof-fails',bad,'scoped-obligation-not-passing')
+    bad=copy.deepcopy(registry);bad['project_id']='other';flaws=[];check_project_registry(bad,flaws,trace);count+=1
+    if not any('owner-association-invalid' in x for x in flaws): errors.append('negative-test-accepted-invalid:registry-project-association')
+    bad=copy.deepcopy(trace);bad['objective']['owner']='   ';flaws=[];check_project_registry(registry,flaws,bad);count+=1
+    if not any('owner-association-invalid' in x for x in flaws): errors.append('negative-test-accepted-invalid:registry-inherited-owner')
+    bad=copy.deepcopy(trace);bad['tests'][0]['candidate_identity']='wrong';flaws=[];check_project_registry(registry,flaws,bad);count+=1
+    if not any('verified-scope-untested' in x for x in flaws): errors.append('negative-test-accepted-invalid:registry-scoped-verification')
+    interaction=copy.deepcopy(trace);interaction['requirements'][0].update(stage_id='VERIFY',concern_id='QUALITY_ASSURANCE')
+    flaws=[];check_trace(interaction,flaws);count+=1
+    if flaws: errors.append('positive-selected-interaction-rejected:'+repr(flaws))
+    bad=copy.deepcopy(interaction);bad['requirements'][0]['product_gate_obligations']=[]
+    negative_trace('selected-interaction-no-proof',bad,'scoped-without-proof-obligation')
+    bad=copy.deepcopy(trace);bad['gates'][0]['artifact_digest']='other'
+    negative_trace('scoped-mixed-proof-artifact',bad,'scoped-mixed-proof-artifacts')
+    bad=copy.deepcopy(project);bad['stages'][0]['result']='FAIL'
+    negative_lifecycle('lifecycle-failure-without-observation','project-failure-without-observation',pr=bad)
     bad=copy.deepcopy(registry);bad['components'][0].pop('verification')
     negative_json('VERIFIED-without-verification','component-registry.schema.json',bad)
     flaws=[];check_project_registry(bad,flaws);count+=1
@@ -501,23 +453,110 @@ def run_negative_suite(root):
     bad=copy.deepcopy(triggered);bad['stages'][0]['trigger_observation_ids']=['UNADDRESSED']
     flaws=[];check_project_lifecycle(bad,{x['id'] for x in matrix['stages']},{x['id'] for x in matrix['concerns']},flaws,matrix=matrix,trace=reopened);count+=1
     if not any('project-trigger-observation-unaddressed' in x for x in flaws): errors.append('negative-test-accepted-invalid:unaddressed-lifecycle-trigger')
-    bad=copy.deepcopy(project);bad['stages'][0]['result']='FAIL'
-    negative_lifecycle('lifecycle-failure-without-observation','project-failure-without-observation',pr=bad)
+    bad=copy.deepcopy(trace);collision=copy.deepcopy(bad['tests'][0]);collision['id']='GATE-1';bad['tests'].append(collision)
+    negative_trace('ambiguous-proof-obligation',bad,'scoped-ambiguous-obligation')
     bad=copy.deepcopy(trace);bad['releases'][0].pop('scope')
     negative_json('candidate-without-intended-scope','project-trace.schema.json',bad)
     bad=copy.deepcopy(trace);bad['releases'][-1]['scope']='OTHER'
     negative_trace('distribution-scope-changed',bad,'distribution-scope-changed')
+    bad=copy.deepcopy(trace);bad['feedback']=[];bad['observations']=[];bad['requirements'][0]['result']='NOT_EVALUATED';bad['tests'][0]['status']='NOT_RUN'
+    negative_trace('promoted-scope-without-proof',bad,'scoped-accepted-requirement-untested')
+    bad=copy.deepcopy(trace);second=copy.deepcopy(bad['gates'][0]);second['gate_id']='REQUIRED-2';bad['gates'].append(second);bad['requirements'][0]['product_gate_obligations'].append('REQUIRED-2')
+    negative_trace('promotion-omits-required-gate',bad,'scoped-release-missing-obligation')
+    selected=copy.deepcopy(project);selected['project_id']=interaction['project_id'];selected['cell_overrides']=[{**selected['stages'][0],'stage_id':'VERIFY','concern_id':'QUALITY_ASSURANCE','candidate_identity':trace['gates'][0]['candidate_identity']}]
+    flaws=[];check_project_lifecycle(selected,{x['id'] for x in matrix['stages']},{x['id'] for x in matrix['concerns']},flaws,matrix=matrix,trace=interaction);count+=1
+    if flaws: errors.append('positive-selected-cell-proof-rejected:'+repr(flaws))
+    flaws=[];check_project_lifecycle(selected,{x['id'] for x in matrix['stages']},{x['id'] for x in matrix['concerns']},flaws,matrix=matrix,trace=trace);count+=1
+    if not any('project-cell-pass-without-scoped-proof' in x for x in flaws): errors.append('negative-test-accepted-invalid:selected-cell-unbound')
     bad=copy.deepcopy(trace)
     for release in bad['releases']: release['scope']='UNOWNED'
     negative_trace('promotion-unowned-scope',bad,'distribution-promotion-unowned-scope')
+    stats = {'executed': 0, 'skipped': 0, 'n_a': 0}
+    if include_fs:
+        stats, fs_errors = run_filesystem_fixtures()
+        errors.extend(fs_errors)
+        count += stats['executed']
+    else:
+        stats.update(skipped=5 if os.name == 'nt' else 4, n_a=0 if os.name == 'nt' else 1)
+    if fs_report is not None: fs_report.update(stats)
+    errors.extend(filesystem_gate_errors(stats, require_fs_tests))
+    for skipped,required,expected in ((1,True,True),(0,True,False),(1,False,False)):
+        count+=1
+        if bool(filesystem_gate_errors({'skipped':skipped},required)) != expected:
+            errors.append('negative-test-accepted-invalid:filesystem-required-accounting')
     return count,errors
 
 
+def filesystem_gate_errors(stats, required):
+    return ['required-filesystem-fixtures-skipped:' + str(stats['skipped'])] if required and stats['skipped'] else []
+
+
+def run_filesystem_fixtures():
+    """Five defenses; unavailable execution never increments the executed count."""
+    from validate_package import resolve_safe_evidence_path
+    stats = {'executed': 0, 'skipped': 0, 'n_a': 0}
+    errors = []
+    try:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            root = Path(tmp_dir)
+            val = root / '.validation'
+            val.mkdir()
+            canon = root / 'MANIFEST.json'; canon.write_text('{}', encoding='utf-8')
+            inp = val / 'input.json'; inp.write_text('{}', encoding='utf-8')
+            other = val / 'other.txt'; other.write_text('x', encoding='utf-8')
+            fixtures = [
+                ('canonical-alias', canon, 'alias canonical file', ()),
+                ('input-alias', inp, 'alias input file identity', (str(inp),)),
+                ('hardlink-count', other, 'st_nlink > 1', ()),
+                ('symlink', canon, 'symlink or junction', ()),
+                ('junction', root, 'symlink or junction', ()),
+            ]
+            for name, source, expected, inputs in fixtures:
+                target = val / name
+                if name == 'junction' and os.name != 'nt':
+                    stats['n_a'] += 1
+                    continue
+                try:
+                    if name == 'symlink': target.symlink_to(source)
+                    elif name == 'junction':
+                        result = subprocess.run(['cmd', '/c', 'mklink', '/J', str(target), str(source)], capture_output=True)
+                        if result.returncode: raise OSError('junction creation failed')
+                    else: os.link(source, target)
+                except OSError as exc:
+                    # Windows without symlink privilege uses the separately required junction defense.
+                    if name == 'symlink' and os.name == 'nt' and getattr(exc, 'winerror', None) == 1314:
+                        stats['n_a'] += 1
+                    else: stats['skipped'] += 1
+                    continue
+                stats['executed'] += 1
+                rel = '.validation/' + name + ('/MANIFEST.json' if name == 'junction' else '')
+                try:
+                    resolve_safe_evidence_path(rel, root=root, input_paths=inputs)
+                    errors.append('negative-test-accepted-invalid:' + name)
+                except ValueError as exc:
+                    if expected not in str(exc): errors.append('negative-test-wrong-error:' + name + ':' + str(exc))
+                finally:
+                    if name == 'junction': os.rmdir(target)
+    except OSError as exc:
+        remaining = 5 - sum(stats.values())
+        stats['skipped'] += remaining
+        errors.append('filesystem-fixture-setup-error:' + str(exc))
+    return stats, errors
+
+
 if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser()
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument('--no-fs-tests', action='store_true', help='Local only: report filesystem fixtures as skipped')
+    mode.add_argument('--require-fs-tests', action='store_true', help='Fail on skipped applicable filesystem fixtures')
+    args = parser.parse_args()
     _root = Path(__file__).resolve().parents[1]
-    _count, _errs = run_negative_suite(_root)
+    stats = {}
+    _count, _errs = run_negative_suite(_root, include_fs=not args.no_fs_tests, require_fs_tests=args.require_fs_tests, fs_report=stats)
     print(f'contract_fixture_checks={_count}')
-    for _e in _errs:
-        print(f'ERROR={_e}')
+    for key, value in stats.items(): print('filesystem_' + key + '=' + str(value))
+    for _e in _errs: print(f'ERROR={_e}')
+    print('NEGATIVE_TESTED=' + ('FAIL' if _errs else 'NOT_EVALUATED' if stats['skipped'] else 'PASS'))
     print('RESULT=' + ('PASS' if not _errs else 'FAIL'))
     sys.exit(0 if not _errs else 1)

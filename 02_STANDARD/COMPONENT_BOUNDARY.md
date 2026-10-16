@@ -23,3 +23,5 @@ The same technology can appear in distinct planes, such as a product runtime pro
 7. Delivery components do not inherit product-runtime classifications without explicit ownership.
 
 Choose proportional module granularity. Explicit public-contract composition is more important than physical folder symmetry.
+
+Registry `project_id` must match the supplied trace before components and their states inherit accountable authority from `trace.objective.owner`. Standalone registry validation leaves that authority UNASSESSED. VERIFIED components additionally need executed proof for requirements in their declared scopes.

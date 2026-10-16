@@ -1,5 +1,9 @@
 # Design Decisions
 
+## R14 scoped coverage and honest execution
+
+- Reuse scoped requirements for selected controls/interactions and resolve their declared proof obligations at acceptance. Keep all fifteen controls. Inherit registry authority only through a checked project trace association. Separate filesystem execution/skips/N_A and require applicable defenses in CI.
+
 ## R14 feedback and revisit history
 
 - Check chronological closure/reopening, candidate/metric regressions and specific exception decisions. Compare prior ledgers for history/evidence retention; require revisit conditions and open feedback for recorded lifecycle failures or triggers.

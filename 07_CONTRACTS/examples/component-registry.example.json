@@ -99,5 +99,6 @@
         }
       ]
     }
-  ]
+  ],
+  "project_id": "verysimple-cli-validator"
 }

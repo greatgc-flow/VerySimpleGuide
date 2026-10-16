@@ -433,8 +433,11 @@ def check_choice(choice, trace, errors):
         errors.append('adoption-without-owned-feedback')
 
 
-def check_project_registry(registry, errors):
+def check_project_registry(registry, errors, trace=None):
     """Semantic crosschecks beyond the component-registry JSON Schema."""
+    if trace is not None:
+        if registry.get('project_id') != trace.get('project_id') or not str(trace.get('objective', {}).get('owner', '')).strip():
+            errors.append('project-registry-owner-association-invalid')
     rows=registry.get('components',[])
     ids=[row.get('id') for row in rows]
     if len(ids)!=len(set(ids)): errors.append('project-registry-duplicate-component-id')
@@ -447,6 +450,14 @@ def check_project_registry(registry, errors):
             if verification.get('id') != row.get('id') or verification.get('status') != 'VERIFIED':
                 errors.append('project-registry-unverified-component:' + ident)
             check_maturity(verification, errors)
+            if trace is not None:
+                scoped = [r for r in trace.get('requirements', []) if r.get('scope') in row.get('required_scopes', [])]
+                if not scoped: errors.append('project-registry-verified-without-scoped-requirements:' + ident)
+                for req in scoped:
+                    if not any(t.get('status') == 'PASS' and req['id'] in t.get('requirement_ids', [])
+                               and t.get('candidate_identity') == verification.get('candidate_identity')
+                               and t.get('artifact_digest') == verification.get('artifact_digest') for t in trace.get('tests', [])):
+                        errors.append('project-registry-verified-scope-untested:' + ident + ':' + req['id'])
         ownership=row.get('state_ownership',[])
         names=[x.get('name') for x in ownership]
         if len(names)!=len(set(names)):
@@ -670,7 +681,60 @@ def check_history(trace, errors, prior=None):
                 if current.get(old['id']) != old: errors.append('trace-prior-evidence-rewritten:' + section + ':' + old['id'])
 
 
+def check_scoped_coverage(trace, errors):
+    std = read_json(ROOT / '06_GOVERNANCE/unified-package-standard.json')
+    index = read_json(ROOT / '06_GOVERNANCE/invariant-coverage.json')
+    matrix = read_json(ROOT / '03_LIFECYCLE/lifecycle-matrix.json')
+    controls = {x['id'] for x in std['controls']}
+    invariants = {x['invariant_id']: x['product_gate_obligation'] for x in index['invariants']}
+    tests = {x['id']: x for x in trace.get('tests', [])}
+    gates = {x['gate_id']: x for x in trace.get('gates', [])}
+    for req in trace.get('requirements', []):
+        rid = req['id']
+        promotions = [r for r in trace.get('releases', []) if r.get('to') == 'PROMOTED' and r.get('scope') == req.get('scope')]
+        scoped = bool(promotions) or req.get('result') == 'PASS' or any(req.get(k) for k in ('control_ids', 'invariant_ids', 'product_gate_obligations', 'stage_id', 'concern_id'))
+        if not scoped: continue
+        if not str(req.get('owner', '')).strip(): errors.append('scoped-requirement-no-owner:' + rid)
+        if not set(req.get('control_ids', [])).issubset(controls): errors.append('scoped-unknown-control:' + rid)
+        for field, known in (('stage_id', {x['id'] for x in matrix['stages']}), ('concern_id', {x['id'] for x in matrix['concerns']})):
+            if req.get(field) and req[field] not in known: errors.append('scoped-unknown-coordinate:' + rid)
+        obligations = set(req.get('product_gate_obligations', []))
+        for inv in req.get('invariant_ids', []):
+            if inv not in invariants: errors.append('scoped-unknown-invariant:' + rid)
+            else: obligations.add(invariants[inv])
+        if not obligations: errors.append('scoped-without-proof-obligation:' + rid)
+        for obligation in obligations:
+            if obligation in tests and obligation in gates:
+                errors.append('scoped-ambiguous-obligation:' + rid + ':' + obligation)
+            if obligation not in tests and obligation not in gates:
+                errors.append('scoped-unresolved-obligation:' + rid + ':' + obligation)
+        closures = [fb for fb in trace.get('feedback', []) if fb.get('status') == 'CLOSED' and fb.get('disposition') == 'ACCEPT' and rid in fb.get('requirement_ids', [])]
+        accepted = req.get('result') == 'PASS' or bool(closures) or bool(promotions)
+        candidates = {fb.get('closure_candidate_identity') for fb in closures}
+        candidates.update(r.get('candidate_identity') for r in promotions)
+        for release in promotions:
+            for oid in obligations & gates.keys():
+                if oid not in release.get('gate_ids', []): errors.append('scoped-release-missing-obligation:' + rid + ':' + oid)
+        if req.get('result') == 'PASS': candidates.add(req.get('candidate_identity'))
+        if accepted:
+            for candidate in candidates:
+                proof_digests = {p.get('artifact_digest') for oid in obligations for p in [tests.get(oid, gates.get(oid, {}))] if p.get('candidate_identity') == candidate and p.get('status') == 'PASS'}
+                if None in proof_digests or len(proof_digests) > 1:
+                    errors.append('scoped-mixed-proof-artifacts:' + rid)
+                if not any(t.get('status') == 'PASS' and rid in t.get('requirement_ids', []) and t.get('candidate_identity') == candidate and t.get('evidence_refs') for t in tests.values()):
+                    errors.append('scoped-accepted-requirement-untested:' + rid)
+                for oid in obligations:
+                    proof = tests.get(oid, gates.get(oid, {}))
+                    if (proof.get('status') != 'PASS' or proof.get('candidate_identity') != candidate or not proof.get('evidence_refs')
+                        or (oid in gates and proof.get('freshness') != 'FRESH')
+                        or (oid in tests and rid not in proof.get('requirement_ids', []))):
+                        errors.append('scoped-obligation-not-passing:' + rid + ':' + oid)
+        elif not str(req.get('pending_decision_ref', '')).strip():
+            errors.append('scoped-pending-without-decision:' + rid)
+
+
 def check_trace(trace, errors, prior=None):
+    check_scoped_coverage(trace, errors)
     check_history(trace, errors, prior)
     check_candidate_records(trace, errors)
     req = duplicate_check(trace.get('requirements',[]),'requirement',errors)
@@ -872,6 +936,11 @@ def check_project_lifecycle(project, stage_ids, concern_ids, errors, matrix=None
         if stage not in stage_ids or concern not in concern_ids:
             errors.append('project-cell-unknown-coordinate:' + str(key))
         _validate_disposition_record(row, 'project-cell', str(key), errors)
+        if row.get('result') == 'PASS':
+            if (not trace or trace.get('project_id') != project.get('project_id')
+                or not any((req.get('stage_id'), req.get('concern_id')) == key and req.get('result') == 'PASS'
+                           and req.get('candidate_identity') == row.get('candidate_identity') for req in trace.get('requirements', []))):
+                errors.append('project-cell-pass-without-scoped-proof:' + str(key))
 
 
 def check_lifecycle_models(matrix, guidance, references, project, controls, errors):
@@ -1025,7 +1094,7 @@ def check_all(root):
                 errors.append('invalid-unified-package-standard-schema:'+str(exc)[:180])
             check_examples(root, schemas, errors)
             check_choice(read_json(root / '07_CONTRACTS/examples/implementation-choice.example.json'), trace, errors)
-            check_project_registry(read_json(root / '07_CONTRACTS/examples/component-registry.example.json'),errors)
+            check_project_registry(read_json(root / '07_CONTRACTS/examples/component-registry.example.json'),errors,trace)
             if not errors or all(not x.startswith('invalid-example') for x in errors):
                 check_trace(trace, errors)
             models=[('03_LIFECYCLE/lifecycle-matrix.json','lifecycle-matrix.schema.json'),
@@ -1053,6 +1122,9 @@ def main(argv=None):
     parser.add_argument('--project-trace',help='Validate a real project trace JSON (structural/semantic only)')
     parser.add_argument('--project-registry',help='Validate a real project component registry JSON (structural only)')
     parser.add_argument('--project-lifecycle',help='Validate the project-specific 12-stage lifecycle applicability JSON')
+    fs_mode = parser.add_mutually_exclusive_group()
+    fs_mode.add_argument('--no-fs-tests', action='store_true', help='Local only: filesystem defenses remain unassessed')
+    fs_mode.add_argument('--require-fs-tests', action='store_true', help='Fail when an applicable filesystem fixture is skipped')
     parser.add_argument('--skip-negative-tests',action='store_true',help='Local development only; not a release gate')
     args = parser.parse_args(argv)
     try:
@@ -1085,7 +1157,7 @@ def main(argv=None):
                 data = read_json(Path(filename))
                 valid_schema_instance(schemas,schema_name,data)
                 if typ == 'project_trace': check_trace(data,local_errors, read_json(Path(args.prior_project_trace)) if args.prior_project_trace else None)
-                if typ == 'project_registry': check_project_registry(data,local_errors)
+                if typ == 'project_registry': check_project_registry(data,local_errors,read_json(Path(args.project_trace)) if args.project_trace else None)
                 if typ == 'project_lifecycle':
                     mat=read_json(ROOT/'03_LIFECYCLE/lifecycle-matrix.json')
                     check_project_lifecycle(data,{x['id'] for x in mat['stages']},{x['id'] for x in mat['concerns']},local_errors,matrix=mat,trace=read_json(Path(args.project_trace)) if args.project_trace else None)
@@ -1103,14 +1175,15 @@ def main(argv=None):
         except (OSError, ValueError, KeyError, ValidationError) as exc:
             errors.append('invalid-implementation-choice:' + str(exc)[:200])
     static_errors = list(errors)
+    fs_stats = {}
     neg_checks = None
     neg_result = 'NOT_EVALUATED'
     if not args.skip_negative_tests:
         try:
             from test_validator import run_negative_suite
-            neg_checks, test_errors = run_negative_suite(ROOT)
+            neg_checks, test_errors = run_negative_suite(ROOT, include_fs=not args.no_fs_tests, require_fs_tests=args.require_fs_tests, fs_report=fs_stats)
             errors.extend(test_errors)
-            neg_result = 'PASS' if not test_errors else 'FAIL'
+            neg_result = 'FAIL' if test_errors else 'NOT_EVALUATED' if fs_stats.get('skipped') else 'PASS'
         except Exception as exc:
             errors.append('negative-suite-error:' + repr(exc))
             neg_result = 'FAIL'
@@ -1124,7 +1197,10 @@ def main(argv=None):
     sink.say('claim_DESIGN_COVERED=' + ('PASS' if not static_errors else 'FAIL'))
     sink.say('claim_SCHEMA_CHECKED=' + ('PASS' if not static_errors else 'FAIL'))
     sink.say('claim_NEGATIVE_TESTED=' + neg_result)
+    for key, value in fs_stats.items(): sink.say('filesystem_' + key + '=' + str(value))
     sink.say('claim_PRODUCT_VERIFIED=NOT_EVALUATED')
+    if args.project_registry:
+        sink.say('registry_accountable_owner=' + ('CHECKED' if args.project_trace and not static_errors else 'UNASSESSED'))
     sink.say('external_project_trace=' + ('CHECKED' if args.project_trace else 'NOT_SUPPLIED'))
     sink.say('external_project_lifecycle=' + ('CHECKED' if args.project_lifecycle else 'NOT_SUPPLIED'))
     sink.say('lifecycle_matrix=12x10')

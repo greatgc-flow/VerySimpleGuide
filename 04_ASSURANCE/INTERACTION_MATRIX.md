@@ -12,3 +12,5 @@ Individually passing features can fail when combined. Select these interactions 
 - Public cutover × legacy automation and integration contract.
 
 Scale the matrix with applicability and risk; it is not an unconditional instruction to implement every possible pair.
+
+Record selected risks as existing scoped requirements under the [coverage contract](../02_STANDARD/LIFECYCLE_COVERAGE_STANDARD.md), with control IDs, optional stage/concern coordinates, owner, proof obligations and a pending decision or checked acceptance.

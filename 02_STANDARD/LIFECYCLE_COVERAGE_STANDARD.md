@@ -21,3 +21,9 @@ Keep traces proportionate: goal/scope, accountable owner, decision/acceptance, o
 Execution must have declared bounds (budget, deadline or stop condition). Uncertain execution requires reconciliation or blocked retry, never blind repetition. Each feedback observation requires an owned disposition and revisit or outcome; accepted closure requires requirement → executed proof → fresh exact-candidate gates → post-release outcome. Static package validation never implies product runtime verification. Suitable proof may be a regression, contract/property test, simulation or model proof; require RED evidence or an approved exception where defect reproduction is needed.
 
 PASS stage, concern and cell decisions require nonblank revisit conditions. A recorded FAIL or fired `trigger_observation_ids` requires `feedback_ids` resolving to owned OPEN/IN_PROGRESS actions in the same project trace; each trigger observation must be addressed by those actions.
+
+Use scoped requirements for selected interactions: `control_ids` and optional stage/concern coordinates identify the selected risk, with the existing owner and acceptance. Declared `product_gate_obligations` resolve directly to trace test/gate IDs; selected `invariant_ids` resolve their catalog obligation names the same way. At PASS, promotion or accepted closure, each scoped requirement needs passing executed proof and all obligations for the same candidate; unfinished scope needs an explicit pending decision. No exhaustive pairing or new control taxonomy is implied.
+
+Trace observations, tests and gates inherit the checked project objective owner; feedback and change/release records name their accountable decision owners.
+
+PASS cell overrides resolve by stage/concern and candidate to a passing scoped requirement in the associated trace. Promotion includes every declared gate obligation for its frozen scope.
