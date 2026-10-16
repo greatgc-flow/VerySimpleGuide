@@ -60,6 +60,7 @@ def main(argv=None):
     print(text, end='')
     if target is not None:
         target.parent.mkdir(parents=True, exist_ok=True)
+        target = resolve_safe_evidence_path(a.evidence_file, root=BASE)
         target.write_text(text, encoding='utf-8')
     return 0
 

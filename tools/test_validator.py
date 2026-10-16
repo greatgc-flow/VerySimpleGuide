@@ -1,6 +1,6 @@
 """Deterministic negative controls; a validator that accepts these must not issue PASS."""
 from pathlib import Path
-import copy, json, sys
+import copy, json, os, subprocess, sys, tempfile
 
 sys.dont_write_bytecode = True
 _TOOLS_DIR = str(Path(__file__).resolve().parent)
@@ -83,6 +83,86 @@ def run_negative_suite(root):
             errors.append('negative-test-accepted-invalid:unsafe-evidence-path:'+bad_ev)
         except ValueError:
             pass
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_root = Path(tmp_dir)
+        (tmp_root / '.validation').mkdir()
+        canon_file = tmp_root / 'MANIFEST.json'
+        canon_file.write_text('{}', encoding='utf-8')
+        ext_inp = tmp_root / '.validation' / 'ext_input.json'
+        ext_inp.write_text('{}', encoding='utf-8')
+        other_file = tmp_root / '.validation' / 'other_source.txt'
+        other_file.write_text('x', encoding='utf-8')
+        # 1. Hard link inside .validation/ aliasing a canonical file (samefile vs canonical)
+        hl_canon = tmp_root / '.validation' / 'hl_canon.txt'
+        try:
+            os.link(canon_file, hl_canon)
+            hl_canon_err = None
+        except OSError as exc:
+            hl_canon_err = str(exc)
+        count += 1
+        if hl_canon_err is None:
+            try:
+                resolve_safe_evidence_path('.validation/hl_canon.txt', root=tmp_root)
+                errors.append('negative-test-accepted-invalid:hardlink-canonical-alias')
+            except ValueError as exc:
+                if 'alias canonical file' not in str(exc):
+                    errors.append('negative-test-wrong-error:hardlink-canonical-alias:' + str(exc))
+        # 2. Hard link inside .validation/ aliasing a project input file (samefile vs input)
+        hl_inp = tmp_root / '.validation' / 'hl_inp.txt'
+        try:
+            os.link(ext_inp, hl_inp)
+            hl_inp_err = None
+        except OSError as exc:
+            hl_inp_err = str(exc)
+        count += 1
+        if hl_inp_err is None:
+            try:
+                resolve_safe_evidence_path('.validation/hl_inp.txt', root=tmp_root, input_paths=(str(ext_inp),))
+                errors.append('negative-test-accepted-invalid:hardlink-input-alias')
+            except ValueError as exc:
+                if 'alias input file identity' not in str(exc):
+                    errors.append('negative-test-wrong-error:hardlink-input-alias:' + str(exc))
+        # 3. Hard link inside .validation/ to non-canonical/non-input file (st_nlink > 1)
+        hl_other = tmp_root / '.validation' / 'hl_other.txt'
+        try:
+            os.link(other_file, hl_other)
+            hl_other_err = None
+        except OSError as exc:
+            hl_other_err = str(exc)
+        count += 1
+        if hl_other_err is None:
+            try:
+                resolve_safe_evidence_path('.validation/hl_other.txt', root=tmp_root)
+                errors.append('negative-test-accepted-invalid:hardlink-nlink-gt-1')
+            except ValueError as exc:
+                if 'st_nlink > 1' not in str(exc):
+                    errors.append('negative-test-wrong-error:hardlink-nlink-gt-1:' + str(exc))
+        # 4. Symlink or NTFS junction inside .validation/
+        sym_path = tmp_root / '.validation' / 'sym_or_junc'
+        link_check_rel = None
+        is_junction = False
+        try:
+            sym_path.symlink_to(canon_file)
+            link_check_rel = '.validation/sym_or_junc'
+        except OSError:
+            if os.name == 'nt':
+                res = subprocess.run(['cmd', '/c', 'mklink', '/J', str(sym_path), str(tmp_root)], capture_output=True)
+                if res.returncode == 0:
+                    link_check_rel = '.validation/sym_or_junc/MANIFEST.json'
+                    is_junction = True
+        count += 1
+        if link_check_rel is not None:
+            try:
+                resolve_safe_evidence_path(link_check_rel, root=tmp_root)
+                errors.append('negative-test-accepted-invalid:symlink-or-junction-evidence-path')
+            except ValueError as exc:
+                if 'symlink or junction' not in str(exc):
+                    errors.append('negative-test-wrong-error:symlink-or-junction-evidence-path:' + str(exc))
+            if is_junction:
+                try:
+                    os.rmdir(sym_path)
+                except OSError:
+                    pass
     count+=1
     try:
         select_guidance(stage='UNKNOWN_STAGE')

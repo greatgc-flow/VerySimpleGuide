@@ -63,8 +63,17 @@ def resolve_safe_evidence_path(raw_path, root=ROOT, input_paths=()):
     target = candidate.resolve(strict=False)
     if val_real not in target.parents:
         raise ValueError('Evidence output must reside strictly inside .validation/: ' + raw_str)
-    if target.exists() and target.is_dir():
-        raise ValueError('Evidence path cannot be a directory: ' + raw_str)
+    if target.exists():
+        if target.is_dir():
+            raise ValueError('Evidence path cannot be a directory: ' + raw_str)
+        for canon_rel in file_inventory(root_real) | set(EXCLUDED):
+            canon_path = root_real / canon_rel
+            if canon_path.exists():
+                try:
+                    if os.path.samefile(target, canon_path):
+                        raise ValueError('Evidence output cannot alias canonical file: ' + canon_rel)
+                except OSError:
+                    pass
     for inp in input_paths:
         if not inp:
             continue
@@ -73,6 +82,21 @@ def resolve_safe_evidence_path(raw_path, root=ROOT, input_paths=()):
         inp_cwd = inp_p.resolve(strict=False)
         if target in (inp_abs, inp_cwd):
             raise ValueError('Evidence output cannot alias input file: ' + str(inp))
+        if target.exists():
+            for cand_inp in (inp_abs, inp_cwd, inp_p):
+                if cand_inp.exists():
+                    try:
+                        if os.path.samefile(target, cand_inp):
+                            raise ValueError('Evidence output cannot alias input file identity: ' + str(inp))
+                    except OSError:
+                        pass
+    if target.exists():
+        try:
+            st = os.lstat(target)
+        except OSError as exc:
+            raise ValueError('Cannot stat evidence path: ' + str(exc))
+        if getattr(st, 'st_nlink', 1) > 1:
+            raise ValueError('Evidence output cannot be a hard-linked file (st_nlink > 1): ' + raw_str)
     return target
 
 
@@ -93,8 +117,7 @@ class EvidenceSink:
             return
         target = resolve_safe_evidence_path(self.path, root=self.root, input_paths=self.input_paths)
         target.parent.mkdir(parents=True, exist_ok=True)
-        if _is_link_or_reparse(target.parent) or _is_link_or_reparse(target):
-            raise ValueError('Evidence path cannot traverse symlink or junction')
+        target = resolve_safe_evidence_path(self.path, root=self.root, input_paths=self.input_paths)
         target.write_text('\n'.join(self.lines) + '\n', encoding='utf-8')
 
 
