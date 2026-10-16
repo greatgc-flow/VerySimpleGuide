@@ -8,6 +8,9 @@
     "version",
     "selection_policy",
     "default_normative_level",
+    "default_alternatives",
+    "default_evidence_strategy",
+    "default_review_trigger",
     "guidance"
   ],
   "properties": {
@@ -22,6 +25,22 @@
     },
     "default_normative_level": {
       "const": "EXAMPLE_REFERENCE"
+    },
+    "default_alternatives": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "default_evidence_strategy": {
+      "type": "string",
+      "minLength": 1
+    },
+    "default_review_trigger": {
+      "type": "string",
+      "minLength": 1
     },
     "guidance": {
       "type": "array",
@@ -39,10 +58,7 @@
           "avoid_when",
           "technique",
           "tradeoffs",
-          "alternatives",
-          "reference_ids",
-          "evidence_strategy",
-          "review_trigger"
+          "reference_ids"
         ],
         "additionalProperties": false,
         "properties": {
@@ -123,3 +139,4 @@
     }
   }
 }
+

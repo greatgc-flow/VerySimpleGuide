@@ -663,8 +663,8 @@
     },
     {
       "path": "07_CONTRACTS/schemas/guidance-catalog.schema.json",
-      "sha256": "bfe64d06ce42cd4d31f391b03dae5448ef98edb846c08467f8b9480d3ed3391f",
-      "size_bytes": 2855,
+      "sha256": "52d226710d63142e6363607829236494ea5ae331bfcaa3b395161c70bdc08559",
+      "size_bytes": 3188,
       "role": "MACHINE_SSOT",
       "primary_control": "UPS-SCHEMA",
       "related_controls": []
@@ -767,33 +767,17 @@
     },
     {
       "path": "08_KNOWLEDGE/README.md",
-      "sha256": "7f90283d4eaf23913b99e815965043872c443998109c714e1078ac3b1455c653",
-      "size_bytes": 951,
+      "sha256": "0b7963c59155ff0b14dbe16b16a285d26fc12351e2d7a0a85f5da5d36cba1705",
+      "size_bytes": 4017,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []
     },
     {
       "path": "08_KNOWLEDGE/guidance-catalog.json",
-      "sha256": "5cfd3689afd8b2e22ec6fda3b4a1ae103990677a1a57b67fef1102450a567cd8",
-      "size_bytes": 21000,
+      "sha256": "5814aeeea5fe1cf679d0cd4c3a5d34a49b2df46128cfc53cd4b0c8f7732f5b72",
+      "size_bytes": 15579,
       "role": "REFERENCE_CATALOG",
-      "primary_control": "UPS-DOC",
-      "related_controls": []
-    },
-    {
-      "path": "08_KNOWLEDGE/guides/END_TO_END_GUIDE.md",
-      "sha256": "fa3a4b8049968b0813411154f8b637b8539e55277828997590a8470ee203ffa6",
-      "size_bytes": 1801,
-      "role": "HUMAN_GUIDE",
-      "primary_control": "UPS-DOC",
-      "related_controls": []
-    },
-    {
-      "path": "08_KNOWLEDGE/patterns/PATTERN_DECISION_CARD.md",
-      "sha256": "b5e8320cd8b58b8f615ef68a7a18a6e734cf70448be9c36a3bfeea3c1bffc722",
-      "size_bytes": 1182,
-      "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []
     },
@@ -879,8 +863,8 @@
     },
     {
       "path": "tools/test_validator.py",
-      "sha256": "4dcbad974491a19ec39ace260749f0b4507793c93002b41f14f81fdc4d7c08b3",
-      "size_bytes": 22689,
+      "sha256": "58668bcac74fdd41701695c612dc5159aac593fb4dcc25351f36435e7b012fbf",
+      "size_bytes": 22851,
       "role": "VALIDATION_TOOL",
       "primary_control": "UPS-TEST",
       "related_controls": []
@@ -895,8 +879,8 @@
     },
     {
       "path": "tools/validate_package.py",
-      "sha256": "736030f5f9cb3b9e38ed766d6f9e28c395b8f6cfedb96765625fe805d1fbc1cf",
-      "size_bytes": 43320,
+      "sha256": "47daaaa3a0996417fbd52e11cd1a4e5864a1d5caef7a46ea09caa1b27f63424a",
+      "size_bytes": 43945,
       "role": "VALIDATION_TOOL",
       "primary_control": "UPS-TEST",
       "related_controls": []

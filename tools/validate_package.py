@@ -630,12 +630,20 @@ def check_lifecycle_models(matrix, guidance, references, project, controls, erro
     gids=[x.get('id') for x in guidance.get('guidance',[])]
     if len(gids)!=len(set(gids)):
         errors.append('guidance-duplicate-ids')
+    default_alts = guidance.get('default_alternatives',[])
+    default_ev = guidance.get('default_evidence_strategy','')
+    default_rev = guidance.get('default_review_trigger','')
     for entry in guidance.get('guidance',[]):
         ident=entry.get('id','unknown')
         if entry.get('applicability')!='OPTIONAL':
             errors.append('guidance-illegal-mandate:'+ident)
-        if not entry.get('avoid_when') or not entry.get('alternatives') or not entry.get('tradeoffs'):
+        alts = entry.get('alternatives') if 'alternatives' in entry else default_alts
+        ev_strat = entry.get('evidence_strategy') if 'evidence_strategy' in entry else default_ev
+        rev_trig = entry.get('review_trigger') if 'review_trigger' in entry else default_rev
+        if not entry.get('avoid_when') or not alts or not entry.get('tradeoffs') or not ev_strat or not rev_trig:
             errors.append('guidance-missing-tradeoff:'+ident)
+        if entry.get('problem','').strip() == entry.get('use_when','').strip():
+            errors.append('guidance-identical-problem-and-use-when:'+ident)
         for name,values,known in [('stage',entry.get('stage_ids',[]),stages),('concern',entry.get('concern_ids',[]),concerns),('reference',entry.get('reference_ids',[]),reference_ids)]:
             for value in values:
                 if value not in known:

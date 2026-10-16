@@ -153,6 +153,7 @@ def run_negative_suite(root):
     bad=copy.deepcopy(matrix);bad['stages'][-1]['next_stages']=['ASSESS'];negative_lifecycle('retirement-learning-lost',ma=bad)
     bad=copy.deepcopy(guidance);bad['guidance'][0]['applicability']='REQUIRED';negative_lifecycle('mandatory-advisory-guide',gu=bad)
     bad=copy.deepcopy(guidance);bad['guidance'][0]['avoid_when']='';negative_lifecycle('pattern-without-avoid-when',gu=bad)
+    bad=copy.deepcopy(guidance);bad['guidance'][0]['problem']=bad['guidance'][0]['use_when'];negative_lifecycle('guidance-identical-problem-and-use-when',gu=bad)
     bad=copy.deepcopy(guidance);bad['guidance'][0]['reference_ids']=['NO-REF'];negative_lifecycle('guidance-missing-source',gu=bad)
     bad=copy.deepcopy(project);bad['stages'][0]['evidence_refs']=[];negative_lifecycle('lifecycle-pass-without-evidence',pr=bad)
     bad=copy.deepcopy(project);bad['stages'][0]['candidate_identity']='';negative_lifecycle('lifecycle-pass-without-candidate-identity',pr=bad)
