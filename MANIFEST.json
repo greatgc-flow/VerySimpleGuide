@@ -289,8 +289,8 @@
     },
     {
       "path": "06_GOVERNANCE/artifact-ownership.json",
-      "sha256": "f9f2bdd9ea624cd8e7c4fa9c0e2cf8e5b6fa336e8ee71679c5dc341afe508976",
-      "size_bytes": 19006
+      "sha256": "6af5e9488961b960d8e6e17d47dcc511cf2b6cbfbcbe2480eb1fe74cfef3fdca",
+      "size_bytes": 19160
     },
     {
       "path": "06_GOVERNANCE/control-coverage.json",
@@ -519,8 +519,8 @@
     },
     {
       "path": "CONTRIBUTING.md",
-      "sha256": "ca45ee461b1f1b1c0e004750d5dcd94745fc02aa00dfcf89a1101b9ce1ebe694",
-      "size_bytes": 1085
+      "sha256": "897960ca8490692269cd9260a408a614daf6c63002e71ff17e0c102b5b3d269f",
+      "size_bytes": 1206
     },
     {
       "path": "LICENSE",
@@ -553,14 +553,19 @@
       "size_bytes": 20
     },
     {
+      "path": "tools/reseal_manifest.py",
+      "sha256": "3a9e92b3016a7cf6afca02218c9bbbd5aaf29f7e68cb97756342086aac3d52e9",
+      "size_bytes": 2023
+    },
+    {
       "path": "tools/suggest_guidance.py",
-      "sha256": "f62d791d3a6f08025ba0f2ece754eaf883c2a8ee819052cc6c361ef9b83cd736",
-      "size_bytes": 1636
+      "sha256": "3d491b2ab1e8c2ef41b54ba1bea466ed5d8b3c876d4f2151bb4751ab77b3c2eb",
+      "size_bytes": 1673
     },
     {
       "path": "tools/test_validator.py",
-      "sha256": "e5481e765b21971946926aa8c8e6dbb3a8010b147d3d4ed32ae3dee65ce187a1",
-      "size_bytes": 16307
+      "sha256": "c2972dc160dc9c2de18812e5d8b18871af222383d75abddee6c8d0b269a4f308",
+      "size_bytes": 16460
     },
     {
       "path": "tools/validate_package.ps1",
@@ -569,8 +574,8 @@
     },
     {
       "path": "tools/validate_package.py",
-      "sha256": "261c0b4aae731f4444936ecfbd716477858fa715b93bc34a47e5116f5f4f9b38",
-      "size_bytes": 35107
+      "sha256": "ca4b7b9de9ddef382cd0a1ca85c57c58143a43b76facfd4140bd14ba369414a7",
+      "size_bytes": 35255
     }
   ]
 }

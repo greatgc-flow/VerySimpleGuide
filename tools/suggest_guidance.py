@@ -1,6 +1,8 @@
 """Read-only optional reference selector. This tool is not a conformance requirement."""
-import argparse, json
+import argparse, json, sys
 from pathlib import Path
+
+sys.dont_write_bytecode = True
 BASE = Path(__file__).resolve().parents[1]
 
 def select(stage=None, concern=None):

@@ -7,6 +7,11 @@ from pathlib import Path, PurePosixPath
 import argparse, copy, hashlib, json, sys
 from datetime import datetime
 
+sys.dont_write_bytecode = True
+_TOOLS_DIR = str(Path(__file__).resolve().parent)
+if _TOOLS_DIR not in sys.path:
+    sys.path.insert(0, _TOOLS_DIR)
+
 try:
     from jsonschema import Draft202012Validator, FormatChecker
     from jsonschema.exceptions import SchemaError, ValidationError

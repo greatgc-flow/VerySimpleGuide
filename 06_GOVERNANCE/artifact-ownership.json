@@ -663,6 +663,12 @@
       "related_controls": []
     },
     {
+      "path": "tools/reseal_manifest.py",
+      "role": "VALIDATION_TOOL",
+      "primary_control": "UPS-TEST",
+      "related_controls": []
+    },
+    {
       "path": "tools/suggest_guidance.py",
       "role": "VALIDATION_TOOL",
       "primary_control": "UPS-TEST",

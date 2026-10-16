@@ -1,6 +1,11 @@
 """Deterministic negative controls; a validator that accepts these must not issue PASS."""
 from pathlib import Path
-import copy, json
+import copy, json, sys
+
+sys.dont_write_bytecode = True
+_TOOLS_DIR = str(Path(__file__).resolve().parent)
+if _TOOLS_DIR not in sys.path:
+    sys.path.insert(0, _TOOLS_DIR)
 
 
 def run_negative_suite(root):

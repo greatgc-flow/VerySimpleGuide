@@ -6,10 +6,12 @@ normative invariants, defaults/heuristics, and examples/reference material.
 
 1. Describe the user problem, applicable scope and smallest useful change.
 2. Name the affected primary Control and update the machine-readable source of truth.
-3. Update schema, example, generated views, trace and artifact ownership as needed.
+3. Update schema, example, generated views, trace and artifact ownership as needed,
+   then reseal `MANIFEST.json` (`MANIFEST.json` explicitly excludes itself) via
+   `python tools/reseal_manifest.py`.
 4. Add positive and negative tests for changes to validation contracts.
 5. Run `python -m pip install -r tools/requirements-validation.txt` followed by
-   `python tools/validate_package.py --evidence-file .validation/local.txt`.
+   `python -I tools/validate_package.py --evidence-file .validation/local.txt`.
 6. If normative behavior changes, document a versioned evolution decision and
    compatibility path; do not silently weaken an invariant.
 
