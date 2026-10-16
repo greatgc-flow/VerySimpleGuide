@@ -1,16 +1,15 @@
-# Operational Closed-Loop Contract
+# Operational Feedback and Closure
 
-Observation → Feedback → Disposition → Requirement/Decision → Counterexample or approved exception → Exact-candidate gate → Deployment → Post-outcome → CLOSE / REOPEN.
+Observation enters the [lifecycle backbone](LIFECYCLE_VALUE_STREAM.md) at OPERATE_SUPPORT/IMPROVE and returns to the affected requirement or decision. Preserve observation time, source identity, provenance and evidence; distinguish measured facts from inference.
 
-This complements the development loop with explicit operational entry and exit rules:
+The canonical vocabularies are `feedback_dispositions`, `feedback_statuses` and `feedback_events` in [unified-package-standard.json](../06_GOVERNANCE/unified-package-standard.json):
 
-1. Every observation has an observation time, source identity, provenance and evidence reference. AI inference must be differentiated from measured fact.
-2. Feedback carries the observation link, owner, impacted scope, priority, next action and review date. Use a deduplication key where recurring failures warrant it.
-3. Record `ACCEPT`, `REJECT`, `DEFER` or `DUPLICATE`. Rejections require rationale and authority; deferrals require ownership and a revisit trigger. Do not silently delete findings.
-4. Accepted findings link to requirement/decision IDs, a regression or failing counterexample and implementation/gate evidence. If this is impossible, record a scoped risk exception.
-5. Merge and public release alone do not close the issue: require fresh gate evidence for the exact candidate and an observed result meeting the objective, or approved risk acceptance.
-6. Contradicting post-outcome evidence produces a new `REOPEN` event; preserve the original immutable closure history.
-7. No-deployment paths (e.g. `REJECT`, `DEFER`) can be valid dispositions when the decision, owner and revisit policy are recorded.
-8. Review backlogs proportionately by impact and risk. Absence of telemetry means `NO_EVIDENCE`, not proof of zero problems.
+- Disposition: `PENDING`, `ACCEPT`, `REJECT`, `DEFER`, `DUPLICATE` describes the decision.
+- Status: `OPEN`, `IN_PROGRESS`, `CLOSED` describes completion separately.
+- Events: `CLOSE`, `REOPEN` preserve immutable history. `REOPEN` returns status to `OPEN`, retains prior closure evidence and requires `next_action` plus `decision_ref`.
 
-**Design closure** is a verified model of states, evidence and transitions; **operational closure** requires real source observations through measurable post-release outcomes for a specific product. This package establishes the former, not the latter.
+Feedback records link observation, accountable `owner`, priority, rationale and next action. Rejection and duplication need a decision reference; deferral needs a decision, owner and `revisit_trigger`. Review the backlog proportionately; absent telemetry supplies no evidence of zero problems.
+
+Closing accepted work requires linked requirements, reproduced failure or approved exception, passing tests and fresh gates for the exact closure candidate, release evidence and an observed outcome meeting acceptance (or explicit approved risk acceptance). Merge or publication alone does not close it. Rejected or duplicate feedback can close through a recorded decision; deferral preserves the revisit obligation. Contradictory outcome evidence reopens the record.
+
+Schemas and references validate the closure model; product acceptance authority evaluates actual outcomes. Artifact maintainership grants no such authority.

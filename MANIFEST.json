@@ -36,24 +36,24 @@
     },
     {
       "path": "01_METHOD/DECISION_RULES.md",
-      "sha256": "61a5086240c36e8050428778caab662f8a9507f888824a6d700f0f48a2b26d3c",
-      "size_bytes": 1455,
+      "sha256": "7f4969a25f65c2a9d13d6f18c563629f551ae5f70a2dd089c9d14f0a66d29e1b",
+      "size_bytes": 2064,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []
     },
     {
       "path": "01_METHOD/DEVELOPMENT_CLOSED_LOOP.md",
-      "sha256": "ddc2445ffd909f2de12361232c7e5d3a3881739b8cafa00c1ea88a647158e81b",
-      "size_bytes": 1326,
+      "sha256": "50e257cd2289b03b8b80b54b2090bb4ee6b5dc3e9d606f6c0665e58a22951de4",
+      "size_bytes": 923,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []
     },
     {
       "path": "01_METHOD/LIFECYCLE_VALUE_STREAM.md",
-      "sha256": "8c2aecda0661bd42b63f52b33503166d1ea769406f01c29c2ea1e2d7a31f1cd6",
-      "size_bytes": 2760,
+      "sha256": "71a1202636bf99b6fc49516c78e94e49546e71ef260eb33294aaa1de4ef12fa1",
+      "size_bytes": 1474,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []
@@ -68,16 +68,16 @@
     },
     {
       "path": "01_METHOD/OPEN_TECHNOLOGY_PRINCIPLES.md",
-      "sha256": "5213edc6accdc8150d16a2e866a2fb62d99c54ccb75ee373758905db51f1b1d4",
-      "size_bytes": 4066,
+      "sha256": "9ca664b515b95807702168debd58e76125fbccebf600d44b8c4fb24deef0465b",
+      "size_bytes": 2146,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []
     },
     {
       "path": "01_METHOD/OPERATIONAL_FEEDBACK_LOOP.md",
-      "sha256": "064a77fdca67b6f2fc18b66fd6cf3cf7f2770df4572a2da237ea42ab3fd1134b",
-      "size_bytes": 1806,
+      "sha256": "cd1304f827ee1155e5b369e4c7ce735f526107ce950d55f5055574c6fd32d606",
+      "size_bytes": 1740,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": [
@@ -86,24 +86,24 @@
     },
     {
       "path": "01_METHOD/OPTIONAL_KNOWLEDGE_ROUTING.md",
-      "sha256": "700a3ccc95a443cfe21e1ee4ff63b032457c73e8b6292f47f035cf73a8a84029",
-      "size_bytes": 1447,
+      "sha256": "0c4cc3bbebfd4a6367cdc1572654aa2b58e3b6a067aaf205375439fa86067393",
+      "size_bytes": 630,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []
     },
     {
       "path": "01_METHOD/RECURSIVE_MECE.md",
-      "sha256": "b52535c449d4660ab1269907f7b176631140e993671e5b17fb840d6c3e901a47",
-      "size_bytes": 1812,
+      "sha256": "5207bd2ed5e95b0c8eb7abc8f2130a9053a695b9af4f8eaafaac083fd3aae381",
+      "size_bytes": 1104,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []
     },
     {
       "path": "01_METHOD/TECHNOLOGY_EXPLORATION_LOOP.md",
-      "sha256": "5a4d5c954a798329cf6152affdab4d1436ba9b203f4dabf37df0c26519237216",
-      "size_bytes": 2249,
+      "sha256": "b7bedfbdd08d4c7113e6184e69c81424903a24625e1d318d704d5f0eb09ca732",
+      "size_bytes": 1313,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []

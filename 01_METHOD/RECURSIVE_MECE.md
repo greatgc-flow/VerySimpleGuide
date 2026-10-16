@@ -1,13 +1,7 @@
-# Recursive MECE — Axes, Scope and Evidence
+# Recursive Coverage: Control, Stage and Concern
 
-## Two vertical resolutions
-The twelve canonical product-value stages (`DISCOVER` through `RETIRE`) live in `03_LIFECYCLE/lifecycle-matrix.json`. The eight technical operation categories—discover/bootstrap, configure, execute/mutate, observe, recover, migrate/upgrade, package/release and operate/learn/deprecate—are a lower-level diagnostic **view**, not a competing sequence or a strict one-to-one mapping.
+Use one lifecycle backbone: [lifecycle-matrix.json](../03_LIFECYCLE/lifecycle-matrix.json). Its twelve stages describe when decisions occur; its ten concerns describe what to inspect. Controls identify semantic responsibilities, not business acceptance authority. These are separate coordinates, with constraints rather than a claim of mathematical independence.
 
-## Two horizontal resolutions
-Ten product/user concerns are canonical in the lifecycle matrix. Eight technical surfaces—interface, configuration, state/data, component/extension, security, observability/evidence, quality/testing and distribution/compatibility—are additional engineering review prompts, not new canonical concerns.
+At each relevant scope (product, milestone, component, interface, mutation, release or retirement), inspect objective, decision authority, contracts, failure cases, evidence and reentry. Give each rule one normative home and each obligation one primary semantic control; link secondary relationships without copying the rule.
 
-**Control (normative owner) × Stage (lifecycle) × Concern (subject)** are different coordinates. Each requirement or risk has one primary owner and may have multiple evidence and secondary-control links. Distinguish semantic separation from physically separate files or databases.
-
-Every project evaluates twelve stage decisions and ten concern decisions, with explicit `cell_overrides` only for interactions that general inference misses. `FOCUS` and `CONSIDER` highlight reviewer attention; they do not mean 120 implementations or certificates. Mark nonapplicable activities `N_A` with rationale and revisit policy. `PASS` must be tied to the exact scope, candidate, time and evidence.
-
-Inspect each selected level recursively—project, milestone, component, interface, mutation, artifact, distribution and retirement—using objectives, ownership, contracts, tests, failure cases, evidence, next/revisit conditions and deprecation. Do not infer complete domain coverage from a green static package validator.
+Select [COMPACT or FULL](../02_STANDARD/LIFECYCLE_COVERAGE_STANDARD.md), then review important interactions through sparse `cell_overrides`. `FOCUS`/`CONSIDER` are prompts, not implementations or certificates. Additional technical-stage and surface taxonomies are unnecessary. Static coverage cannot establish complete real-world coverage or operational success.
