@@ -1,5 +1,5 @@
 {
-  "standard_version": "1.9.1",
+  "standard_version": "1.9.2",
   "project_id": "verysimple-cli-validator",
   "objective": {
     "statement": "Guarantee cross-platform package validation without false-positive assurance claims or CRLF checkout drift.",

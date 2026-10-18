@@ -1,5 +1,15 @@
 # Design Decisions
 
+## 1.9.2 Upgrade and safety clarifications
+
+- Exercise upgrades through the installed entry point and existing materialized state, including user edits; include the declared minimum runtime (#7, merged #12/#17).
+- Require isolated unit checks that can fail when claimed behavior breaks; distinguish conversion from source preservation (#8/#16).
+- Include ancillary outbound transfers in side effects and test offline claims with network denied (#14).
+- Reject source/destination overlap and filesystem aliases before backup/restore writes, including control/temp paths (#18).
+- Name commit points, distinguish compensation from cleanup failure and retain residual-resource ownership for retries (#23/#24).
+- Audit current content and retained history before widening repository/archive access (#29).
+- Clarify existing contracts without new vocabulary, schemas, coverage mappings or validator rules; existing version pins upgrade to 1.9.2 without rewriting historical evidence.
+
 ## 1.9.1 MECE consolidation
 
 - Give each rule one home: merge restating guides into their normative or parent files, give UPS-REL its own standard, and align N_A, REOPEN and control names with the validator and machine SSOT. Control IDs, invariant IDs, schemas and contract semantics are unchanged.

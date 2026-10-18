@@ -1,6 +1,6 @@
 {
   "standard_id": "VS-UNIFIED-PACKAGE-STANDARD",
-  "version": "1.9.1",
+  "version": "1.9.2",
   "philosophy": "semantic standardization first; syntactic sameness only when it reduces total complexity",
   "planes": [
     "PRODUCT_RUNTIME",

@@ -13,4 +13,6 @@ Each claim independently receives NOT_EVALUATED, PASS or FAIL; these are not a m
 
 Representative negative cases include missing/extra/changed or noncanonical manifest paths, evidence-output aliases of inputs, invalid contracts, evidence-free VERIFIED/PROMOTED, orphan trace links, unowned deferral and stale/mismatched candidates. A Markdown test path is a plan, not execution evidence. [Assessment records](../02_STANDARD/LIFECYCLE_COVERAGE_STANDARD.md) and [feedback closure](../01_METHOD/OPERATIONAL_FEEDBACK_LOOP.md) define their own evidence conditions.
 
+A check counts only if breaking the claimed behavior makes it fail; unit checks use isolated state and no external network. Verify contracted output, distinguishing conversion from source-preservation-only outcomes.
+
 The reference validator checks models and encoded conditions. Real provider/OS/security, recovery, concurrency and user outcomes need project gates; see [reality gates](REALITY_GATES.md).
