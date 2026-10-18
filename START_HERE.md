@@ -13,7 +13,7 @@ Standardize only semantics that must agree. Begin with [objectives and fitness](
 7. Maturity: PLANNED, DESIGN_FROZEN, IMPLEMENTING, IMPLEMENTED, VERIFIED, DEPRECATED, RETIRED.
 8. Distribution: NOT_PUBLISHED, CANDIDATE, PUBLISHED, PROMOTED, WITHDRAWN.
 
-These dimensions have constraints: use [component rules](02_STANDARD/COMPONENT_BOUNDARY.md) for MODULE/EXTENSION, [data policy](02_STANDARD/DATA_SAFETY_STANDARD.md) for kind/recovery/sensitivity and [distribution transitions](03_LIFECYCLE/MATURITY_DISTRIBUTION.md) for publication. Project `owner` identifies accountable decision authority; maintainership grants no acceptance authority.
+These dimensions have constraints: use [component rules](02_STANDARD/COMPONENT_BOUNDARY.md) for MODULE/EXTENSION, [data policy](02_STANDARD/DATA_SAFETY_STANDARD.md) for kind/recovery/sensitivity and [distribution transitions](02_STANDARD/RELEASE_PROMOTION_STANDARD.md) for publication. Project `owner` identifies accountable decision authority; maintainership grants no acceptance authority.
 
 ## Verify the claim you make
 

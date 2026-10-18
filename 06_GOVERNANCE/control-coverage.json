@@ -1,6 +1,6 @@
 {
   "standard_id": "VS-UNIFIED-PACKAGE-STANDARD",
-  "standard_version": "1.9.0",
+  "standard_version": "1.9.1",
   "controls": [
     {
       "control_id": "UPS-CLI",
@@ -39,8 +39,7 @@
       "standard_refs": [
         "02_STANDARD/CONFIG_STATE_SCHEMA.md",
         "02_STANDARD/DATA_SAFETY_STANDARD.md",
-        "02_STANDARD/AUTHORITY_PROJECTION_STANDARD.md",
-        "02_STANDARD/PROJECTION_FRESHNESS_STANDARD.md"
+        "02_STANDARD/AUTHORITY_PROJECTION_STANDARD.md"
       ],
       "verification_obligation": "Verify authority ownership, projection reconstruction and recovery safety.",
       "assurance_level": "DESIGN_COVERED"
@@ -70,7 +69,8 @@
         "02_STANDARD/EXTENSION_PROVIDER_STANDARD.md",
         "02_STANDARD/PROVIDER_CAPABILITY_STANDARD.md",
         "02_STANDARD/PROTOCOL_ADAPTER_STANDARD.md",
-        "02_STANDARD/INTEROPERABILITY_NEUTRALITY.md"
+        "02_STANDARD/INTEROPERABILITY_NEUTRALITY.md",
+        "02_STANDARD/CAPABILITY_CATALOG_STANDARD.md"
       ],
       "verification_obligation": "Verify extension boundaries, failure isolation and disable behavior.",
       "assurance_level": "DESIGN_COVERED"
@@ -79,7 +79,7 @@
       "control_id": "UPS-OBS",
       "standard_refs": [
         "02_STANDARD/OBSERVABILITY_EVIDENCE_STANDARD.md",
-        "02_STANDARD/PROJECTION_FRESHNESS_STANDARD.md"
+        "02_STANDARD/AUTHORITY_PROJECTION_STANDARD.md"
       ],
       "verification_obligation": "Verify telemetry provenance, freshness and read-only observation.",
       "assurance_level": "DESIGN_COVERED"
@@ -114,10 +114,9 @@
     {
       "control_id": "UPS-TEST",
       "standard_refs": [
-        "04_ASSURANCE/TDD_TRACEABILITY.md",
+        "02_STANDARD/LIFECYCLE_COVERAGE_STANDARD.md",
         "04_ASSURANCE/ASSURANCE_CASE_AND_NEGATIVE_TEST.md",
-        "01_METHOD/OPERATIONAL_FEEDBACK_LOOP.md",
-        "02_STANDARD/LIFECYCLE_COVERAGE_STANDARD.md"
+        "01_METHOD/OPERATIONAL_FEEDBACK_LOOP.md"
       ],
       "verification_obligation": "Verify risk-based tests, negative cases, traceability and independent acceptance.",
       "assurance_level": "DESIGN_COVERED"
@@ -125,8 +124,7 @@
     {
       "control_id": "UPS-REL",
       "standard_refs": [
-        "03_LIFECYCLE/RELEASE_PROMOTION.md",
-        "03_LIFECYCLE/MATURITY_DISTRIBUTION.md"
+        "02_STANDARD/RELEASE_PROMOTION_STANDARD.md"
       ],
       "verification_obligation": "Verify build-once release identity, fresh gates and identical artifact promotion.",
       "assurance_level": "DESIGN_COVERED"
@@ -134,7 +132,7 @@
     {
       "control_id": "UPS-DOC",
       "standard_refs": [
-        "04_ASSURANCE/DRIFT_CONTROL.md",
+        "02_STANDARD/UNIFIED_STANDARD.md",
         "02_STANDARD/KNOWLEDGE_REFERENCE_STANDARD.md"
       ],
       "verification_obligation": "Verify SSOT-generated views, objective/fitness ownership and source link accuracy.",

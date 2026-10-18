@@ -21,6 +21,7 @@ The same technology can appear in distinct planes, such as a product runtime pro
 5. Built-in distribution does **not** imply Core ownership.
 6. Do not make a required Core Module disappear by flipping an optional extension flag.
 7. Delivery components do not inherit product-runtime classifications without explicit ownership.
+8. Routing selects a target and does not execute it; execution belongs to orchestration of accepted plans ([guide](../05_ARCHITECTURE/BOUNDED_ORCHESTRATION.md)).
 
 Choose proportional module granularity. Explicit public-contract composition is more important than physical folder symmetry.
 
