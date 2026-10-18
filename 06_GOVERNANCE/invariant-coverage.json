@@ -1,5 +1,5 @@
 {
-  "standard_version": "1.9.0",
+  "standard_version": "1.9.1",
   "invariants": [
     {
       "invariant_id": "core_must_not_depend_on_optional_extensions",
@@ -32,7 +32,7 @@
     {
       "invariant_id": "maturity_is_orthogonal_to_distribution",
       "primary_control": "UPS-REL",
-      "standard_ref": "02_STANDARD/OBSERVABILITY_EVIDENCE_STANDARD.md",
+      "standard_ref": "02_STANDARD/RELEASE_PROMOTION_STANDARD.md",
       "product_gate_obligation": "maturity-distribution",
       "assurance_level": "DESIGN_COVERED"
     },
@@ -46,21 +46,21 @@
     {
       "invariant_id": "derived_projection_must_be_rebuildable_when_classified_rebuildable",
       "primary_control": "UPS-LAYOUT",
-      "standard_ref": "02_STANDARD/CONFIG_STATE_SCHEMA.md",
+      "standard_ref": "02_STANDARD/AUTHORITY_PROJECTION_STANDARD.md",
       "product_gate_obligation": "projection-replay",
       "assurance_level": "DESIGN_COVERED"
     },
     {
       "invariant_id": "external_protocol_identity_must_not_be_internal_identity",
       "primary_control": "UPS-EXT",
-      "standard_ref": "02_STANDARD/EXTENSION_PROVIDER_STANDARD.md",
+      "standard_ref": "02_STANDARD/PROTOCOL_ADAPTER_STANDARD.md",
       "product_gate_obligation": "protocol-identity",
       "assurance_level": "DESIGN_COVERED"
     },
     {
       "invariant_id": "declared_capability_is_not_measured_capability",
       "primary_control": "UPS-EXT",
-      "standard_ref": "02_STANDARD/EXTENSION_PROVIDER_STANDARD.md",
+      "standard_ref": "02_STANDARD/PROVIDER_CAPABILITY_STANDARD.md",
       "product_gate_obligation": "capability-provenance",
       "assurance_level": "DESIGN_COVERED"
     },
@@ -95,14 +95,14 @@
     {
       "invariant_id": "build_once_and_promote_same_artifact",
       "primary_control": "UPS-REL",
-      "standard_ref": "02_STANDARD/OBSERVABILITY_EVIDENCE_STANDARD.md",
+      "standard_ref": "02_STANDARD/RELEASE_PROMOTION_STANDARD.md",
       "product_gate_obligation": "build-once",
       "assurance_level": "DESIGN_COVERED"
     },
     {
       "invariant_id": "blocking_gate_requires_fresh_exact_candidate_pass",
       "primary_control": "UPS-REL",
-      "standard_ref": "02_STANDARD/OBSERVABILITY_EVIDENCE_STANDARD.md",
+      "standard_ref": "02_STANDARD/RELEASE_PROMOTION_STANDARD.md",
       "product_gate_obligation": "candidate-gate-freshness",
       "assurance_level": "DESIGN_COVERED"
     },
@@ -123,35 +123,35 @@
     {
       "invariant_id": "procedure_source_generated_index_catalog_policy_are_distinct",
       "primary_control": "UPS-CONFIG",
-      "standard_ref": "02_STANDARD/CONFIG_STATE_SCHEMA.md",
+      "standard_ref": "02_STANDARD/CAPABILITY_CATALOG_STANDARD.md",
       "product_gate_obligation": "skill-catalog-ownership",
       "assurance_level": "DESIGN_COVERED"
     },
     {
       "invariant_id": "volatile_measured_fact_belongs_to_observation_not_static_catalog",
       "primary_control": "UPS-OBS",
-      "standard_ref": "02_STANDARD/OBSERVABILITY_EVIDENCE_STANDARD.md",
+      "standard_ref": "02_STANDARD/CAPABILITY_CATALOG_STANDARD.md",
       "product_gate_obligation": "observation-freshness",
       "assurance_level": "DESIGN_COVERED"
     },
     {
       "invariant_id": "provider_specific_behavior_is_selected_by_capability_not_core_vendor_branch",
       "primary_control": "UPS-EXT",
-      "standard_ref": "02_STANDARD/EXTENSION_PROVIDER_STANDARD.md",
+      "standard_ref": "02_STANDARD/PROVIDER_CAPABILITY_STANDARD.md",
       "product_gate_obligation": "provider-capability",
       "assurance_level": "DESIGN_COVERED"
     },
     {
       "invariant_id": "projection_results_must_expose_freshness_or_watermark_when_staleness_matters",
       "primary_control": "UPS-OBS",
-      "standard_ref": "02_STANDARD/OBSERVABILITY_EVIDENCE_STANDARD.md",
+      "standard_ref": "02_STANDARD/AUTHORITY_PROJECTION_STANDARD.md",
       "product_gate_obligation": "projection-watermark",
       "assurance_level": "DESIGN_COVERED"
     },
     {
       "invariant_id": "transport_connection_lifetime_must_not_define_domain_identity",
       "primary_control": "UPS-EXT",
-      "standard_ref": "02_STANDARD/EXTENSION_PROVIDER_STANDARD.md",
+      "standard_ref": "02_STANDARD/PROTOCOL_ADAPTER_STANDARD.md",
       "product_gate_obligation": "stateless-handle",
       "assurance_level": "DESIGN_COVERED"
     },

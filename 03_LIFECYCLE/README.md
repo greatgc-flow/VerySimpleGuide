@@ -4,4 +4,4 @@
 
 Use the [coverage standard](../02_STANDARD/LIFECYCLE_COVERAGE_STANDARD.md) to select COMPACT/FULL, record separate applicability/approach/result and assess exceptional intersections. The [worked example](APPLICABILITY_EXAMPLE.md) illustrates records without proving product behavior.
 
-Apply scoped contracts for [mutation recovery](FAILURE_RECOVERY.md), [cutover](CUTOVER_ROLLBACK.md), [release](RELEASE_PROMOTION.md), [distribution](MATURITY_DISTRIBUTION.md) and [retirement](DEPRECATION_RETIREMENT.md). Development, exploration and feedback reenter this backbone through the [value stream](../01_METHOD/LIFECYCLE_VALUE_STREAM.md).
+Apply scoped contracts for [mutation recovery](FAILURE_RECOVERY.md), [cutover](CUTOVER_ROLLBACK.md), [release and distribution](../02_STANDARD/RELEASE_PROMOTION_STANDARD.md) and [retirement](DEPRECATION_RETIREMENT.md). Development, exploration and feedback reenter this backbone through the [value stream](../01_METHOD/LIFECYCLE_VALUE_STREAM.md).

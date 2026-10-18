@@ -1,7 +1,7 @@
 # CLI and Public Interface Standard
 
 ## Universal public-interface obligations
-For each existing UI, API, library, event or CLI surface, declare inputs, outputs, errors, compatibility, side effects, actor authorization and observable completion. Version the contract where relevant; test promised behavior and expose limitations. Discovery/help must be read-only. A success report requires the contracted effect and postconditions; diagnostics preserve uncertainty. No CLI is required for a product without one.
+For each existing UI, API, library, event or CLI surface, declare inputs, outputs, errors, compatibility, side effects, actor authorization and observable completion. Version the contract where relevant; test promised behavior and expose limitations. Discovery/help must be read-only, including any status view of open feedback ([operational feedback](../01_METHOD/OPERATIONAL_FEEDBACK_LOOP.md)). A success report requires the contracted effect and postconditions; diagnostics preserve uncertainty. No CLI is required for a product without one.
 
 ## CLI profile: product-local grammar
 A lifecycle utility may use `<product> backup` or `<product> repair`; a domain system may prefer `<product> <noun> <verb>`. A globally identical command tree is **not required**.

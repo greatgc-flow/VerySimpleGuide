@@ -18,3 +18,11 @@ normative invariants, defaults/heuristics, and examples/reference material.
 Do not submit secrets, production data, provider tokens or copies of third-party
 standards. Keep all contributed source and public documentation in English.
 The validation evidence folder is intentionally ignored by Git.
+
+## Repository guardrails
+
+`main` is the only long-lived branch. Work on a short-lived branch, open one
+pull request, merge only after the required validation check passes, squash
+merge, then delete the branch. Do not force-push or delete `main`. Hosting
+settings that enforce this are owner actions, not part of the guide's standard;
+any hosting platform may apply equivalent rules.

@@ -1,6 +1,6 @@
 {
   "matrix_id": "VS-LIFECYCLE-12X10",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "baseline_semantics": "FOCUS / CONSIDER are prompts only, not adoption requirements",
   "profile_rules": {
     "compact_mandatory_stages": [

@@ -1,5 +1,22 @@
 # Design Decisions
 
+## 1.9.1 MECE consolidation
+
+- Give each rule one home: merge restating guides into their normative or parent files, give UPS-REL its own standard, and align N_A, REOPEN and control names with the validator and machine SSOT. Control IDs, invariant IDs, schemas and contract semantics are unchanged.
+- Add an awareness step to operational feedback (#4) and repository guardrails to CONTRIBUTING (#5) without new tools, grammar, configuration formats or labels. Only `main` triggers push validation.
+- Correct invariant ownership mappings and fail without filesystem writes when the PowerShell wrapper cannot find Python.
+- Path map (old → new home):
+  - `01_METHOD/DEVELOPMENT_CLOSED_LOOP.md` → `01_METHOD/LIFECYCLE_VALUE_STREAM.md`
+  - `01_METHOD/OPTIONAL_KNOWLEDGE_ROUTING.md` → `08_KNOWLEDGE/README.md`
+  - `02_STANDARD/PROJECTION_FRESHNESS_STANDARD.md` → `02_STANDARD/AUTHORITY_PROJECTION_STANDARD.md`
+  - `03_LIFECYCLE/RELEASE_PROMOTION.md`, `03_LIFECYCLE/MATURITY_DISTRIBUTION.md` and the release section of `02_STANDARD/OBSERVABILITY_EVIDENCE_STANDARD.md` → `02_STANDARD/RELEASE_PROMOTION_STANDARD.md`
+  - `04_ASSURANCE/TDD_TRACEABILITY.md` → `02_STANDARD/LIFECYCLE_COVERAGE_STANDARD.md`
+  - `04_ASSURANCE/DRIFT_CONTROL.md` → `02_STANDARD/UNIFIED_STANDARD.md`
+  - `06_GOVERNANCE/APPLICABILITY_POLICY.md` → `02_STANDARD/LIFECYCLE_COVERAGE_STANDARD.md`
+  - `06_GOVERNANCE/LIFECYCLE_GUIDANCE_POLICY.md` → `02_STANDARD/LIFECYCLE_COVERAGE_STANDARD.md` (profiles, retirement), `02_STANDARD/UNIFIED_STANDARD.md` (one primary Control per stage/concern), `01_METHOD/OPERATIONAL_FEEDBACK_LOOP.md` (incident reopening)
+  - `06_GOVERNANCE/CONTROL_BOUNDARY_OWNERSHIP.md` → `02_STANDARD/UNIFIED_STANDARD.md`
+  - `06_GOVERNANCE/EXCEPTION_DISPOSITION.md` → `01_METHOD/OPERATIONAL_FEEDBACK_LOOP.md`
+
 ## R14 MECE and loop closure
 
 - Close the v1.9.0 package trace with CI, deployment, measured outcome and an owner-approved RED exception.
