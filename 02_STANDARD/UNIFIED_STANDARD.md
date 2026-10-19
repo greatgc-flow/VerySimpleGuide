@@ -1,4 +1,4 @@
-# Unified Package Standard 1.9.1
+# Unified Package Standard 1.9.2
 
 Applicable semantic responsibilities are binding; organizing them as fifteen controls is a default under [open technology principles](../01_METHOD/OPEN_TECHNOLOGY_PRINCIPLES.md). `primary_control` identifies the package semantic control domain; project `owner` identifies accountable decision authority. Artifact maintainership grants no acceptance authority. Discovery/funding mappings assign document/control responsibility, not business authority.
 

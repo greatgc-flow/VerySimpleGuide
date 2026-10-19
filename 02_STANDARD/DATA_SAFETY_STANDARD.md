@@ -12,7 +12,7 @@ Classify named state using [kind and recovery class](CONFIG_STATE_SCHEMA.md), pl
 
 Secret handling overlays every class: encrypt protected copies and control access, or use a documented separate recovery policy. Exclusion must preserve the authoritative recovery obligation through an approved alternative; sensitivity alone never permits silent data loss.
 
-Backup success requires a complete manifest, verified authoritative hashes, reopening/read checks and declared exclusions. Restore: verify manifest → restore authority → verify schema/hashes → establish generation/fence → rebuild projections → reconcile external handles → invariant checks → activate.
+Backup success requires a complete manifest, verified authoritative hashes, reopening/read checks and declared exclusions. Before backup/restore writes, reject source/destination overlap in either ancestry direction and filesystem aliases, including control/temp paths. Restore: verify manifest → restore authority → verify schema/hashes → establish generation/fence → rebuild projections → reconcile external handles → invariant checks → activate.
 
 Reset uses a classification-based preview and authorized plan, preserves external ownership by default and verifies actual removals. Uncertain deletion cannot report success.
 

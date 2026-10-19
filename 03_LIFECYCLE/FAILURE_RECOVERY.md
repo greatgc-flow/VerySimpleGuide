@@ -5,3 +5,5 @@ Determine applicability before attaching a mutation contract. Consider idempoten
 **Execution certainty:** `NOT_STARTED`, `MAY_HAVE_STARTED`, `STARTED`, `TERMINAL`. When the status is `MAY_HAVE_STARTED`, prohibit blind retry until reconciliation or external evidence resolves whether an irreversible effect occurred.
 
 Recovery journals verify plan identity and executed steps. Do not reconstruct a new plan that silently forgets recorded actions and then report success. Distinguish process cancellation, safe compensation and a truly verified terminal outcome.
+
+Name each mutation's commit point: distinguish pre-commit compensation from post-commit cleanup failure, preserving committed state and reporting residual owned resources. Retain ownership records until their resources are removed so retries can finish cleanup.
