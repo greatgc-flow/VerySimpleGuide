@@ -9,6 +9,7 @@
 - Name commit points, distinguish compensation from cleanup failure and retain residual-resource ownership for retries (#23/#24).
 - Audit current content and retained history before widening repository/archive access (#29).
 - Clarify existing contracts without new vocabulary, schemas, coverage mappings or validator rules; existing version pins upgrade to 1.9.2 without rewriting historical evidence.
+- Add one sentence to Very Simple fitness: scale implementation and verification effort to impact, risk and reversibility without weakening required evidence (#47).
 
 ## 1.9.1 MECE consolidation
 
