@@ -52,8 +52,8 @@
     },
     {
       "path": "01_METHOD/OBJECTIVE_AND_FITNESS.md",
-      "sha256": "18d04362278fab3f1f1fdddc08585e4bb59da1e66e341258d98d589de2cbc58f",
-      "size_bytes": 1588,
+      "sha256": "665b3c5b354957b5d07d54aac34b7693b522bce08679ac67a5c15dabb30987b3",
+      "size_bytes": 1752,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []
@@ -655,8 +655,8 @@
     },
     {
       "path": "CHANGELOG.md",
-      "sha256": "031d1c4587c277378a25b4e64b66f6c7df868b4ef2a985048dc5ac1103376e2d",
-      "size_bytes": 7350,
+      "sha256": "94af67648bd5d821a02b16aa42a93eecae10eeae58e46ee8efb355dbf4c64cbb",
+      "size_bytes": 7515,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []
@@ -705,6 +705,142 @@
       "path": "START_HERE.md",
       "sha256": "47e0dba5e37395284143340f25ffcfd15a54511cc8507a4933c7e00f39382d32",
       "size_bytes": 2137,
+      "role": "HUMAN_GUIDE",
+      "primary_control": "UPS-DOC",
+      "related_controls": []
+    },
+    {
+      "path": "tmp-review/ag-reply-1.txt",
+      "sha256": "c6f1ede77381306ea924eb0140160ffe9c78a4a571e90f5f4ae491e467a30a38",
+      "size_bytes": 7487,
+      "role": "HUMAN_GUIDE",
+      "primary_control": "UPS-DOC",
+      "related_controls": []
+    },
+    {
+      "path": "tmp-review/ask-ag.md",
+      "sha256": "34eae73068f39d7dadbf483791fc69b7ba8eb49cdfef86fffeca7c73bb458ece",
+      "size_bytes": 2125,
+      "role": "HUMAN_GUIDE",
+      "primary_control": "UPS-DOC",
+      "related_controls": []
+    },
+    {
+      "path": "tmp-review/ask-cx.md",
+      "sha256": "c6a7f567d6d3289feb0ac271273e54df54c85097e5030dca8104fc38521c9c85",
+      "size_bytes": 1915,
+      "role": "HUMAN_GUIDE",
+      "primary_control": "UPS-DOC",
+      "related_controls": []
+    },
+    {
+      "path": "tmp-review/cx-reply-1.txt",
+      "sha256": "a53dcb481b88ebbac778603756ff3f32bd74c1c39836fa18f9da278cf994422c",
+      "size_bytes": 3905,
+      "role": "HUMAN_GUIDE",
+      "primary_control": "UPS-DOC",
+      "related_controls": []
+    },
+    {
+      "path": "tmp-review/issue-39.md",
+      "sha256": "9e0ca15f6d29e2fdeae2a233db7d5eb9688ae833b34eb26251e9c56638474c99",
+      "size_bytes": 37161,
+      "role": "HUMAN_GUIDE",
+      "primary_control": "UPS-DOC",
+      "related_controls": []
+    },
+    {
+      "path": "tmp-review/issue-40.md",
+      "sha256": "445d88fdccd919d42ea24325a12013d6e10e1f90fc6fac17e10c15d9b865bd59",
+      "size_bytes": 2671,
+      "role": "HUMAN_GUIDE",
+      "primary_control": "UPS-DOC",
+      "related_controls": []
+    },
+    {
+      "path": "tmp-review/issue-41.md",
+      "sha256": "54da3d7298d85ba07799ebb569dce5303c7719ce955f9cb111c18b7433d01800",
+      "size_bytes": 4019,
+      "role": "HUMAN_GUIDE",
+      "primary_control": "UPS-DOC",
+      "related_controls": []
+    },
+    {
+      "path": "tmp-review/issue-42.md",
+      "sha256": "2640e3bc6b9472efb23e55dddaea70fa597e1302561d5fc491e7cbcf7819c01b",
+      "size_bytes": 3822,
+      "role": "HUMAN_GUIDE",
+      "primary_control": "UPS-DOC",
+      "related_controls": []
+    },
+    {
+      "path": "tmp-review/issue-43.md",
+      "sha256": "a65a5454c8e5230c4fc0541c7d58c89e7899c91e320cd051e442e8ec2b214cdd",
+      "size_bytes": 3559,
+      "role": "HUMAN_GUIDE",
+      "primary_control": "UPS-DOC",
+      "related_controls": []
+    },
+    {
+      "path": "tmp-review/issue-44.md",
+      "sha256": "cd17cdad1af7e5e9d73f18ea5016838fa98503ece5a3613a603b7c13cf7a9d66",
+      "size_bytes": 4037,
+      "role": "HUMAN_GUIDE",
+      "primary_control": "UPS-DOC",
+      "related_controls": []
+    },
+    {
+      "path": "tmp-review/issue-45.md",
+      "sha256": "5d808919a3d372fbc0a98dd8043dd54a59ae63aed7401f8dd1749be3fd1e22f4",
+      "size_bytes": 3317,
+      "role": "HUMAN_GUIDE",
+      "primary_control": "UPS-DOC",
+      "related_controls": []
+    },
+    {
+      "path": "tmp-review/issue-46.md",
+      "sha256": "87475dda2146b65b982f0c36aeebab7a9a61ed31e4064d3e3f5fa86da09d94f0",
+      "size_bytes": 3501,
+      "role": "HUMAN_GUIDE",
+      "primary_control": "UPS-DOC",
+      "related_controls": []
+    },
+    {
+      "path": "tmp-review/issue-47.md",
+      "sha256": "ab452d8b8738dd87fa3c793efaecdbf691777f55f44c7dda06b56ea7ca2e31cb",
+      "size_bytes": 5968,
+      "role": "HUMAN_GUIDE",
+      "primary_control": "UPS-DOC",
+      "related_controls": []
+    },
+    {
+      "path": "tmp-review/issue-48.md",
+      "sha256": "3471e47603838afb9116a48f3a2a957394f7f6e7fcde63d02a08c262af9d4e95",
+      "size_bytes": 4191,
+      "role": "HUMAN_GUIDE",
+      "primary_control": "UPS-DOC",
+      "related_controls": []
+    },
+    {
+      "path": "tmp-review/issue-49.md",
+      "sha256": "afb7a3842a2a5ebc49c5101ad50d29f8bfcb58681269cf2e37eb5385a5f39b60",
+      "size_bytes": 4922,
+      "role": "HUMAN_GUIDE",
+      "primary_control": "UPS-DOC",
+      "related_controls": []
+    },
+    {
+      "path": "tmp-review/issue-50.md",
+      "sha256": "de210b45e348a681310e01f39ecc5d3af6bb86c80b70ab91f1e2a6cedf643355",
+      "size_bytes": 4498,
+      "role": "HUMAN_GUIDE",
+      "primary_control": "UPS-DOC",
+      "related_controls": []
+    },
+    {
+      "path": "tmp-review/issue-51.md",
+      "sha256": "4e2947266e3b15df173a9b69db63be9621f638a853a878d0bbef3131bbe3c608",
+      "size_bytes": 4868,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []

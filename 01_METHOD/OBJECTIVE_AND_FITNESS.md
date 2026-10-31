@@ -10,6 +10,6 @@ The standard is a tool for producing outcomes; document counts and test counts a
 
 Never invent an SLO or acceptance number. Mark unapproved values `UNRATIFIED`, and use `HOLD` when a required approval or measurement is missing.
 
-**Very Simple fitness:** remove a feature, state or layer if its absence does not harm value or safety. Prefer evidence of repeated invariants before introducing custom generic abstractions, while allowing standards-based interoperability and small justified experiments. Optimize achieved outcomes, safety and lifetime cost rather than catalog size. Every new obligation must correspond to an outcome or demonstrated failure mode.
+**Very Simple fitness:** remove a feature, state or layer if its absence does not harm value or safety. Prefer evidence of repeated invariants before introducing custom generic abstractions, while allowing standards-based interoperability and small justified experiments. Optimize achieved outcomes, safety and lifetime cost rather than catalog size. Every new obligation must correspond to an outcome or demonstrated failure mode. Choose the smallest implementation and verification effort justified by impact, risk and reversibility, while preserving required acceptance criteria and evidence.
 
 Design complete, implementation complete, verified, published, promoted and outcomes achieved are independent judgments. Limit any combined acceptance claim to its specific scope and candidate; record unverified dimensions as `UNKNOWN` or `HOLD`.
