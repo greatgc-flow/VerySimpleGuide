@@ -1,5 +1,16 @@
 # Design Decisions
 
+## 1.9.3 Cross-audit closure
+
+- Recursive MECE audit (vertical: rule to evidence to reentry; horizontal: counts, routing, inventory, CI) by independent peers; 13 findings plus README reachability: all resolved; F8 is a recorded non-goal.
+- Validator: accept FAIL reentry records (schema wrappers allowed feedback and trigger ids), bind PASS and closure proof to the candidate digest and chronology, require a designated primary control, compare project ids, reject blank accountable owners, reconcile invariant homes with control coverage, and report skipped filesystem checks as `NOT_EVALUATED` instead of PASS.
+- CI compares the pull-request base trace (`--prior-project-trace`) so executed evidence cannot be rewritten silently.
+- Reachability: every document is reachable from README or START_HERE by Markdown links; deleted the unused interaction-matrix CSV; moved the commit-point and upgrade-gate rules to their normative standards (guides link back); deduplicated the DECLARED/MEASURED rule.
+- Non-goal (F8): invariants carry no stage/concern coordinates; placement is declared per scoped requirement (`stage_id`, `concern_id`).
+- Resolved (F13): WITHDRAWN is terminal for a candidate identity; reinstatement is a new candidate identity (unchanged bytes allowed) starting from NOT_PUBLISHED. The validator no longer accepts WITHDRAWN to CANDIDATE. This supersedes the R14 known limitation on same-candidate reinstatement.
+- Gate ordering: required gates must be observed at or before deployment.
+- Guard: the validator fails when any Markdown document is unreachable from README or START_HERE.
+
 ## 1.9.2 Upgrade and safety clarifications
 
 - Exercise upgrades through the installed entry point and existing materialized state, including user edits; include the declared minimum runtime (#7, merged #12/#17).

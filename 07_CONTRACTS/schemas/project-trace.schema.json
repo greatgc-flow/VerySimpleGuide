@@ -40,8 +40,7 @@
           "minLength": 1
         },
         "owner": {
-          "type": "string",
-          "minLength": 1
+          "$ref": "#/$defs/nonblank"
         },
         "non_goals": {
           "type": "array",
@@ -148,11 +147,11 @@
             "minLength": 1
           },
           "owner": {
-            "type": "string",
-            "minLength": 1
+            "$ref": "#/$defs/nonblank"
           },
           "control_ids": {
-            "$ref": "#/$defs/references"
+            "$ref": "#/$defs/references",
+            "description": "The first control is the primary semantic Control; subsequent controls are related."
           },
           "invariant_ids": {
             "$ref": "#/$defs/references"
@@ -391,8 +390,7 @@
             "minLength": 1
           },
           "owner": {
-            "type": "string",
-            "minLength": 1
+            "$ref": "#/$defs/nonblank"
           },
           "priority": {
             "enum": [
@@ -499,8 +497,7 @@
                   "format": "date-time"
                 },
                 "actor": {
-                  "type": "string",
-                  "minLength": 1
+                  "$ref": "#/$defs/nonblank"
                 },
                 "reason": {
                   "type": "string",

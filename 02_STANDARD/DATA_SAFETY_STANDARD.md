@@ -14,6 +14,8 @@ Secret handling overlays every class: encrypt protected copies and control acces
 
 Backup success requires a complete manifest, verified authoritative hashes, reopening/read checks and declared exclusions. Before backup/restore writes, reject source/destination overlap in either ancestry direction and filesystem aliases, including control/temp paths. Restore: verify manifest → restore authority → verify schema/hashes → establish generation/fence → rebuild projections → reconcile external handles → invariant checks → activate.
 
+Name each mutation's commit point: distinguish pre-commit compensation from post-commit cleanup failure, preserving committed state and reporting residual owned resources. Retain ownership records until their resources are removed so retries can finish cleanup.
+
 Reset uses a classification-based preview and authorized plan, preserves external ownership by default and verifies actual removals. Uncertain deletion cannot report success.
 
 AUTHORITATIVE state excluded from backup requires `recovery_alternative`: an approval decision, approver, alternative mechanism and restore evidence. A reference alone cannot establish recoverability.

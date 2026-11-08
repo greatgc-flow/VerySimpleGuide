@@ -149,7 +149,9 @@
           "revisit_trigger": {},
           "acceptance_criteria": {},
           "candidate_identity": {},
-          "evidence_refs": {}
+          "evidence_refs": {},
+          "feedback_ids": {},
+          "trigger_observation_ids": {}
         },
         "additionalProperties": false
       }
@@ -190,7 +192,9 @@
           "revisit_trigger": {},
           "acceptance_criteria": {},
           "candidate_identity": {},
-          "evidence_refs": {}
+          "evidence_refs": {},
+          "feedback_ids": {},
+          "trigger_observation_ids": {}
         },
         "additionalProperties": false
       }
@@ -236,7 +240,9 @@
           "revisit_trigger": {},
           "acceptance_criteria": {},
           "candidate_identity": {},
-          "evidence_refs": {}
+          "evidence_refs": {},
+          "feedback_ids": {},
+          "trigger_observation_ids": {}
         },
         "additionalProperties": false
       }
@@ -271,8 +277,7 @@
           "type": "boolean"
         },
         "owner": {
-          "type": "string",
-          "minLength": 1
+          "$ref": "#/$defs/nonblank"
         },
         "reason": {
           "type": "string"
@@ -445,6 +450,10 @@
           }
         }
       ]
+    },
+    "nonblank": {
+      "type": "string",
+      "pattern": "\\S"
     }
   }
 }

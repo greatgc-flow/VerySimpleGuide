@@ -391,11 +391,15 @@ def check_invariants(root, std, index, errors):
     if index.get('standard_version') != VERSION or len(expected) != len(actual) or set(actual)!=set(expected) or len(actual)!=len(set(actual)):
         errors.append('invariant-coverage-incomplete')
     roles = {x['path']: x.get('role') for x in read_json(root / 'MANIFEST.json')['files']}
+    coverage = {x['control_id']: set(x.get('standard_refs', []))
+                for x in read_json(root / '06_GOVERNANCE/control-coverage.json')['controls']}
     for row in rows:
         if roles.get(row.get('standard_ref')) not in ('NORMATIVE_SOURCE', 'MACHINE_SSOT'):
             errors.append('invariant-nonauthoritative-home:' + str(row.get('invariant_id')))
         if row.get('primary_control') not in controls:
             errors.append('invariant-orphan-control:' + str(row.get('invariant_id')))
+        if row.get('standard_ref') not in coverage.get(row.get('primary_control'), set()):
+            errors.append('invariant-home-control-unmapped:' + str(row.get('invariant_id')))
         gate_ob = row.get('product_gate_obligation')
         if not isinstance(gate_ob, str) or not gate_ob or ' ' in gate_ob or gate_ob != gate_ob.lower():
             errors.append('invariant-without-gate-obligation:' + str(row.get('invariant_id')))
@@ -495,6 +499,23 @@ def expected_role_for_path(rpath):
     return None
 
 
+def check_doc_reachability(root, errors):
+    """Every Markdown document must be reachable from README.md or START_HERE.md by relative links."""
+    docs = {name for name in file_inventory(root) if name.endswith('.md')}
+    seen = {'README.md', 'START_HERE.md'} & docs
+    todo = list(seen)
+    while todo:
+        cur = todo.pop()
+        text = (root / cur).read_text(encoding='utf-8')
+        for target in re.findall(r'\]\(([^)#\s]+\.md)(?=[)#\s])', text):
+            if '://' in target: continue
+            nxt = os.path.normpath(os.path.join(os.path.dirname(cur), target)).replace(os.sep, '/')
+            if nxt in docs and nxt not in seen:
+                seen.add(nxt); todo.append(nxt)
+    for name in sorted(docs - seen):
+        errors.append('doc-unreachable-from-entry:' + name)
+
+
 def check_artifact_ownership(root, std, errors, ledger_override=None):
     """All tracked semantic artifacts in MANIFEST.json must have a valid Control owner and authority role."""
     ledger = ledger_override if ledger_override is not None else read_json(root / 'MANIFEST.json')
@@ -551,10 +572,12 @@ def check_candidate_records(trace, errors):
     gates = {g['gate_id']: g for g in trace.get('gates', [])}
     tests = {t['id']: t for t in trace.get('tests', [])}
     observations = {o['id']: o for o in trace.get('observations', [])}
+    invariant_obligations = {i['invariant_id']: i['product_gate_obligation']
+                             for i in read_json(ROOT / '06_GOVERNANCE/invariant-coverage.json')['invariants']}
     allowed = {('NOT_PUBLISHED','CANDIDATE'), ('CANDIDATE','PUBLISHED'), ('PUBLISHED','PROMOTED'),
-               ('CANDIDATE','WITHDRAWN'), ('PUBLISHED','WITHDRAWN'), ('PROMOTED','WITHDRAWN'), ('WITHDRAWN','CANDIDATE')}
-    state, times, identities, reinstated, scopes = {}, {}, {}, {}, {}
-    for release in trace.get('releases', []):
+               ('CANDIDATE','WITHDRAWN'), ('PUBLISHED','WITHDRAWN'), ('PROMOTED','WITHDRAWN')}
+    state, times, identities, scopes = {}, {}, {}, {}
+    for release_index, release in enumerate(trace.get('releases', [])):
         rid = release['id']
         candidate, digest = release.get('candidate_identity'), release.get('artifact_digest')
         identity = (candidate, digest)
@@ -568,10 +591,15 @@ def check_candidate_records(trace, errors):
             errors.append('distribution-invalid-transition:' + rid)
         if candidate in identities and identities[candidate] != digest:
             errors.append('distribution-candidate-artifact-changed:' + rid)
+        if candidate not in identities and (release.get('from'), release.get('to')) == ('NOT_PUBLISHED', 'CANDIDATE'):
+            predecessors = {previous['id'] for previous in trace['releases'][:release_index]
+                            if previous.get('to') == 'WITHDRAWN' and previous.get('artifact_digest') == digest
+                            and datetime_utc(previous['released_at']) <= at}
+            if not predecessors.issubset(set(release.get('evidence_refs', []))):
+                errors.append('distribution-reinstatement-without-predecessor:' + rid)
         identities[candidate] = digest
         if not release.get('owner') or not release.get('decision_ref') or not release.get('evidence_refs'):
             errors.append('distribution-missing-authorization:' + rid)
-        if release.get('from') == 'WITHDRAWN': reinstated[identity] = at
         if release.get('to') == 'WITHDRAWN' and not all(release.get(k) for k in ('reason','notice_ref','recovery_obligations')):
             errors.append('distribution-withdrawal-without-obligations:' + rid)
         if release.get('to') == 'PROMOTED' and not any(r.get('scope') == release.get('scope') for r in trace.get('requirements', [])):
@@ -593,7 +621,7 @@ def check_candidate_records(trace, errors):
             elif datetime_utc(deployment['deployed_at']) > at:
                 errors.append('release-before-deployment:' + rid)
             required = release.get('gate_ids', [])
-            if (release['to'] == 'PROMOTED' or identity in reinstated) and not required:
+            if release['to'] == 'PROMOTED' and not required:
                 errors.append('distribution-promotion-without-gates:' + rid)
             for gid in required:
                 gate = gates.get(gid, {})
@@ -601,15 +629,32 @@ def check_candidate_records(trace, errors):
                     or (gate.get('candidate_identity'), gate.get('artifact_digest')) != identity or not gate.get('evidence_refs')):
                     errors.append('release-invalid-gate:' + rid + ':' + gid)
                 elif (datetime_utc(gate['observed_at']) > at
-                      or (deployment.get('deployed_at') and datetime_utc(gate['observed_at']) > datetime_utc(deployment['deployed_at']))
-                      or (identity in reinstated and datetime_utc(gate['observed_at']) < reinstated[identity])):
+                      or (deployment.get('deployed_at') and datetime_utc(gate['observed_at']) > datetime_utc(deployment['deployed_at']))):
                     errors.append('release-gate-order:' + rid)
+            # Closure cannot add proof after deployment, even when publication is
+            # not promoted or the obligation gate was omitted from gate_ids.
+            closures = [fb for fb in trace.get('feedback', []) if fb.get('status') == 'CLOSED'
+                        and fb.get('disposition') == 'ACCEPT' and fb.get('release_evidence_ref') == rid]
+            closure_requirements = {req_id for fb in closures for req_id in fb.get('requirement_ids', [])}
+            required_gate_ids = set(required) | {gid for fb in closures for gid in fb.get('closure_gate_ids', [])}
+            for req in trace.get('requirements', []):
+                if (req.get('id') in closure_requirements
+                    or (req.get('scope') == release.get('scope') and req.get('candidate_identity') in (None, candidate))):
+                    required_gate_ids.update(req.get('product_gate_obligations', []))
+                    required_gate_ids.update(invariant_obligations.get(inv) for inv in req.get('invariant_ids', []))
+            if deployment.get('deployed_at'):
+                for gid in sorted(required_gate_ids & gates.keys()):
+                    if datetime_utc(gates[gid]['observed_at']) > datetime_utc(deployment['deployed_at']):
+                        errors.append('release-gate-after-deployment:' + rid + ':' + gid)
         state[identity], times[identity] = release.get('to'), at
     for fb in trace.get('feedback', []):
         if fb.get('status') != 'CLOSED' or fb.get('disposition') != 'ACCEPT': continue
         release = releases.get(fb.get('release_evidence_ref'), {})
         candidate = fb.get('closure_candidate_identity')
         proof_gates = [gates[g] for g in fb.get('closure_gate_ids', []) if g in gates]
+        closes = [event for event in fb.get('history', []) if event.get('event') == 'CLOSE']
+        if closes and any(datetime_utc(g['observed_at']) > datetime_utc(closes[-1]['at']) for g in proof_gates):
+            errors.append('feedback-gate-after-close:' + fb['id'])
         identity = (candidate, proof_gates[0].get('artifact_digest') if proof_gates else None)
         if ((release.get('candidate_identity'), release.get('artifact_digest')) != identity
             or release.get('to') not in ('PUBLISHED', 'PROMOTED')):
@@ -712,6 +757,8 @@ def check_scoped_coverage(trace, errors, verification=None):
         scoped = verification is not None or bool(promotions) or req.get('result') == 'PASS' or any(req.get(k) for k in ('control_ids', 'invariant_ids', 'product_gate_obligations', 'stage_id', 'concern_id'))
         if not scoped: continue
         if not str(req.get('owner', '')).strip(): errors.append('scoped-requirement-no-owner:' + rid)
+        # Ordered control_ids keep primary ownership explicit without another field.
+        if not req.get('control_ids'): errors.append('scoped-requirement-no-primary-control:' + rid)
         if not set(req.get('control_ids', [])).issubset(controls): errors.append('scoped-unknown-control:' + rid)
         for field, known in (('stage_id', {x['id'] for x in matrix['stages']}), ('concern_id', {x['id'] for x in matrix['concerns']})):
             if req.get(field) and req[field] not in known: errors.append('scoped-unknown-coordinate:' + rid)
@@ -740,6 +787,20 @@ def check_scoped_coverage(trace, errors, verification=None):
                               for r in promotions if r.get('candidate_identity') == candidate and r.get('deployment', {}).get('deployed_at')]
                 if verification is not None and verification.get('candidate_identity') == candidate:
                     boundaries.append((verification.get('artifact_digest'), datetime_utc(verification['verified_at']), verification.get('required_gate_ids', [])))
+                if req.get('result') == 'PASS' and req.get('candidate_identity') == candidate:
+                    # Changes and release records freeze candidate bytes independently of proof.
+                    digests = {r.get('artifact_digest') for r in trace.get('changes', []) + trace.get('releases', [])
+                               if r.get('candidate_identity') == candidate}
+                    if not digests or None in digests or len(digests) != 1:
+                        errors.append('scoped-pass-unresolved-artifact:' + rid)
+                    else:
+                        boundaries.append((next(iter(digests)), None, []))
+                for fb in closures:
+                    if fb.get('closure_candidate_identity') != candidate: continue
+                    release = next((r for r in trace.get('releases', []) if r.get('id') == fb.get('release_evidence_ref')), {})
+                    closes = [event for event in fb.get('history', []) if event.get('event') == 'CLOSE']
+                    if release.get('artifact_digest') and closes:
+                        boundaries.append((release['artifact_digest'], datetime_utc(closes[-1]['at']), fb.get('closure_gate_ids', [])))
                 proof_digests = {p.get('artifact_digest') for oid in obligations for p in [tests.get(oid, gates.get(oid, {}))] if p.get('candidate_identity') == candidate and p.get('status') == 'PASS'}
                 if None in proof_digests or len(proof_digests) > 1:
                     errors.append('scoped-mixed-proof-artifacts:' + rid)
@@ -753,16 +814,18 @@ def check_scoped_coverage(trace, errors, verification=None):
                         errors.append('scoped-obligation-not-passing:' + rid + ':' + oid)
                 for digest, before, gate_ids in boundaries:
                     required_gates = [gates[oid] for oid in (obligations | set(gate_ids)) & gates.keys()]
-                    test_before = min([before] + [datetime_utc(g['observed_at']) for g in required_gates])
+                    cutoffs = ([before] if before is not None else []) + [datetime_utc(g['observed_at']) for g in required_gates]
+                    test_before = min(cutoffs) if cutoffs else None
                     if not any(t.get('status') == 'PASS' and rid in t.get('requirement_ids', [])
                                and (t.get('candidate_identity'), t.get('artifact_digest')) == (candidate, digest)
                                and t.get('evidence_refs') and t.get('observed_at')
-                               and datetime_utc(t['observed_at']) <= test_before for t in tests.values()):
+                               and (test_before is None or datetime_utc(t['observed_at']) <= test_before) for t in tests.values()):
                         errors.append('scoped-accepted-requirement-untested:' + rid)
                     for oid in obligations:
                         proof = tests.get(oid, gates.get(oid, {}))
+                        cutoff = test_before if oid in tests else before
                         if (proof.get('artifact_digest') != digest or not proof.get('observed_at')
-                            or datetime_utc(proof['observed_at']) > (test_before if oid in tests else before)):
+                            or (cutoff is not None and datetime_utc(proof['observed_at']) > cutoff)):
                             errors.append('scoped-proof-artifact-or-order:' + rid + ':' + oid)
         elif not str(req.get('pending_decision_ref', '')).strip():
             errors.append('scoped-pending-without-decision:' + rid)
@@ -898,6 +961,8 @@ def _validate_disposition_record(row, prefix, ident, errors):
 
 def check_project_lifecycle(project, stage_ids, concern_ids, errors, matrix=None, trace=None):
     """Project profile (COMPACT or FULL) classification derived from flags plus sparse cell_overrides."""
+    if trace is not None and trace.get('project_id') != project.get('project_id'):
+        errors.append('project-trace-project-mismatch')
     if matrix is None:
         matrix = read_json(ROOT / '03_LIFECYCLE/lifecycle-matrix.json')
     rules = matrix.get('profile_rules', {})
@@ -1126,6 +1191,7 @@ def check_all(root):
         check_controls(root, std, coverage, errors)
         check_invariants(root, std, invariants, errors)
         check_artifact_ownership(root, std, errors)
+        check_doc_reachability(root, errors)
         schemas = load_schemas(root, errors)
         if schemas:
             check_vocabularies(std, schemas, errors)
@@ -1260,7 +1326,8 @@ def main(argv=None):
     sink.say('project_classification=12_stages+10_concerns+optional_overrides')
     if not errors:
         sink.say('artifact_ownership=CHECKED')
-        sink.say('package_assurance=PASS')
+    assurance = 'FAIL' if errors else 'PASS' if neg_result == 'PASS' else 'NOT_EVALUATED'
+    sink.say('package_assurance=' + assurance)
     for result in user_checks: sink.say(result)
     sink.say('static_checks=' + ('PASS' if not static_errors else 'FAIL'))
     if neg_checks is not None:
@@ -1269,7 +1336,7 @@ def main(argv=None):
         sink.say('contract_fixture_checks=SKIPPED')
     for e in errors:
         sink.say('ERROR=' + e)
-    sink.say('RESULT=' + ('PASS' if not errors else 'FAIL'))
+    sink.say('RESULT=' + assurance)
     sink.close()
     return 0 if not errors else 1
 

@@ -9,4 +9,6 @@ UPS-SCHEMA owns the current valid shape; UPS-MIG owns the A→B transition. Publ
 5. Observe post-cutover outcomes and recover if acceptance fails.
 6. Gate deprecation and [retirement](../03_LIFECYCLE/DEPRECATION_RETIREMENT.md) separately.
 
+An upgrade gate starts from the supported installed version's own entry point and existing state, including runtime-materialized files and user edits; compatibility gates include the declared minimum runtime.
+
 Candidate-selector tests precede the flip; post-cutover observation does not replace them. Selectors must not silently migrate shared data. See [cutover scope](../03_LIFECYCLE/CUTOVER_ROLLBACK.md) and [release identity](RELEASE_PROMOTION_STANDARD.md).
