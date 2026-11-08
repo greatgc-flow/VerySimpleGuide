@@ -306,8 +306,8 @@
     },
     {
       "path": "04_ASSURANCE/ASSURANCE_CASE_AND_NEGATIVE_TEST.md",
-      "sha256": "77d7261477ad4a11f0057fcb5ad7cb62973c9c95706dfc67eeedc5a15010d6d1",
-      "size_bytes": 1832,
+      "sha256": "acd49a6bcd9cc1aab7d8074e8a2ac671b2a5f05e97f9c9a9ca547b6d270b972a",
+      "size_bytes": 2453,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": [

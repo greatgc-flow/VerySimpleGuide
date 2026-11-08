@@ -15,4 +15,6 @@ Representative negative cases include missing/extra/changed or noncanonical mani
 
 A check counts only if breaking the claimed behavior makes it fail; unit checks use isolated state and no external network. Verify contracted output, distinguishing conversion from source-preservation-only outcomes.
 
+For multi-document design reviews, assign each shared test or primitive one owning document; other documents should cross-reference it, with distinct names for their own layers. Before voting, mechanically compare identifiers, paths, codes, labels, phases and columns across documents, then ask reviewers for one complete finding list. Keep feature scopes distinct from master lifecycle phases, map them once, and state which phase creates planned files before tests depend on them. Votes on a document must come from non-authors; verify draft evidence against live files and use a second reviewer to triage objections.
+
 The reference validator checks models and encoded conditions. Real provider/OS/security, recovery, concurrency and user outcomes need project gates; see [reality gates](REALITY_GATES.md).
