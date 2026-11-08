@@ -27,8 +27,10 @@ Evidence output belongs under `.validation/`. JSON examples illustrate contracts
 
 ## Navigation
 
-`01_METHOD`: objectives and reasoning; `02_STANDARD`: normative contracts; `03_LIFECYCLE`: stages and transitions; `04_ASSURANCE`: evidence and verification; `05_ARCHITECTURE`: design guidance; `06_GOVERNANCE`: authority and evolution; `07_CONTRACTS/{schemas,examples}`: machine contracts and samples; `08_KNOWLEDGE`: optional guidance; `tools`: reference validation. [CHANGELOG.md](CHANGELOG.md) retains durable design decisions.
+`01_METHOD`: objectives and reasoning ([decision rules](01_METHOD/DECISION_RULES.md), [recursive coverage](01_METHOD/RECURSIVE_MECE.md)); `02_STANDARD`: normative contracts (e.g. [security and trust](02_STANDARD/SECURITY_TRUST_STANDARD.md), [capability catalog](02_STANDARD/CAPABILITY_CATALOG_STANDARD.md), [extensions and providers](02_STANDARD/EXTENSION_PROVIDER_STANDARD.md)); `03_LIFECYCLE`: stages and transitions; `04_ASSURANCE`: evidence and verification ([interaction matrix](04_ASSURANCE/INTERACTION_MATRIX.md), [core-only survivability](04_ASSURANCE/CORE_ONLY_SURVIVABILITY.md)); `05_ARCHITECTURE`: design guidance ([anti-patterns](05_ARCHITECTURE/ANTI_PATTERNS.md), [waves](05_ARCHITECTURE/IMPLEMENTATION_WAVES.md), [layout](05_ARCHITECTURE/PROJECT_SKELETON.md), [search and memory](05_ARCHITECTURE/SEARCH_MEMORY_CONTEXT.md)); `06_GOVERNANCE`: authority and evolution ([control catalog](06_GOVERNANCE/CONTROL_CATALOG.md), [artifact authority](06_GOVERNANCE/ARTIFACT_AUTHORITY.md)); `07_CONTRACTS/{schemas,examples}`: machine contracts and samples; `08_KNOWLEDGE`: optional guidance; `tools`: reference validation. [CHANGELOG.md](CHANGELOG.md) retains durable design decisions.
 
 Applicable safety and authority responsibilities remain binding; control organization, language, OS, cloud and tooling are project choices under [open technology principles](01_METHOD/OPEN_TECHNOLOGY_PRINCIPLES.md). MANIFEST.json is the sole file inventory and excludes itself; hashes detect accidental change, not provenance.
+
+Contribute via [CONTRIBUTING.md](CONTRIBUTING.md); report vulnerabilities per [SECURITY.md](SECURITY.md).
 
 Original content and tooling use [Apache License 2.0](LICENSE). External links retain their own terms.

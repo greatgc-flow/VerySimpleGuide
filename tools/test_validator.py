@@ -1,6 +1,8 @@
 """Deterministic negative controls; a validator that accepts these must not issue PASS."""
 from pathlib import Path
 import copy, json, os, subprocess, sys, tempfile
+import unittest
+from unittest.mock import patch
 
 sys.dont_write_bytecode = True
 _TOOLS_DIR = str(Path(__file__).resolve().parent)
@@ -450,6 +452,7 @@ def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=
     negative_json('adopt-blank-rollback','implementation-choice.schema.json',bad)
     triggered=copy.deepcopy(project);triggered['project_id']=reopened['project_id']
     triggered['stages'][0].update(result='FAIL',feedback_ids=['FB-1'],trigger_observation_ids=['OBS-LATER'])
+    valid_schema_instance(schemas,'project-lifecycle.schema.json',triggered)
     flaws=[];check_project_lifecycle(triggered,{x['id'] for x in matrix['stages']},{x['id'] for x in matrix['concerns']},flaws,matrix=matrix,trace=reopened);count+=1
     if flaws: errors.append('positive-triggered-reentry-rejected:'+repr(flaws))
     bad=copy.deepcopy(triggered);bad['stages'][0]['trigger_observation_ids']=['UNADDRESSED']
@@ -628,6 +631,272 @@ def run_filesystem_fixtures():
     return stats, errors
 
 
+class AuditClosureTests(unittest.TestCase):
+    """Audit regressions exercise schema and semantics without changing package files."""
+
+    def setUp(self):
+        import validate_package as validator
+        self.validator = validator
+        self.root = Path(__file__).resolve().parents[1]
+        self.schemas = validator.load_schemas(self.root, [])
+        self.trace = validator.read_json(self.root / '07_CONTRACTS/examples/project-trace.example.json')
+        self.project = validator.read_json(self.root / '07_CONTRACTS/examples/project-lifecycle.example.json')
+        self.matrix = validator.read_json(self.root / '03_LIFECYCLE/lifecycle-matrix.json')
+
+    def test_every_markdown_document_is_reachable_from_entry_points(self):
+        errors = []
+        self.validator.check_doc_reachability(self.root, errors)
+        self.assertEqual([], errors)
+        self.assertEqual(['doc-unreachable-from-entry:orphan.md'], self.doc_errors({
+            'README.md': '[a](a.md)', 'a.md': 'x', 'orphan.md': 'x'}))
+
+    def doc_errors(self, documents):
+        root = self.root / '.validation/reachability-fixture'
+        with patch.object(Path, 'rglob', return_value=[root / name for name in documents]), \
+             patch.object(Path, 'is_file', return_value=True), \
+             patch.object(Path, 'read_text', new=lambda path, **kwargs: documents[path.relative_to(root).as_posix()]):
+            errors = []
+            self.validator.check_doc_reachability(root, errors)
+            return errors
+
+    def test_reachability_uses_canonical_inventory_exclusions(self):
+        documents = {'README.md': '[a](a.md)', 'a.md': 'x'}
+        for directory in ('.venv', 'venv', '.pytest_cache', '.mypy_cache', '.ruff_cache',
+                          '.idea', '.vscode', 'dist', 'build', '.validation', '__pycache__', '.git'):
+            documents[directory + '/README.md'] = 'Excluded dependency or generated documentation'
+        self.assertEqual([], self.doc_errors(documents))
+
+    def test_reachability_requires_complete_markdown_target(self):
+        for target in ('orphan.md.bak', 'orphan.md/extra', 'orphan.md?raw=1'):
+            with self.subTest(target=target):
+                self.assertEqual(['doc-unreachable-from-entry:orphan.md'],
+                                 self.doc_errors({'README.md': '[link](' + target + ')', 'orphan.md': 'x'}))
+        for target in ('orphan.md', 'orphan.md#section', 'orphan.md "Title"'):
+            with self.subTest(target=target):
+                self.assertEqual([], self.doc_errors({'README.md': '[link](' + target + ')', 'orphan.md': 'x'}))
+
+    def schema(self, name, instance):
+        self.validator.valid_schema_instance(self.schemas, name + '.schema.json', instance)
+
+    def trace_errors(self, trace):
+        self.schema('project-trace', trace)
+        errors = []
+        self.validator.check_trace(trace, errors)
+        return errors
+
+    def test_withdrawn_candidate_identity_is_terminal(self):
+        trace = copy.deepcopy(self.trace)
+        trace.update(feedback=[], observations=[])
+        # Candidate abandonment is terminal even before publication or promotion.
+        trace['releases'] = trace['releases'][:1]
+        withdrawal = {**trace['releases'][0], 'id': 'REL-W', 'from': 'CANDIDATE', 'to': 'WITHDRAWN',
+                      'released_at': '2026-10-16T02:00:00Z', 'reason': 'Abandoned',
+                      'notice_ref': 'notice:withdrawal', 'recovery_obligations': 'Retain evidence'}
+        trace['releases'].append(withdrawal)
+        self.assertEqual([], self.trace_errors(trace))
+        trace['releases'].append({**trace['releases'][0], 'id': 'REL-RETRY', 'from': 'WITHDRAWN',
+                                  'released_at': '2026-10-16T03:00:00Z'})
+        self.assertIn('distribution-invalid-transition:REL-RETRY', self.trace_errors(trace))
+
+    def test_new_candidate_can_reinstate_same_bytes_with_predecessor_evidence(self):
+        trace = copy.deepcopy(self.trace)
+        trace.update(feedback=[], observations=[])
+        trace['releases'].append({**trace['releases'][-1], 'id': 'REL-W', 'from': 'PROMOTED', 'to': 'WITHDRAWN',
+                                  'released_at': '2026-10-16T02:00:00Z', 'reason': 'Withdrawn',
+                                  'notice_ref': 'notice:withdrawal', 'recovery_obligations': 'Requalify a new candidate'})
+        replacements = {trace['requirements'][0]['candidate_identity']: 'source:candidate-REENTRY',
+                        'REQ-1': 'REQ-NEW', 'TEST-1': 'TEST-NEW', 'GATE-1': 'GATE-NEW',
+                        'CHANGE-1': 'CHANGE-NEW', 'REL-1': 'REL-NEW1', 'REL-2': 'REL-NEW2', 'REL-3': 'REL-NEW3'}
+        def renamed(value):
+            if isinstance(value, dict): return {key: renamed(item) for key, item in value.items()}
+            if isinstance(value, list): return [renamed(item) for item in value]
+            return replacements.get(value, value) if isinstance(value, str) else value
+        replacement = renamed(self.trace)
+        replacement['tests'][0]['observed_at'] = '2026-10-16T03:09:00Z'
+        replacement['gates'][0]['observed_at'] = '2026-10-16T03:10:00Z'
+        for release, at in zip(replacement['releases'], ('03:00', '03:30', '03:40')):
+            release['released_at'] = '2026-10-16T' + at + ':00Z'
+            if 'deployment' in release: release['deployment']['deployed_at'] = '2026-10-16T03:30:00Z'
+        # Existing evidence_refs records the predecessor's withdrawal release ID.
+        replacement['releases'][0]['evidence_refs'].append('REL-W')
+        self.assertEqual('NOT_PUBLISHED', replacement['releases'][0]['from'])
+        self.assertEqual(trace['releases'][0]['artifact_digest'], replacement['releases'][0]['artifact_digest'])
+        for section in ('requirements', 'tests', 'gates', 'changes', 'releases'):
+            trace[section].extend(replacement[section])
+        self.assertEqual([], self.trace_errors(trace))
+        missing_predecessor = copy.deepcopy(trace)
+        missing_predecessor['releases'][-3]['evidence_refs'].remove('REL-W')
+        self.assertIn('distribution-reinstatement-without-predecessor:REL-NEW1',
+                      self.trace_errors(missing_predecessor))
+        trace['releases'][-1]['gate_ids'] = ['GATE-1']
+        self.assertTrue(any('release-invalid-gate:REL-NEW3:GATE-1' in error for error in self.trace_errors(trace)))
+
+    def test_reentry_schema_and_semantics_for_all_wrappers(self):
+        reopened = copy.deepcopy(self.trace)
+        fb = reopened['feedback'][0]
+        fb.update(status='OPEN', next_action='Investigate regression')
+        fb['history'].append({'event': 'REOPEN', 'at': '2026-10-16T02:00:00Z',
+                             'actor': 'owner', 'reason': 'Regression', 'decision_ref': 'decision:reopen',
+                             'prior_closure_evidence_ref': 'REL-3'})
+        self.assertEqual([], self.trace_errors(reopened))
+        for section in ('stages', 'concerns', 'cell_overrides'):
+            with self.subTest(section=section):
+                project = copy.deepcopy(self.project)
+                project['project_id'] = reopened['project_id']
+                if section == 'cell_overrides':
+                    project[section] = [{**project['stages'][0], 'concern_id': self.matrix['concerns'][0]['id']}]
+                project[section][0].update(result='FAIL', feedback_ids=['FB-1'], trigger_observation_ids=['OBS-1'])
+                self.schema('project-lifecycle', project)
+                errors = []
+                self.validator.check_project_lifecycle(project, {s['id'] for s in self.matrix['stages']},
+                    {c['id'] for c in self.matrix['concerns']}, errors, self.matrix, reopened)
+                self.assertEqual([], errors)
+
+    def test_standalone_pass_rejects_other_digest(self):
+        trace = copy.deepcopy(self.trace)
+        trace.update(releases=[], feedback=[], observations=[])
+        self.assertEqual([], self.trace_errors(trace))
+        for proof in trace['tests'] + trace['gates']:
+            proof['artifact_digest'] = 'sha256:' + 'b' * 64
+        self.assertTrue(any('scoped-proof-artifact-or-order' in e for e in self.trace_errors(trace)))
+
+    def test_standalone_pass_needs_resolvable_candidate_digest(self):
+        trace = copy.deepcopy(self.trace)
+        trace.update(releases=[], changes=[], feedback=[], observations=[])
+        self.assertTrue(any('scoped-pass-unresolved-artifact' in e for e in self.trace_errors(trace)))
+
+    def test_closure_requires_obligation_gates_before_deployment(self):
+        trace = copy.deepcopy(self.trace)
+        trace['requirements'][0]['result'] = 'NOT_EVALUATED'
+        trace['releases'][-1]['to'] = 'PUBLISHED'
+        trace['releases'][-1]['from'] = 'CANDIDATE'
+        trace['releases'][-1]['limitations'] = 'Still under evaluation'
+        trace['releases'].pop(1)
+        late = {**trace['gates'][0], 'gate_id': 'GATE-LATE', 'observed_at': '2026-10-16T02:00:00Z'}
+        trace['gates'].append(late)
+        trace['requirements'][0]['product_gate_obligations'].append('GATE-LATE')
+        self.assertTrue(any('scoped-proof-artifact-or-order' in e for e in self.trace_errors(trace)))
+        late['observed_at'] = trace['feedback'][0]['history'][-1]['at']
+        self.assertTrue(any('release-gate-after-deployment' in e for e in self.trace_errors(trace)))
+        late['observed_at'] = '2026-10-16T00:31:00Z'
+        self.assertTrue(any('release-gate-after-deployment' in e for e in self.trace_errors(trace)))
+        for at in ('2026-10-16T00:29:00Z', trace['releases'][-1]['deployment']['deployed_at']):
+            with self.subTest(at=at):
+                late['observed_at'] = at
+                self.assertEqual([], self.trace_errors(trace))
+
+    def test_all_required_gate_sources_use_deployment_boundary(self):
+        for source in ('release', 'closure', 'obligation', 'invariant'):
+            with self.subTest(source=source):
+                trace = copy.deepcopy(self.trace)
+                # Publication without promotion must enforce the same ordering.
+                trace['releases'].pop()
+                release = trace['releases'][-1]
+                trace['feedback'][0]['release_evidence_ref'] = release['id']
+                trace['feedback'][0]['history'][-1]['closure_evidence_ref'] = release['id']
+                gate = {**trace['gates'][0], 'gate_id': 'GATE-EXTRA', 'observed_at': '2026-10-16T01:15:00Z'}
+                trace['gates'].append(gate)
+                if source == 'release':
+                    release['gate_ids'].append(gate['gate_id'])
+                elif source == 'closure':
+                    trace['feedback'][0]['closure_gate_ids'].append(gate['gate_id'])
+                elif source == 'obligation':
+                    trace['requirements'][0]['product_gate_obligations'].append(gate['gate_id'])
+                    trace.update(feedback=[], observations=[])
+                else:
+                    trace['requirements'][0]['invariant_ids'] = ['core_must_not_depend_on_optional_extensions']
+                    gate['gate_id'] = 'dependency-graph'
+                self.assertTrue(any('release-gate-after-deployment' in e for e in self.trace_errors(trace)))
+                gate['observed_at'] = release['deployment']['deployed_at']
+                if source == 'closure': release['gate_ids'].append(gate['gate_id'])
+                self.assertEqual([], self.trace_errors(trace))
+
+    def test_real_package_trace_preserves_gate_deployment_outcome_order(self):
+        trace = self.validator.read_json(self.root / '04_ASSURANCE/package-trace.json')
+        self.assertEqual([], self.trace_errors(trace))
+
+    def test_explicit_closure_gate_cannot_run_after_close(self):
+        trace = copy.deepcopy(self.trace)
+        fb = trace['feedback'][0]
+        fb['history'][-1]['at'] = '2026-10-16T00:09:30Z'
+        self.assertTrue(any('feedback-gate-after-close' in e for e in self.trace_errors(trace)))
+
+    def test_lifecycle_always_checks_project_association(self):
+        errors = []
+        self.validator.check_project_lifecycle(self.project, {s['id'] for s in self.matrix['stages']},
+            {c['id'] for c in self.matrix['concerns']}, errors, self.matrix, self.trace)
+        self.assertIn('project-trace-project-mismatch', errors)
+        self.project['project_id'] = self.trace['project_id']
+        errors = []
+        self.validator.check_project_lifecycle(self.project, {s['id'] for s in self.matrix['stages']},
+            {c['id'] for c in self.matrix['concerns']}, errors, self.matrix, self.trace)
+        self.assertEqual([], errors)
+
+    def test_accountable_identities_are_nonblank(self):
+        from jsonschema import ValidationError
+        for path in (('objective', 'owner'), ('requirements', 0, 'owner'), ('feedback', 0, 'owner'),
+                     ('feedback', 0, 'history', 0, 'actor'), ('changes', 0, 'owner'), ('releases', 0, 'owner')):
+            with self.subTest(path=path):
+                trace = copy.deepcopy(self.trace)
+                record = trace
+                for key in path[:-1]: record = record[key]
+                record[path[-1]] = ' \t '
+                with self.assertRaises(ValidationError): self.schema('project-trace', trace)
+        project = copy.deepcopy(self.project)
+        project['stages'][0]['owner'] = '   '
+        with self.assertRaises(ValidationError): self.schema('project-lifecycle', project)
+        evolution = self.validator.read_json(self.root / '07_CONTRACTS/examples/standard-evolution.example.json')
+        evolution['owner'] = '   '
+        with self.assertRaises(ValidationError): self.schema('standard-evolution', evolution)
+
+    def test_invariant_home_control_crosswalk(self):
+        std = self.validator.read_json(self.root / '06_GOVERNANCE/unified-package-standard.json')
+        index = self.validator.read_json(self.root / '06_GOVERNANCE/invariant-coverage.json')
+        errors = []
+        self.validator.check_invariants(self.root, std, index, errors)
+        self.assertEqual([], errors)
+        index['invariants'][0]['primary_control'] = 'UPS-HELP'
+        self.validator.check_invariants(self.root, std, index, errors)
+        self.assertTrue(any('invariant-home-control-unmapped' in e for e in errors))
+
+    def test_scoped_requirement_requires_first_primary_control(self):
+        trace = copy.deepcopy(self.trace)
+        trace['requirements'][0].pop('control_ids')
+        self.assertTrue(any('scoped-requirement-no-primary-control' in e for e in self.trace_errors(trace)))
+        trace['requirements'][0]['control_ids'] = ['UPS-EVID', 'UPS-TEST']
+        self.assertEqual([], self.trace_errors(trace))
+
+    def test_aggregate_assurance_tracks_skipped_package_claims(self):
+        # Stub filesystem results, leaving the CLI's actual status/exit handling in use.
+        for required, skipped, status, code in ((False, 1, 'NOT_EVALUATED', 0),
+                                                (True, 1, 'FAIL', 1), (True, 0, 'PASS', 0)):
+            with self.subTest(required=required, skipped=skipped):
+                lines = []
+                sink = unittest.mock.Mock()
+                sink.say.side_effect = lines.append
+                def suite(root, include_fs, require_fs_tests, fs_report):
+                    fs_report.update(executed=4-skipped, skipped=skipped, n_a=1)
+                    return 4, filesystem_gate_errors(fs_report, require_fs_tests)
+                with patch.object(self.validator, 'check_all', return_value=[]), \
+                     patch.object(self.validator, 'EvidenceSink', return_value=sink), \
+                     patch(__name__ + '.run_negative_suite', side_effect=suite):
+                    actual = self.validator.main(['--require-fs-tests'] if required else ['--no-fs-tests'])
+                self.assertEqual(code, actual)
+                self.assertIn('package_assurance=' + status, lines)
+                self.assertIn('RESULT=' + status, lines)
+
+    def test_local_fixture_runner_reports_incomplete_assurance(self):
+        result = subprocess.run([sys.executable, '-B', str(self.root / 'tools/test_validator.py'), '--no-fs-tests'],
+                                capture_output=True, text=True)
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertIn('NEGATIVE_TESTED=NOT_EVALUATED', result.stdout)
+        self.assertIn('RESULT=NOT_EVALUATED', result.stdout)
+
+    def test_ci_compares_pull_request_base(self):
+        workflow = (self.root / '.github/workflows/validate.yml').read_text(encoding='utf-8')
+        for needle in ('fetch-depth: 0', 'github.event.pull_request.base.sha', '--prior-project-trace'):
+            self.assertIn(needle, workflow)
+
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
@@ -641,6 +910,7 @@ if __name__ == '__main__':
     print(f'contract_fixture_checks={_count}')
     for key, value in stats.items(): print('filesystem_' + key + '=' + str(value))
     for _e in _errs: print(f'ERROR={_e}')
-    print('NEGATIVE_TESTED=' + ('FAIL' if _errs else 'NOT_EVALUATED' if stats['skipped'] else 'PASS'))
-    print('RESULT=' + ('PASS' if not _errs else 'FAIL'))
+    _assurance = 'FAIL' if _errs else 'NOT_EVALUATED' if stats['skipped'] else 'PASS'
+    print('NEGATIVE_TESTED=' + _assurance)
+    print('RESULT=' + _assurance)
     sys.exit(0 if not _errs else 1)
