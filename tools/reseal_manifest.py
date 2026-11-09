@@ -31,13 +31,11 @@ def reseal(root=ROOT):
     manifest_file = root / 'MANIFEST.json'
     manifest = json.loads(manifest_file.read_text(encoding='utf-8'))
     existing = {row['path']: row for row in manifest.get('files', []) if 'path' in row}
-    cov_file = root / '06_GOVERNANCE/control-coverage.json'
+    standard = json.loads((root / '06_GOVERNANCE/unified-package-standard.json').read_text(encoding='utf-8'))
     standard_claims = {}
-    if cov_file.is_file():
-        cov = json.loads(cov_file.read_text(encoding='utf-8'))
-        for owner in cov.get('controls', []):
-            for referenced_path in owner.get('standard_refs', []):
-                standard_claims.setdefault(referenced_path, set()).add(owner.get('control_id'))
+    for owner in standard.get('controls', []):
+        for referenced_path in owner.get('standard_refs', []):
+            standard_claims.setdefault(referenced_path, set()).add(owner.get('id'))
 
     inventory = sorted(file_inventory(root) - SELF_EXCLUDED)
     updated_files = []
