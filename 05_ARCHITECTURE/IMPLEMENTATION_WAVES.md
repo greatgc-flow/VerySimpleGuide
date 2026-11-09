@@ -11,4 +11,4 @@ A commonly useful sequence—not a mandated delivery plan—is:
 - **Wave 6:** bounded orchestration, federation and public protocols.
 - **Wave 7:** optimization and ecosystem extensions.
 
-Adapt this sequence to risks, learning goals and dependencies. A bounded interoperability spike may precede the internal authority implementation, but prototypes must not silently become production source-of-truth systems.
+Adapt this sequence to risks, learning goals and dependencies. A bounded interoperability spike may precede the internal authority implementation, but a prototype never silently becomes a production source of truth (see the [authority standard](../02_STANDARD/AUTHORITY_PROJECTION_STANDARD.md)).

@@ -94,10 +94,9 @@ def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=
     bad=copy.deepcopy(trace);bad['feedback']=[];negative_trace('orphan-source-observation',bad,'orphan-source-observation')
     bad=copy.deepcopy(trace);bad['feedback'][0]['disposition']='DEFER';bad['feedback'][0]['status']='OPEN';bad['feedback'][0].pop('revisit_trigger',None);negative_trace('defer-without-revisit',bad,'feedback-defer-without-revisit')
     bad=copy.deepcopy(trace);bad['feedback'][0]['disposition']='DEFER';bad['feedback'][0]['revisit_trigger']='next-quarter';negative_trace('closed-while-deferred',bad,'feedback-closed-deferred')
-    coverage=json.loads((root / '06_GOVERNANCE/control-coverage.json').read_text(encoding='utf-8'))
     std=json.loads((root / '06_GOVERNANCE/unified-package-standard.json').read_text(encoding='utf-8'))
-    bad=copy.deepcopy(coverage);bad['controls'].pop();flaws=[];check_controls(root,std,bad,flaws);count+=1
-    if not any('control-coverage-incomplete' in x for x in flaws):errors.append('negative-test-accepted-invalid:missing-control')
+    bad=copy.deepcopy(std);bad['controls'][0].pop('standard_refs');flaws=[];check_controls(root,bad,flaws);count+=1
+    if not any('control-without-standard:UPS-CLI' in x for x in flaws):errors.append('negative-test-accepted-invalid:missing-control-coverage')
     invariant_index=json.loads((root/'06_GOVERNANCE/invariant-coverage.json').read_text(encoding='utf-8'))
     bad=copy.deepcopy(invariant_index);bad['invariants'].pop();flaws=[];check_invariants(root,std,bad,flaws);count+=1
     if not any('invariant-coverage-incomplete' in x for x in flaws):errors.append('negative-test-accepted-invalid:missing-invariant')
@@ -150,11 +149,9 @@ def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=
     valid_schema_instance(schemas,'standard-evolution.schema.json',evolution)
     # Positive non-lock-in proof: governed future control counts can expand beyond 15.
     future_std=copy.deepcopy(std)
-    future_coverage=copy.deepcopy(coverage)
-    future_std['controls'].append({'id':'UPS-FUTURE','name':'Versioned optional future control'})
-    new_coverage=copy.deepcopy(future_coverage['controls'][0]);new_coverage['control_id']='UPS-FUTURE'
-    future_coverage['controls'].append(new_coverage)
-    flaws=[];check_controls(root,future_std,future_coverage,flaws);count+=1
+    future_std['controls'].append({**copy.deepcopy(std['controls'][0]),'id':'UPS-FUTURE','name':'Versioned optional future control'})
+    valid_schema_instance(schemas,'unified-package-standard.schema.json',future_std)
+    flaws=[];check_controls(root,future_std,flaws);count+=1
     if flaws:errors.append('positive-control-evolution-rejected:'+repr(flaws))
     # Positive reference proof, not just negative tests.
     positive_trace('trace',trace)
@@ -659,6 +656,10 @@ class AuditClosureTests(unittest.TestCase):
             self.validator.check_doc_reachability(root, errors)
             return errors
 
+    def test_broken_relative_link_is_rejected(self):
+        self.assertEqual(['doc-broken-link:README.md:missing.json'],
+                         self.doc_errors({'README.md': '[gone](missing.json)'}))
+
     def test_reachability_uses_canonical_inventory_exclusions(self):
         documents = {'README.md': '[a](a.md)', 'a.md': 'x'}
         for directory in ('.venv', 'venv', '.pytest_cache', '.mypy_cache', '.ruff_cache',
@@ -669,8 +670,8 @@ class AuditClosureTests(unittest.TestCase):
     def test_reachability_requires_complete_markdown_target(self):
         for target in ('orphan.md.bak', 'orphan.md/extra', 'orphan.md?raw=1'):
             with self.subTest(target=target):
-                self.assertEqual(['doc-unreachable-from-entry:orphan.md'],
-                                 self.doc_errors({'README.md': '[link](' + target + ')', 'orphan.md': 'x'}))
+                self.assertIn('doc-unreachable-from-entry:orphan.md',
+                              self.doc_errors({'README.md': '[link](' + target + ')', 'orphan.md': 'x'}))
         for target in ('orphan.md', 'orphan.md#section', 'orphan.md "Title"'):
             with self.subTest(target=target):
                 self.assertEqual([], self.doc_errors({'README.md': '[link](' + target + ')', 'orphan.md': 'x'}))
@@ -859,6 +860,73 @@ class AuditClosureTests(unittest.TestCase):
         self.validator.check_invariants(self.root, std, index, errors)
         self.assertTrue(any('invariant-home-control-unmapped' in e for e in errors))
 
+    def test_canonical_controls_require_coverage_fields(self):
+        from jsonschema import ValidationError
+        std = self.validator.read_json(self.root / '06_GOVERNANCE/unified-package-standard.json')
+        for control in std['controls']:
+            for field in ('standard_refs', 'verification_obligation', 'assurance_level'):
+                self.assertIn(field, control)
+        self.schema('unified-package-standard', std)
+        for field in ('standard_refs', 'verification_obligation', 'assurance_level'):
+            with self.subTest(field=field):
+                bad = copy.deepcopy(std)
+                bad['controls'][0].pop(field)
+                with self.assertRaises(ValidationError): self.schema('unified-package-standard', bad)
+        for field, value in (('standard_refs', []), ('standard_refs', ['   ']),
+                             ('verification_obligation', '   '), ('assurance_level', 'PRODUCT_VERIFIED')):
+            with self.subTest(field=field, value=value):
+                bad = copy.deepcopy(std)
+                bad['controls'][0][field] = value
+                with self.assertRaises(ValidationError): self.schema('unified-package-standard', bad)
+
+    def test_merged_control_checks_preserve_coverage_guards(self):
+        std = self.validator.read_json(self.root / '06_GOVERNANCE/unified-package-standard.json')
+        for field, value, expected in (
+            ('standard_refs', [], 'control-without-standard:UPS-CLI'),
+            ('standard_refs', ['missing.md'], 'control-standard-missing:missing.md'),
+            ('standard_refs', ['../outside.md'], 'unsafe path'),
+            ('verification_obligation', '', 'control-without-verification-obligation:UPS-CLI'),
+            ('assurance_level', 'PRODUCT_VERIFIED', 'general-controls-not-runtime-verified:UPS-CLI')):
+            with self.subTest(field=field, value=value):
+                bad = copy.deepcopy(std)
+                bad['controls'][0][field] = value
+                errors = []
+                self.validator.check_controls(self.root, bad, errors)
+                self.assertTrue(any(expected in error for error in errors), errors)
+        for mutation in ('missing', 'duplicate', 'unmapped-standard'):
+            with self.subTest(mutation=mutation):
+                bad = copy.deepcopy(std)
+                if mutation == 'missing': bad['controls'].pop()
+                elif mutation == 'duplicate': bad['controls'][-1]['id'] = bad['controls'][0]['id']
+                else:
+                    for control in bad['controls']:
+                        control['standard_refs'] = [ref for ref in control['standard_refs'] if ref != '02_STANDARD/CLI_STANDARD.md']
+                errors = []
+                self.validator.check_controls(self.root, bad, errors)
+                expected = 'standard-owner-unmapped' if mutation == 'unmapped-standard' else 'control-coverage-incomplete'
+                self.assertTrue(any(expected in error for error in errors), errors)
+
+    def test_artifact_related_controls_follow_canonical_coverage(self):
+        std = self.validator.read_json(self.root / '06_GOVERNANCE/unified-package-standard.json')
+        next(control for control in std['controls'] if control['id'] == 'UPS-SCHEMA')['standard_refs'] = []
+        errors = []
+        self.validator.check_artifact_ownership(self.root, std, errors)
+        self.assertIn('artifact-related-standard-control-mismatch:02_STANDARD/UNIFIED_STANDARD.md', errors)
+
+    def test_reseal_uses_canonical_control_coverage_without_writing(self):
+        import reseal_manifest
+        standard_path = self.root / '06_GOVERNANCE/unified-package-standard.json'
+        std = self.validator.read_json(standard_path)
+        std['controls'][0].setdefault('standard_refs', []).append('02_STANDARD/UNIFIED_STANDARD.md')
+        read_text = Path.read_text
+        def read(path, *args, **kwargs):
+            return json.dumps(std) if path == standard_path else read_text(path, *args, **kwargs)
+        with patch.object(Path, 'read_text', new=read), patch.object(Path, 'write_text', autospec=True) as write:
+            reseal_manifest.reseal(self.root)
+        manifest = json.loads(write.call_args.args[1])
+        row = next(row for row in manifest['files'] if row['path'] == '02_STANDARD/UNIFIED_STANDARD.md')
+        self.assertIn('UPS-CLI', row['related_controls'])
+
     def test_scoped_requirement_requires_first_primary_control(self):
         trace = copy.deepcopy(self.trace)
         trace['requirements'][0].pop('control_ids')
@@ -892,10 +960,34 @@ class AuditClosureTests(unittest.TestCase):
         self.assertIn('NEGATIVE_TESTED=NOT_EVALUATED', result.stdout)
         self.assertIn('RESULT=NOT_EVALUATED', result.stdout)
 
-    def test_ci_compares_pull_request_base(self):
-        workflow = (self.root / '.github/workflows/validate.yml').read_text(encoding='utf-8')
-        for needle in ('fetch-depth: 0', 'github.event.pull_request.base.sha', '--prior-project-trace'):
-            self.assertIn(needle, workflow)
+    def test_prior_trace_comparison_marker_requires_successful_comparison(self):
+        read_json = self.validator.read_json
+        for case in ('not-supplied', 'compared', 'rewritten-evidence', 'unreadable', 'without-current'):
+            with self.subTest(case=case):
+                trace = copy.deepcopy(self.trace)
+                if case == 'rewritten-evidence': trace['tests'][0]['evidence_refs'] = ['rewritten:proof']
+                def read(path):
+                    if path == Path('current.json'): return trace
+                    if path == Path('prior.json'):
+                        if case == 'unreadable': raise OSError('Unreadable prior trace')
+                        return copy.deepcopy(self.trace)
+                    return read_json(path)
+                def suite(root, include_fs, require_fs_tests, fs_report):
+                    fs_report.update(executed=4, skipped=0, n_a=1)
+                    return 4, []
+                lines = []
+                sink = unittest.mock.Mock()
+                sink.say.side_effect = lines.append
+                args = ['--require-fs-tests']
+                if case != 'without-current': args.extend(['--project-trace', 'current.json'])
+                if case != 'not-supplied': args.extend(['--prior-project-trace', 'prior.json'])
+                with patch.object(self.validator, 'check_all', return_value=[]), \
+                     patch.object(self.validator, 'read_json', side_effect=read), \
+                     patch.object(self.validator, 'EvidenceSink', return_value=sink), \
+                     patch(__name__ + '.run_negative_suite', side_effect=suite):
+                    result = self.validator.main(args)
+                self.assertEqual(0 if case in ('not-supplied', 'compared') else 1, result)
+                self.assertEqual(case == 'compared', 'prior_project_trace=COMPARED' in lines)
 
 if __name__ == '__main__':
     import argparse

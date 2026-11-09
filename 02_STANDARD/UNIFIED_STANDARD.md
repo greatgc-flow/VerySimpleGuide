@@ -1,4 +1,4 @@
-# Unified Package Standard 1.9.3
+# Unified Package Standard 1.9.4
 
 Applicable semantic responsibilities are binding; organizing them as fifteen controls is a default under [open technology principles](../01_METHOD/OPEN_TECHNOLOGY_PRINCIPLES.md). `primary_control` identifies the package semantic control domain; project `owner` identifies accountable decision authority. Artifact maintainership grants no acceptance authority. Discovery/funding mappings assign document/control responsibility, not business authority.
 
@@ -20,7 +20,7 @@ Applicable semantic responsibilities are binding; organizing them as fifteen con
 | UPS-REL | Release / Promotion | Build-once identity, fresh gates and artifact promotion |
 | UPS-DOC | Documentation / SSOT | Machine-to-human views and drift controls |
 
-A shared concern, lifecycle stage or lifecycle concern has exactly one primary Control and may list related Controls; multiple references do not create multiple authoritative sources. [control-coverage.json](../06_GOVERNANCE/control-coverage.json) maps each standard to its Controls and verification obligation; [invariant-coverage.json](../06_GOVERNANCE/invariant-coverage.json) maps each baseline invariant to one primary Control and a product-level gate obligation. `DESIGN_COVERED` does not mean an actual product passed its gates.
+A shared concern, lifecycle stage or lifecycle concern has exactly one primary Control and may list related Controls; multiple references do not create multiple authoritative sources. [unified-package-standard.json](../06_GOVERNANCE/unified-package-standard.json) maps each standard to its Controls and verification obligation; [invariant-coverage.json](../06_GOVERNANCE/invariant-coverage.json) maps each baseline invariant to one primary Control and a product-level gate obligation. `DESIGN_COVERED` does not mean an actual product passed its gates.
 
 For a new requirement, first identify the existing owner's scope and verification obligation. Reuse an existing Control before adding a new one, but do not force an uncovered responsibility into an unsuitable Control. A demonstrated ownership gap may justify a versioned extension, split or merge using [`EVOLUTION_POLICY.md`](../06_GOVERNANCE/EVOLUTION_POLICY.md).
 

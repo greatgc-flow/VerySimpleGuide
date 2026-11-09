@@ -4,6 +4,6 @@ Determine applicability before attaching a mutation contract. Consider idempoten
 
 **Execution certainty:** `NOT_STARTED`, `MAY_HAVE_STARTED`, `STARTED`, `TERMINAL`. When the status is `MAY_HAVE_STARTED`, prohibit blind retry until reconciliation or external evidence resolves whether an irreversible effect occurred.
 
-Recovery journals verify plan identity and executed steps. Do not reconstruct a new plan that silently forgets recorded actions and then report success. Distinguish process cancellation, safe compensation and a truly verified terminal outcome.
+Recovery-journal rules live in the [data safety standard](../02_STANDARD/DATA_SAFETY_STANDARD.md).
 
 Commit points and residual-resource ownership: see the [data safety standard](../02_STANDARD/DATA_SAFETY_STANDARD.md).

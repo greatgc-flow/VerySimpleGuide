@@ -357,30 +357,28 @@ def check_examples(root, schemas, errors):
             errors.append('invalid-example:' + name + ':' + str(exc)[:180])
 
 
-def check_controls(root, std, coverage, errors):
+def check_controls(root, std, errors):
     controls = std.get('controls', [])
-    expected = {x['id'] for x in controls}
-    rows = coverage.get('controls', [])
-    actual = [x.get('control_id') for x in rows]
-    if len(controls) < 15 or len(expected) != len(controls) or len(actual) != len(controls) or set(actual) != expected or len(actual) != len(set(actual)):
+    actual = [x.get('id') for x in controls]
+    if len(controls) < 15 or len(actual) != len(set(actual)):
         errors.append('control-coverage-incomplete')
-    mapped_standards = {ref for row in rows for ref in row.get('standard_refs', [])}
+    mapped_standards = {ref for row in controls for ref in row.get('standard_refs', [])}
     actual_standards = {x.relative_to(root).as_posix() for x in (root / '02_STANDARD').glob('*.md')}
     if not actual_standards.issubset(mapped_standards):
         errors.append('standard-owner-unmapped:' + repr(sorted(actual_standards - mapped_standards)))
-    for row in rows:
+    for row in controls:
         refs = row.get('standard_refs')
         if not isinstance(refs, list) or not refs:
-            errors.append('control-without-standard:' + str(row.get('control_id')))
+            errors.append('control-without-standard:' + str(row.get('id')))
         else:
             for ref in refs:
                 try:
                     if not safe_target(root, ref).is_file(): errors.append('control-standard-missing:' + ref)
                 except ValueError as exc: errors.append(str(exc))
         if not row.get('verification_obligation'):
-            errors.append('control-without-verification-obligation:' + str(row.get('control_id')))
+            errors.append('control-without-verification-obligation:' + str(row.get('id')))
         if row.get('assurance_level') != 'DESIGN_COVERED':
-            errors.append('general-controls-not-runtime-verified:' + str(row.get('control_id')))
+            errors.append('general-controls-not-runtime-verified:' + str(row.get('id')))
 
 
 def check_invariants(root, std, index, errors):
@@ -391,8 +389,7 @@ def check_invariants(root, std, index, errors):
     if index.get('standard_version') != VERSION or len(expected) != len(actual) or set(actual)!=set(expected) or len(actual)!=len(set(actual)):
         errors.append('invariant-coverage-incomplete')
     roles = {x['path']: x.get('role') for x in read_json(root / 'MANIFEST.json')['files']}
-    coverage = {x['control_id']: set(x.get('standard_refs', []))
-                for x in read_json(root / '06_GOVERNANCE/control-coverage.json')['controls']}
+    coverage = {x['id']: set(x.get('standard_refs', [])) for x in std.get('controls', [])}
     for row in rows:
         if roles.get(row.get('standard_ref')) not in ('NORMATIVE_SOURCE', 'MACHINE_SSOT'):
             errors.append('invariant-nonauthoritative-home:' + str(row.get('invariant_id')))
@@ -500,13 +497,19 @@ def expected_role_for_path(rpath):
 
 
 def check_doc_reachability(root, errors):
-    """Every Markdown document must be reachable from README.md or START_HERE.md by relative links."""
-    docs = {name for name in file_inventory(root) if name.endswith('.md')}
+    """Every Markdown document is reachable from README.md or START_HERE.md, and every relative link resolves."""
+    inventory = file_inventory(root)
+    docs = {name for name in inventory if name.endswith('.md')}
     seen = {'README.md', 'START_HERE.md'} & docs
     todo = list(seen)
     while todo:
         cur = todo.pop()
         text = (root / cur).read_text(encoding='utf-8')
+        for target in re.findall(r'\]\(([^)#\s]+)', text):
+            if '://' in target or target.startswith('mailto:'): continue
+            resolved = os.path.normpath(os.path.join(os.path.dirname(cur), target.split('?')[0])).replace(os.sep, '/')
+            if resolved not in inventory and not (root / resolved).is_dir():
+                errors.append('doc-broken-link:' + cur + ':' + target)
         for target in re.findall(r'\]\(([^)#\s]+\.md)(?=[)#\s])', text):
             if '://' in target: continue
             nxt = os.path.normpath(os.path.join(os.path.dirname(cur), target)).replace(os.sep, '/')
@@ -527,11 +530,10 @@ def check_artifact_ownership(root, std, errors, ledger_override=None):
     if len(paths)!=len(set(paths)):
         errors.append('artifact-ownership-duplicate')
     actual = file_inventory(root)
-    cov = read_json(root/'06_GOVERNANCE/control-coverage.json')
     standard_claims = {}
-    for owner in cov.get('controls',[]):
+    for owner in std.get('controls',[]):
         for referenced_path in owner.get('standard_refs',[]):
-            standard_claims.setdefault(referenced_path,set()).add(owner.get('control_id'))
+            standard_claims.setdefault(referenced_path,set()).add(owner.get('id'))
     for row in records:
         name=row.get('path','')
         if name.startswith('02_STANDARD/'):
@@ -1184,11 +1186,10 @@ def check_all(root):
     check_manifest(root, errors)
     try:
         std = read_json(root / '06_GOVERNANCE/unified-package-standard.json')
-        coverage = read_json(root / '06_GOVERNANCE/control-coverage.json')
         invariants = read_json(root / '06_GOVERNANCE/invariant-coverage.json')
         trace = read_json(root / '07_CONTRACTS/examples/project-trace.example.json')
         semantic_lint(root, std, errors)
-        check_controls(root, std, coverage, errors)
+        check_controls(root, std, errors)
         check_invariants(root, std, invariants, errors)
         check_artifact_ownership(root, std, errors)
         check_doc_reachability(root, errors)
@@ -1263,6 +1264,7 @@ def main(argv=None):
         return 1
     errors = check_all(ROOT)
     user_checks = []
+    prior_compared = False
     if args.project_trace or args.project_registry or args.project_lifecycle:
         schema_errors = []
         schemas = load_schemas(ROOT,schema_errors)
@@ -1273,7 +1275,9 @@ def main(argv=None):
             try:
                 data = read_json(Path(filename))
                 valid_schema_instance(schemas,schema_name,data)
-                if typ == 'project_trace': check_trace(data,local_errors, read_json(Path(args.prior_project_trace)) if args.prior_project_trace else None)
+                if typ == 'project_trace':
+                    check_trace(data,local_errors, read_json(Path(args.prior_project_trace)) if args.prior_project_trace else None)
+                    prior_compared = bool(args.prior_project_trace) and not local_errors
                 if typ == 'project_registry': check_project_registry(data,local_errors,read_json(Path(args.project_trace)) if args.project_trace else None)
                 if typ == 'project_lifecycle':
                     mat=read_json(ROOT/'03_LIFECYCLE/lifecycle-matrix.json')
@@ -1319,6 +1323,7 @@ def main(argv=None):
     if args.project_registry:
         sink.say('registry_accountable_owner=' + ('CHECKED' if args.project_trace and not static_errors else 'UNASSESSED'))
     sink.say('external_project_trace=' + ('CHECKED' if args.project_trace else 'NOT_SUPPLIED'))
+    if prior_compared: sink.say('prior_project_trace=COMPARED')
     sink.say('external_project_lifecycle=' + ('CHECKED' if args.project_lifecycle else 'NOT_SUPPLIED'))
     actual_trace = read_json(ROOT / PACKAGE_TRACE)
     sink.say('package_loop=' + ('CLOSED' if actual_trace.get('feedback') and all(x.get('status') == 'CLOSED' for x in actual_trace['feedback']) else 'OPEN'))

@@ -49,3 +49,6 @@ jobs:
             args+=(--prior-project-trace .validation/prior-trace.json)
           fi
           python -I tools/validate_package.py "${args[@]}"
+          if [ -n "$BASE_SHA" ]; then
+            grep -qx 'prior_project_trace=COMPARED' .validation/ci-evidence.txt
+          fi

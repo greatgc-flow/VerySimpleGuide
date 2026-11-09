@@ -1,5 +1,15 @@
 # Design Decisions
 
+## 1.9.4 Single-home and ledger diet
+
+- Peer debate (cx, ag, cc; two rounds, unanimous on items 1, 2, 4; majority plus cx acceptance on 5).
+- Rule homes: `ARTIFACT_AUTHORITY.md` states that each rule has exactly one home; standards own product and runtime contracts, and a method guide may be the single home of a process obligation that no standard states. Moved the remaining runtime rules (recovery journals, derived-truth promotion, prototype authority) into their standards; orchestration knobs are now advisory under the standard's declared-bounds rule.
+- Ledger: merged `control-coverage.json` into `unified-package-standard.json`; each control now carries its standard references and verification obligation. Checks keep their strength.
+- Validator: every relative Markdown link must resolve (caught a stale link to the merged ledger).
+- CI: replaced the string-only workflow test; the validator prints `prior_project_trace=COMPARED`, and pull-request CI requires that line.
+- README navigation is a folder table.
+- Kept on purpose: a single validator file (no consumer needs a module boundary yet).
+
 ## 1.9.3 Cross-audit closure
 
 - Recursive MECE audit (vertical: rule to evidence to reentry; horizontal: counts, routing, inventory, CI) by independent peers; 13 findings plus README reachability: all resolved; F8 is a recorded non-goal.
