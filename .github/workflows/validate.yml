@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'
   pull_request:
   workflow_dispatch:
 
@@ -52,3 +54,11 @@ jobs:
           if [ -n "$BASE_SHA" ]; then
             grep -qx 'prior_project_trace=COMPARED' .validation/ci-evidence.txt
           fi
+      - name: Publish release archive SHA-256
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          digest=$(git archive --format=tar.gz HEAD | sha256sum | cut -d' ' -f1)
+          line="archive_sha256=$digest commit=$(git rev-parse HEAD) ref=$GITHUB_REF"
+          echo "$line"
+          echo "$line" >> "$GITHUB_STEP_SUMMARY"

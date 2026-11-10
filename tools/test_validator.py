@@ -13,7 +13,7 @@ if _TOOLS_DIR not in sys.path:
 def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=None):
     # Imported only after main validator loads successfully; no mutation to product files.
     from validate_package import (check_trace, check_controls, valid_schema_instance, check_format_checkers,
-                                  valid_relative_path, resolve_safe_evidence_path, check_manifest, load_schemas, check_invariants, check_lifecycle_models, check_project_lifecycle, check_artifact_ownership, check_project_registry)
+                                  valid_relative_path, resolve_safe_evidence_path, load_schemas, check_invariants, check_lifecycle_models, check_project_lifecycle, check_project_registry)
     from suggest_guidance import select as select_guidance
     from jsonschema import FormatChecker, ValidationError
     errors = []
@@ -105,7 +105,7 @@ def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=
     for path in ('../secret.txt','/tmp/other.txt','A\\B','C:/absolute.txt','a//b','./a','a/.','a/'):
         count+=1
         if valid_relative_path(path):errors.append('negative-test-accepted-invalid:unsafe-path:'+path)
-    for bad_ev,inps in (('MANIFEST.json',()),('06_GOVERNANCE/unified-package-standard.json',()),('.validation/../MANIFEST.json',()),('../outside.txt',()),('.validation',()),('.validation/input_alias.json',('.validation/input_alias.json',))):
+    for bad_ev,inps in (('README.md',()),('06_GOVERNANCE/unified-package-standard.json',()),('.validation/../README.md',()),('../outside.txt',()),('.validation',()),('.validation/input_alias.json',('.validation/input_alias.json',))):
         count+=1
         try:
             resolve_safe_evidence_path(bad_ev,root=root,input_paths=inps)
@@ -278,23 +278,6 @@ def run_negative_suite(root, include_fs=True, require_fs_tests=False, fs_report=
     bad['feedback'][0]['status']='OPEN';bad['feedback'][0]['next_action']='fix regression'
     bad['feedback'][0]['history'].append({'event':'REOPEN','at':'2026-10-16T02:00:00Z','actor':'lead','reason':'regression'})
     negative_json('feedback-reopen-without-prior-evidence','project-trace.schema.json',bad)
-    ledger=json.loads((root/'MANIFEST.json').read_text(encoding='utf-8'))
-    bad=copy.deepcopy(ledger);bad['files'][0]['rogue_ownership']='not allowed'
-    negative_json('manifest-reject-unknown-field','manifest.schema.json',bad)
-    bad=copy.deepcopy(ledger);bad['files'].pop();flaws=[];check_artifact_ownership(root,std,flaws,bad);count+=1
-    if not any('artifact-ownership-inventory-diff' in x for x in flaws):errors.append('negative-test-accepted-invalid:missing-artifact-owner')
-    bad=copy.deepcopy(ledger);bad['files'][0]['primary_control']='UPS-NOBODY';flaws=[];check_artifact_ownership(root,std,flaws,bad);count+=1
-    if not any('artifact-invalid-primary-owner' in x for x in flaws):errors.append('negative-test-accepted-invalid:invalid-artifact-owner')
-    bad=copy.deepcopy(ledger)
-    for item in bad['files']:
-        if item['path']=='02_STANDARD/CLI_STANDARD.md':
-            item['primary_control']='UPS-COMP'
-            break
-    flaws=[];check_artifact_ownership(root,std,flaws,bad);count+=1
-    if not any('artifact-primary-standard-control-mismatch' in x for x in flaws):
-        errors.append('negative-test-accepted-invalid:cross-control-normative-owner')
-    bad=copy.deepcopy(ledger);bad['files'].append(copy.deepcopy(bad['files'][0]));flaws=[];check_artifact_ownership(root,std,flaws,bad);count+=1
-    if not any('artifact-ownership-duplicate' in x for x in flaws):errors.append('negative-test-accepted-invalid:duplicate-artifact')
     bad=copy.deepcopy(registry);bad['components'][0]['id']=bad['components'][1]['id'];flaws=[];check_project_registry(bad,flaws);count+=1
     if not any('duplicate-component-id' in x for x in flaws):errors.append('negative-test-accepted-invalid:duplicate-component')
     # Positive project 12+10+cell override.
@@ -585,7 +568,7 @@ def run_filesystem_fixtures():
             root = Path(tmp_dir)
             val = root / '.validation'
             val.mkdir()
-            canon = root / 'MANIFEST.json'; canon.write_text('{}', encoding='utf-8')
+            canon = root / 'README.md'; canon.write_text('{}', encoding='utf-8')
             inp = val / 'input.json'; inp.write_text('{}', encoding='utf-8')
             other = val / 'other.txt'; other.write_text('x', encoding='utf-8')
             fixtures = [
@@ -613,7 +596,7 @@ def run_filesystem_fixtures():
                     else: stats['skipped'] += 1
                     continue
                 stats['executed'] += 1
-                rel = '.validation/' + name + ('/MANIFEST.json' if name == 'junction' else '')
+                rel = '.validation/' + name + ('/README.md' if name == 'junction' else '')
                 try:
                     resolve_safe_evidence_path(rel, root=root, input_paths=inputs)
                     errors.append('negative-test-accepted-invalid:' + name)
@@ -860,6 +843,20 @@ class AuditClosureTests(unittest.TestCase):
         self.validator.check_invariants(self.root, std, index, errors)
         self.assertTrue(any('invariant-home-control-unmapped' in e for e in errors))
 
+    def test_invariant_home_authority_comes_from_path_role_not_a_ledger(self):
+        std = self.validator.read_json(self.root / '06_GOVERNANCE/unified-package-standard.json')
+        index = self.validator.read_json(self.root / '06_GOVERNANCE/invariant-coverage.json')
+        read_json = self.validator.read_json
+        def no_ledger(path):
+            self.assertNotEqual('MANIFEST.json', Path(path).name)
+            return read_json(path)
+        guide = next(str(p.relative_to(self.root).as_posix()) for p in (self.root / '01_METHOD').glob('*.md'))
+        index['invariants'][0]['standard_ref'] = guide
+        errors = []
+        with patch.object(self.validator, 'read_json', new=no_ledger):
+            self.validator.check_invariants(self.root, std, index, errors)
+        self.assertIn('invariant-nonauthoritative-home:' + index['invariants'][0]['invariant_id'], errors)
+
     def test_canonical_controls_require_coverage_fields(self):
         from jsonschema import ValidationError
         std = self.validator.read_json(self.root / '06_GOVERNANCE/unified-package-standard.json')
@@ -905,27 +902,6 @@ class AuditClosureTests(unittest.TestCase):
                 self.validator.check_controls(self.root, bad, errors)
                 expected = 'standard-owner-unmapped' if mutation == 'unmapped-standard' else 'control-coverage-incomplete'
                 self.assertTrue(any(expected in error for error in errors), errors)
-
-    def test_artifact_related_controls_follow_canonical_coverage(self):
-        std = self.validator.read_json(self.root / '06_GOVERNANCE/unified-package-standard.json')
-        next(control for control in std['controls'] if control['id'] == 'UPS-SCHEMA')['standard_refs'] = []
-        errors = []
-        self.validator.check_artifact_ownership(self.root, std, errors)
-        self.assertIn('artifact-related-standard-control-mismatch:02_STANDARD/UNIFIED_STANDARD.md', errors)
-
-    def test_reseal_uses_canonical_control_coverage_without_writing(self):
-        import reseal_manifest
-        standard_path = self.root / '06_GOVERNANCE/unified-package-standard.json'
-        std = self.validator.read_json(standard_path)
-        std['controls'][0].setdefault('standard_refs', []).append('02_STANDARD/UNIFIED_STANDARD.md')
-        read_text = Path.read_text
-        def read(path, *args, **kwargs):
-            return json.dumps(std) if path == standard_path else read_text(path, *args, **kwargs)
-        with patch.object(Path, 'read_text', new=read), patch.object(Path, 'write_text', autospec=True) as write:
-            reseal_manifest.reseal(self.root)
-        manifest = json.loads(write.call_args.args[1])
-        row = next(row for row in manifest['files'] if row['path'] == '02_STANDARD/UNIFIED_STANDARD.md')
-        self.assertIn('UPS-CLI', row['related_controls'])
 
     def test_scoped_requirement_requires_first_primary_control(self):
         trace = copy.deepcopy(self.trace)
