@@ -19,9 +19,17 @@
       "related_controls": []
     },
     {
+      "path": ".github/dependabot.yml",
+      "sha256": "883b95e3be554fbadd92b315e4a8c6ea6ca688b64924e22dd61222b07f683507",
+      "size_bytes": 118,
+      "role": "VALIDATION_TOOL",
+      "primary_control": "UPS-TEST",
+      "related_controls": []
+    },
+    {
       "path": ".github/workflows/validate.yml",
-      "sha256": "88121850a140f09b2010cb3755c9a731a829607346521a8722b72b77d1c7c9a7",
-      "size_bytes": 1745,
+      "sha256": "b25f42a957328f221b9c192d2d5e9d1c721df30d8dccc30664ddcc0738fb16b4",
+      "size_bytes": 1753,
       "role": "VALIDATION_TOOL",
       "primary_control": "UPS-TEST",
       "related_controls": []
@@ -648,8 +656,8 @@
     },
     {
       "path": "CHANGELOG.md",
-      "sha256": "15f3c2c2aaf510969862634f2f3ff09ace824171bddeeabd70bad8db0175b1c0",
-      "size_bytes": 10227,
+      "sha256": "79aeae4ebb6a6e03e0390c4464fab05fd70619159765af71fc9aa93ef4bc30b4",
+      "size_bytes": 10220,
       "role": "HUMAN_GUIDE",
       "primary_control": "UPS-DOC",
       "related_controls": []
