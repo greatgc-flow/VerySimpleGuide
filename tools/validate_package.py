@@ -4,7 +4,7 @@ Python 3.8+ and jsonschema >= 4.18. All visible output is mirrored verbatim to e
 Pure validation: no writes to canonical package files; evidence written to ignored .validation area.
 """
 from pathlib import Path, PurePosixPath
-import argparse, copy, hashlib, json, os, re, sys
+import argparse, copy, json, os, re, sys
 from datetime import datetime
 
 sys.dont_write_bytecode = True
@@ -25,9 +25,6 @@ ROOT = Path(__file__).resolve().parents[1]
 VERSION = json.loads((ROOT / '06_GOVERNANCE/unified-package-standard.json').read_text(encoding='utf-8'))['version']
 PACK_NAME = 'VerySimpleGuide'
 PACKAGE_TRACE = '04_ASSURANCE/package-trace.json'
-# MANIFEST.json is explicitly self-excluded from its own file inventory;
-# manifest digests detect accidental changes, not cryptographic provenance.
-EXCLUDED = {'MANIFEST.json'}
 
 
 def _is_link_or_reparse(path_obj):
@@ -68,7 +65,7 @@ def resolve_safe_evidence_path(raw_path, root=ROOT, input_paths=()):
     if target.exists():
         if target.is_dir():
             raise ValueError('Evidence path cannot be a directory: ' + raw_str)
-        for canon_rel in file_inventory(root_real) | set(EXCLUDED):
+        for canon_rel in file_inventory(root_real):
             canon_path = root_real / canon_rel
             if canon_path.exists():
                 try:
@@ -123,14 +120,6 @@ class EvidenceSink:
         target.write_text('\n'.join(self.lines) + '\n', encoding='utf-8')
 
 
-def sha256(path):
-    h = hashlib.sha256()
-    with open(path, 'rb') as f:
-        for chunk in iter(lambda: f.read(1024 * 1024), b''):
-            h.update(chunk)
-    return h.hexdigest()
-
-
 def read_json(path):
     return json.loads(path.read_text(encoding='utf-8'))
 
@@ -165,43 +154,10 @@ def file_inventory(root):
         if not path.is_file():
             continue
         rel = path.relative_to(root).as_posix()
-        if rel.startswith('.validation/') or rel in EXCLUDED or any(part in {'.git', '__pycache__', '.venv', 'venv', '.pytest_cache', '.mypy_cache', '.ruff_cache', '.idea', '.vscode', 'dist', 'build'} for part in path.relative_to(root).parts) or path.name.endswith(('.pyc', '.pyo')):
+        if rel.startswith('.validation/') or any(part in {'.git', '__pycache__', '.venv', 'venv', '.pytest_cache', '.mypy_cache', '.ruff_cache', '.idea', '.vscode', 'dist', 'build'} for part in path.relative_to(root).parts) or path.name.endswith(('.pyc', '.pyo')):
             continue
         out.add(rel)
     return out
-
-
-def check_manifest(root, errors):
-    try:
-        manifest = read_json(root / 'MANIFEST.json')
-        assert manifest.get('package') == PACK_NAME
-        assert manifest.get('standard_version') == VERSION
-        records = manifest['files']
-        assert isinstance(records, list)
-    except (OSError, json.JSONDecodeError, AssertionError, KeyError, TypeError) as exc:
-        errors.append('bad-manifest:' + str(exc))
-        return set()
-    declared = set()
-    for item in records:
-        rel = item.get('path')
-        if rel in declared:
-            errors.append('manifest-duplicate:' + str(rel))
-        declared.add(rel)
-        try:
-            target = safe_target(root, rel)
-            if not target.is_file():
-                errors.append('manifest-missing:' + rel)
-                continue
-            if sha256(target) != item.get('sha256'):
-                errors.append('manifest-sha:' + rel)
-            if target.stat().st_size != item.get('size_bytes'):
-                errors.append('manifest-size:' + rel)
-        except (OSError, TypeError, ValueError) as exc:
-            errors.append('manifest-unsafe:' + str(exc))
-    expected = file_inventory(root)
-    if declared != expected:
-        errors.append('manifest-inventory-diff:missing=' + repr(sorted(expected-declared)) + ';extra=' + repr(sorted(declared-expected)))
-    return declared
 
 
 def _collect_schema_formats(obj, out=None):
@@ -388,10 +344,9 @@ def check_invariants(root, std, index, errors):
     controls = {x['id'] for x in std.get('controls', [])}
     if index.get('standard_version') != VERSION or len(expected) != len(actual) or set(actual)!=set(expected) or len(actual)!=len(set(actual)):
         errors.append('invariant-coverage-incomplete')
-    roles = {x['path']: x.get('role') for x in read_json(root / 'MANIFEST.json')['files']}
     coverage = {x['id']: set(x.get('standard_refs', [])) for x in std.get('controls', [])}
     for row in rows:
-        if roles.get(row.get('standard_ref')) not in ('NORMATIVE_SOURCE', 'MACHINE_SSOT'):
+        if expected_role_for_path(str(row.get('standard_ref'))) not in ('NORMATIVE_SOURCE', 'MACHINE_SSOT'):
             errors.append('invariant-nonauthoritative-home:' + str(row.get('invariant_id')))
         if row.get('primary_control') not in controls:
             errors.append('invariant-orphan-control:' + str(row.get('invariant_id')))
@@ -493,7 +448,7 @@ def expected_role_for_path(rpath):
         return 'NORMATIVE_SOURCE'
     if rpath.startswith(('tools/', '.github/')):
         return 'VALIDATION_TOOL'
-    return None
+    return 'HUMAN_GUIDE'
 
 
 def check_doc_reachability(root, errors):
@@ -517,48 +472,6 @@ def check_doc_reachability(root, errors):
                 seen.add(nxt); todo.append(nxt)
     for name in sorted(docs - seen):
         errors.append('doc-unreachable-from-entry:' + name)
-
-
-def check_artifact_ownership(root, std, errors, ledger_override=None):
-    """All tracked semantic artifacts in MANIFEST.json must have a valid Control owner and authority role."""
-    ledger = ledger_override if ledger_override is not None else read_json(root / 'MANIFEST.json')
-    control_ids = {c['id'] for c in std.get('controls',[])}
-    roles = {'NORMATIVE_SOURCE','MACHINE_SSOT','HUMAN_GUIDE','GENERATED_VIEW',
-             'EXAMPLE','REFERENCE_CATALOG','ASSURANCE_EVIDENCE','VALIDATION_TOOL'}
-    records = ledger.get('files', ledger.get('artifacts', []))
-    paths = [x.get('path') for x in records]
-    if len(paths)!=len(set(paths)):
-        errors.append('artifact-ownership-duplicate')
-    actual = file_inventory(root)
-    standard_claims = {}
-    for owner in std.get('controls',[]):
-        for referenced_path in owner.get('standard_refs',[]):
-            standard_claims.setdefault(referenced_path,set()).add(owner.get('id'))
-    for row in records:
-        name=row.get('path','')
-        if name.startswith('02_STANDARD/'):
-            claimed = standard_claims.get(name, set())
-            if row.get('primary_control') not in claimed:
-                errors.append('artifact-primary-standard-control-mismatch:'+name)
-            expected_related = sorted(claimed - {row.get('primary_control')})
-            if sorted(row.get('related_controls', [])) != expected_related:
-                errors.append('artifact-related-standard-control-mismatch:'+name)
-    if set(paths)!=actual:
-        errors.append('artifact-ownership-inventory-diff:missing='+repr(sorted(actual-set(paths)))+';extra='+repr(sorted(set(paths)-actual)))
-    for row in records:
-        rpath = row.get('path','')
-        if row.get('primary_control') not in control_ids:
-            errors.append('artifact-invalid-primary-owner:'+str(rpath))
-        if row.get('role') not in roles:
-            errors.append('artifact-invalid-role:'+str(rpath))
-        expected_role = expected_role_for_path(rpath)
-        if expected_role and row.get('role') != expected_role:
-            errors.append('artifact-authority-role-mismatch:'+str(rpath))
-        others = row.get('related_controls',[])
-        if not isinstance(others,list) or any(x not in control_ids or x==row.get('primary_control') for x in others) or len(set(others))!=len(others):
-            errors.append('artifact-invalid-secondary-owners:'+str(rpath))
-        if rpath not in actual:
-            errors.append('artifact-unknown-path:'+str(rpath))
 
 
 def duplicate_check(items, label, errors):
@@ -1154,7 +1067,7 @@ def semantic_lint(root, std, errors):
     if len(set(std.get('invariants',[])))!=len(std.get('invariants',[])):errors.append('duplicate-invariants')
     for fp in root.rglob('*.md'):
         rel_md = fp.relative_to(root).as_posix()
-        if rel_md.startswith('07_AUDIT/') or rel_md == 'CHANGELOG.md':
+        if rel_md == 'CHANGELOG.md':
             continue
         text = fp.read_text(encoding='utf-8')
         for m in re.findall(r'VS-UNIFIED-PACKAGE-STANDARD\s+([0-9]+\.[0-9]+(?:\.[0-9]+)?)', text):
@@ -1183,7 +1096,6 @@ def check_package_trace(root, trace, errors):
 
 def check_all(root):
     errors = []
-    check_manifest(root, errors)
     try:
         std = read_json(root / '06_GOVERNANCE/unified-package-standard.json')
         invariants = read_json(root / '06_GOVERNANCE/invariant-coverage.json')
@@ -1191,15 +1103,10 @@ def check_all(root):
         semantic_lint(root, std, errors)
         check_controls(root, std, errors)
         check_invariants(root, std, invariants, errors)
-        check_artifact_ownership(root, std, errors)
         check_doc_reachability(root, errors)
         schemas = load_schemas(root, errors)
         if schemas:
             check_vocabularies(std, schemas, errors)
-            try:
-                valid_schema_instance(schemas,'manifest.schema.json',read_json(root/'MANIFEST.json'))
-            except (ValueError,KeyError,ValidationError,OSError,json.JSONDecodeError) as exc:
-                errors.append('invalid-manifest-schema:'+str(exc)[:180])
             try:
                 valid_schema_instance(schemas,'unified-package-standard.schema.json',std)
             except (ValueError,KeyError,ValidationError,OSError,json.JSONDecodeError) as exc:
@@ -1329,8 +1236,6 @@ def main(argv=None):
     sink.say('package_loop=' + ('CLOSED' if actual_trace.get('feedback') and all(x.get('status') == 'CLOSED' for x in actual_trace['feedback']) else 'OPEN'))
     sink.say('lifecycle_matrix=12x10')
     sink.say('project_classification=12_stages+10_concerns+optional_overrides')
-    if not errors:
-        sink.say('artifact_ownership=CHECKED')
     assurance = 'FAIL' if errors else 'PASS' if neg_result == 'PASS' else 'NOT_EVALUATED'
     sink.say('package_assurance=' + assurance)
     for result in user_checks: sink.say(result)

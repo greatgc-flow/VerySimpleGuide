@@ -41,7 +41,7 @@ Evidence output belongs under `.validation/`. JSON examples illustrate contracts
 
 [CHANGELOG.md](CHANGELOG.md) retains durable design decisions.
 
-Applicable safety and authority responsibilities remain binding; control organization, language, OS, cloud and tooling are project choices under [open technology principles](01_METHOD/OPEN_TECHNOLOGY_PRINCIPLES.md). MANIFEST.json is the sole file inventory and excludes itself; hashes detect accidental change, not provenance.
+Applicable safety and authority responsibilities remain binding; control organization, language, OS, cloud and tooling are project choices under [open technology principles](01_METHOD/OPEN_TECHNOLOGY_PRINCIPLES.md). Git is the file inventory; release archives come from `git archive` of a tag, and CI publishes the archive SHA-256. The digest detects accidental change, not provenance.
 
 Contribute via [CONTRIBUTING.md](CONTRIBUTING.md); report vulnerabilities per [SECURITY.md](SECURITY.md).
 

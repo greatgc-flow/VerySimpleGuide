@@ -1,4 +1,4 @@
-# Unified Package Standard 1.9.4
+# Unified Package Standard 1.9.5
 
 Applicable semantic responsibilities are binding; organizing them as fifteen controls is a default under [open technology principles](../01_METHOD/OPEN_TECHNOLOGY_PRINCIPLES.md). `primary_control` identifies the package semantic control domain; project `owner` identifies accountable decision authority. Artifact maintainership grants no acceptance authority. Discovery/funding mappings assign document/control responsibility, not business authority.
 
@@ -24,4 +24,4 @@ A shared concern, lifecycle stage or lifecycle concern has exactly one primary C
 
 For a new requirement, first identify the existing owner's scope and verification obligation. Reuse an existing Control before adding a new one, but do not force an uncovered responsibility into an unsuitable Control. A demonstrated ownership gap may justify a versioned extension, split or merge using [`EVOLUTION_POLICY.md`](../06_GOVERNANCE/EVOLUTION_POLICY.md).
 
-Human views must be generated from machine SSOT or covered by explicit drift checks before PASS; review stale statuses, obsolete versions and conflicting descriptions. MANIFEST integrity alone establishes neither semantic correctness nor provenance. Contract/control/taxonomy evolution is permitted through an owned, versioned decision with an observed gap, alternatives, migration, conformance fixtures, evidence/security impact and revisit condition; preserve prior records. Invariant rule homes must be MANIFEST NORMATIVE_SOURCE or MACHINE_SSOT artifacts, never explanatory guides.
+Human views must be generated from machine SSOT or covered by explicit drift checks before PASS; review stale statuses, obsolete versions and conflicting descriptions. An archive digest alone establishes neither semantic correctness nor provenance. Contract/control/taxonomy evolution is permitted through an owned, versioned decision with an observed gap, alternatives, migration, conformance fixtures, evidence/security impact and revisit condition; preserve prior records. Invariant rule homes must be NORMATIVE_SOURCE or MACHINE_SSOT artifacts (roles by path, see [artifact authority](../06_GOVERNANCE/ARTIFACT_AUTHORITY.md)), never explanatory guides.

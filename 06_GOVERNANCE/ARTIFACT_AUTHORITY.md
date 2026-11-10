@@ -1,10 +1,10 @@
 # Artifact Authority and Ownership
 
-- `MANIFEST.json` is the sole package file inventory and authority ledger (`path`, `sha256`, `size_bytes`, `role`, `primary_control`, `related_controls`); `MANIFEST.json` is explicitly self-excluded from its own `files` list.
-- `sha256` and `size_bytes` in `MANIFEST.json` provide **accidental-change detection** (package integrity), **not** cryptographic provenance or authenticity. Provenance requires an independently trusted external digest or signature.
+- Git is the file inventory. Release archives come from `git archive` of a tag, and CI publishes the archive SHA-256 in the workflow step summary. A copied package without Git history can be checked against that digest; the digest is **accidental-change detection**, **not** cryptographic provenance or authenticity. Provenance requires an independently trusted external digest or signature.
+- A file's authority role comes from its path: `expected_role_for_path` in `tools/validate_package.py` maps paths to the roles below, and every path it does not name is `HUMAN_GUIDE`. Invariant homes must resolve to `NORMATIVE_SOURCE` or `MACHINE_SSOT`.
 - `MACHINE_SSOT` owns structured facts; `NORMATIVE_SOURCE` owns contract prose and legal notices; `HUMAN_GUIDE` explains and may be the single home of a method or assurance-process obligation that no standard states, but never a competing state ledger; `GENERATED_VIEW` must match its source generator; `EXAMPLE` demonstrates but never proves actual product behavior; `REFERENCE_CATALOG` is advisory; `ASSURANCE_EVIDENCE` is historic scoped proof; `VALIDATION_TOOL` is reference implementation and workspace tooling.
 - Each rule has exactly one home: `02_STANDARD` owns product and runtime contracts; a guide may summarize a standard rule with a link but must not contradict or weaken it.
-- `primary_control` identifies the package semantic control domain; related Controls may consume a document without co-ownership. Project `owner` in project records identifies accountable decision authority; artifact maintainership grants no acceptance authority.
+- Each standard's owning control is its `standard_refs` entry in `unified-package-standard.json`; related Controls may consume a document without co-ownership. Project `owner` in project records identifies accountable decision authority; artifact maintainership grants no acceptance authority.
 - Cached interpreter outputs (`__pycache__`, `.pyc`) and mutable `.validation` output are not canonical package artifacts; validators must remain deterministic on re-run.
 
 Canonical vocabulary lists in `unified-package-standard.json` own duplicated schema enums. Validation rejects drift, including the canonical schema list constraints.

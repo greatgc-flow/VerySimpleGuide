@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.9.5 Manifest removal (issue #58, targeted option A)
+
+- Removed `MANIFEST.json`, `tools/reseal_manifest.py`, `07_CONTRACTS/schemas/manifest.schema.json`, `check_manifest`, `check_artifact_ownership` and their negative cases. Per-file hashes duplicated Git; 41 of 45 commits only resealed. The ownership mapping was computed from the same `standard_refs` it checked.
+- File inventory is Git. Release archives come from `git archive` of a tag; CI prints and publishes the archive SHA-256 in the step summary (also for `v*` tag pushes). The digest detects accidental change, not provenance.
+- Role authority comes from `expected_role_for_path` (default `HUMAN_GUIDE`); invariant homes must resolve to `NORMATIVE_SOURCE` or `MACHINE_SSOT` by path.
+- The package version lives only in `06_GOVERNANCE/unified-package-standard.json` (`version`); the validator reads it and every other versioned file must match it.
+- Removed the dead `07_AUDIT/` skip. The evidence line `artifact_ownership=CHECKED` is gone.
+- Kept: control and invariant count floors (merging standards changes the floor in the same PR), both trace validations (local `check_all` and the CI `--project-trace` prior comparison), `package-trace.json`, path hardening, reachability, format and drift checks, the negative suite.
+- Deferred: shrinking evidence-path hardening, merging schemas, table-driven negative suite.
+
 ## 1.9.4 Single-home and ledger diet
 
 - Peer debate (cx, ag, cc; two rounds, unanimous on items 1, 2, 4; majority plus cx acceptance on 5).
